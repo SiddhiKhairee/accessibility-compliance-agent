@@ -4,10 +4,26 @@ Resume point: work top to bottom. Don't start a phase until the previous
 phase's deliverable is checked off and verified.
 
 ## Phase 0 — Design & Scoping
-- [ ] Lock v1 WCAG rule set: alt text, color contrast, missing form labels, keyboard-nav traps
-- [ ] Define "critical path" criteria (checkout, login, primary forms) for the Impact Agent
-- [ ] Draft design.md v0 with architecture diagram
-- [ ] **Deliverable:** design.md draft + locked scope
+- [x] Lock v1 WCAG rule set — 9 rules, all fully automated via axe-core, no manual-judgment rules:
+  1. Non-text Content (1.1.1) - image-alt, input-image-alt
+  2. Contrast Minimum (1.4.3) - color-contrast
+  3. Name/Role/Value forms (4.1.2) - label, button-name, aria-input-field-name
+  4. Keyboard (2.1.1) - tabindex checks, keyboard traps
+  5. Language of Page (3.1.1) - html-has-lang, html-lang-valid
+  6. Bypass Blocks (2.4.1) - bypass, skip-link
+  7. Duplicate ARIA/label IDs (4.1.2) - duplicate-id-aria
+  8. Info and Relationships, structural only (1.3.1) - list, listitem, definition-list
+  9. Link Purpose, presence only not quality (2.4.4) - link-name
+- [x] Define "critical path" criteria for the Impact Agent: any page representing a
+      required step in a core user task (transacting, authenticating, searching, or
+      primary navigation), rather than supplementary content. V1 concrete instances:
+      - Checkout / payment flows
+      - Login / auth flows
+      - Primary forms (signup, contact, etc.)
+      - Search (/search or equivalent)
+      - Primary navigation / header
+- [x] Draft design.md v0 with architecture diagram
+- [x] **Deliverable:** design.md draft + locked scope
 
 ## Phase 1 — Detection Engine + Non-Blocking API
 - [ ] Playwright crawler + axe-core detector
