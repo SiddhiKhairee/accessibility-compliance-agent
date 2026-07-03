@@ -1,0 +1,61 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Python (FastAPI, LangGraph, agents) ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# --- Node / React / TypeScript (frontend) ---
+node_modules/
+frontend/dist/
+frontend/build/
+.npm/
+.eslintcache
+*.tsbuildinfo
+
+# --- Playwright ---
+test-results/
+playwright-report/
+playwright/.cache/
+**/screenshots/
+
+# --- Database / local data ---
+*.sqlite3
+*.db
+/pgdata/
+/docker/pgdata/
+
+# --- Local snapshots your crawler saves (raw_html_snapshot_path in schema) ---
+/snapshots/
+/data/raw_html/
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Ollama local model cache (if run outside Docker) ---
+.ollama/
+
+# --- Evaluation artifacts you don't want committed raw ---
+/eval/labeled_raw/
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# --- Claude Code local state (keep CLAUDE.md and PLAN.md, ignore local session cache if any) ---
+.claude/local/
