@@ -38,7 +38,6 @@ playwright/.cache/
 /docker/pgdata/
 
 # --- Local snapshots your crawler saves (raw_html_snapshot_path in schema) ---
-/snapshots/
 /data/raw_html/
 
 # --- Docker ---

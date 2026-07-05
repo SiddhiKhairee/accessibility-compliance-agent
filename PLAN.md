@@ -26,13 +26,13 @@ phase's deliverable is checked off and verified.
 - [x] **Deliverable:** design.md draft + locked scope
 
 ## Phase 1 — Detection Engine + Non-Blocking API
-- [ ] Playwright crawler + axe-core detector
-- [ ] FastAPI endpoint returns scan_id immediately, runs crawl/detect via BackgroundTasks
-- [ ] GET /scan/{id} status endpoint for polling
-- [ ] Document BackgroundTasks limitation in design.md
-- [ ] Defensive crawling: timeouts, skip+log failures, exclude authenticated pages
-- [ ] **Deliverable:** API that accepts a URL, scans async, returns structured violations
-- [ ] **Verify:** run against 2-3 real public URLs, confirm structured output
+- [x] Playwright crawler + axe-core detector
+- [x] FastAPI endpoint returns scan_id immediately, runs crawl/detect via BackgroundTasks
+- [x] GET /scan/{id} status endpoint for polling
+- [x] Document BackgroundTasks limitation in design.md
+- [x] Defensive crawling: timeouts, skip+log failures, exclude authenticated pages
+- [x] **Deliverable:** API that accepts a URL, scans async, returns structured violations
+- [x] **Verify:** run against 2-3 real public URLs, confirm structured output
 
 ## Phase 2 — Multi-Agent Reasoning Layer
 - [ ] LangGraph workflow, exactly 4 nodes:
@@ -81,3 +81,6 @@ phase's deliverable is checked off and verified.
 ---
 ### Session log (append as you go)
 <!-- 2026-07-02: Started Phase 0 -->
+<!-- 2026-07-04: Phase 1 — standalone Playwright load + axe-core detection proofs verified across 7 real sites; added axe-core rule filtering (runOnly) restricted to the locked 9; built real crawler.py (same-domain BFS, max_pages=15, max_depth=2, critical-path URL prioritization, skip+log on failure); documented crawler + rule-filtering design choices in design.md Sections 4b/4c. detector.py still a standalone proof, not yet a real module. -->
+<!-- 2026-07-05: Phase 1 complete — detector.py promoted from standalone proof to real module (LOCKED_RULE_IDS via runOnly, structured Violation dataclasses, one row per rule+element); built FastAPI+Postgres API layer (config.py, db.py, models.py, main.py), Alembic migration for all 8 schema.md tables (+pages.status/failure_reason, +violations.html_snippet/message per decisions logged in docs/schema.md), docker-compose Postgres on host port 5433 (5432 conflicts with a pre-existing native Postgres service on this machine). Verified end-to-end against 3 real URLs: usa.gov (15 pages, 1 violation), news.ycombinator.com (15 pages, 530 violations), example.com (1 page, 0 violations). Confirmed BackgroundTasks non-durability limitation live via kill-mid-scan test. Fixed a datetime timezone bug and an Alembic enum-cleanup gap found during verification. Documented in design.md Section 3 that "keyboard traps" (2.1.1) are not statically detectable and are NOT covered by the `tabindex` rule — v1 only catches the positive-tabindex anti-pattern; flagged so Phase 5 eval doesn't overstate 2.1.1 coverage. -->
+<!-- 2026-07-05: Starting Phase 2 planning next. -->

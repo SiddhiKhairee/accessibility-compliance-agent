@@ -21,7 +21,12 @@ migration, never hand-edited in prod (see CLAUDE.md).
 - `id`
 - `scan_id`
 - `url`
-- `raw_html_snapshot_path`
+- `raw_html_snapshot_path` (nullable: only set for `status="loaded"` pages)
+- `status` (nullable: "loaded" / "failed" — added so every crawled page gets
+  a row, not just successful ones; Phase 4's scan-success-rate metric and
+  Phase 5's evaluation numbers need this traceable to real logged rows,
+  per CLAUDE.md's ban on invented metrics)
+- `failure_reason` (nullable — populated when `status="failed"`)
 
 ## violations
 - `id`
@@ -31,6 +36,10 @@ migration, never hand-edited in prod (see CLAUDE.md).
 - `severity`
 - `confidence`
 - `status` (open / fixed / rejected)
+- `html_snippet` (nullable — added because detector.py already produces this
+  and Phase 2's Developer Agent needs it without re-deriving it from the raw
+  HTML snapshot)
+- `message` (nullable — added for the same reason as `html_snippet`)
 
 ## impact_assessments
 - `id`

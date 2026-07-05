@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: accessibility_agent_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: accessibility_agent
+      POSTGRES_PASSWORD: accessibility_agent_dev_password
+      POSTGRES_DB: accessibility_agent
+    ports:
+      - "5433:5432"
+      # Host port 5433, not 5432: a pre-existing native Windows postgres.exe
+      # service already owns 5432 on this machine (unrelated to this
+      # project) and was silently intercepting connections meant for this
+      # container. Remapping avoids touching that other service.
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U accessibility_agent -d accessibility_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
