@@ -376,3 +376,260 @@ hand-edited in prod.
 
 No orgs/users/multi-tenancy tables — no real concurrent users to justify
 the complexity.
+
+## 7. Phase 2 — LLM stack change: local Ollama → Groq-hosted `qwen/qwen3-32b`
+
+CLAUDE.md originally locked "LLM: local via Ollama (zero cost)." This
+changed during Phase 2 planning, tested rather than guessed, and is
+recorded here per CLAUDE.md's own rule that tech-stack substitutions must
+be flagged, not silently swapped in.
+
+**Why local Ollama was dropped.** This dev machine has only ~2.2GB RAM
+free of 16GB total (Docker's WSL VM, IDE, browsers already consuming the
+rest, confirmed via `Get-CimInstance`). A local 7B-class model's ~5.5-6.5GB
+resident footprint risked swap-thrashing alongside Docker/Postgres/
+Playwright during an actual scan, not just slow inference.
+
+**Why Groq, and why `qwen/qwen3-32b` specifically.** Evaluated Cerebras's
+free tier first (checked directly against `inference-docs.cerebras.ai`,
+not aggregator blogs) — no Qwen model on its catalog, and a 5 requests/
+minute cap too slow for this pipeline's sequential per-violation calls.
+Ran a real side-by-side benchmark (one live Reviewer-agent call, same real
+usa.gov violation) between `qwen/qwen3-32b` and `openai/gpt-oss-120b` on
+Groq's free tier: identical quality (0.95 confidence, correct verdict,
+both). Chose qwen3-32b because Groq's 30 RPM cap on gpt-oss-120b is
+*tighter* than gpt-oss's own real speed (856ms/call), wasting its speed
+advantage, while qwen3-32b's 60 RPM cap is *looser* than its own real
+speed (1456ms/call) — its real bottleneck is its own latency, netting more
+effective throughput despite being individually slower per call. qwen3-32b
+also has 2.5x gpt-oss's daily token budget.
+
+**Real, not hypothetical, cost:** genuinely free (no card, verified
+against Groq's own docs), but a third-party API — page HTML/violation
+content leaves the machine. Acceptable since the project only ever
+touches public site content.
+
+**Correction discovered during live testing, not planning:** the RPM-based
+throughput analysis above missed the actual binding constraint. Groq's
+real limit for this account is **6,000 tokens/minute**, not requests/
+minute — confirmed via the `x-ratelimit-limit-tokens` response header. At
+~650 tokens per real call, that's roughly 9 calls/minute sustainable, far
+tighter than the ~41 calls/minute the RPM-only analysis predicted. Running
+a real scan against 43 real violations (W3C's WAI "bad" accessibility demo
+page — a real public page built for testing a11y tooling) confirmed this
+directly: after the first few calls, every subsequent call hit a real 429
+until the per-minute token window rolled over. Noted here as a real,
+measured limitation for Phase 3/5 capacity planning, not a projection.
+
+**Non-strict JSON mode, not strict structured output.** Groq's strict,
+schema-guaranteed structured-output mode (`response_format: json_schema,
+strict: true`) is only supported on gpt-oss-20b/120b, not qwen3-32b
+(confirmed against Groq's own structured-outputs docs). `reasoning_format:
+"hidden"` (which suppresses qwen3's `<think>...</think>` trace from the
+visible response) and strict structured output are unrelated features —
+hiding the reasoning trace does not grant a format guarantee. Phase 2 uses
+non-strict `{"type": "json_object"}` plus real Pydantic validation; a
+validation failure is a real, fully-handled failure mode (see below), not
+a bug.
+
+**Correction, found during Phase 1+2 coordination testing (not at initial
+Phase 2 verification):** the claim above originally said non-strict mode
+"guarantees valid JSON syntax, not schema conformance" — implying we'd
+always get *something* parseable back to validate against our schema.
+That's not quite what happens. Groq validates the model's raw generation
+server-side, and if that check fails, it doesn't hand us the broken text
+— it rejects the *entire request* with an HTTP 400
+(`code: "json_validate_failed"`) and an empty `failed_generation` field.
+So the real behavior is "valid JSON, or total rejection with zero
+recoverable content" — not "valid JSON, or a malformed string we can at
+least inspect." This is a strictly worse debugging situation than a
+Pydantic `validation_error` (where `raw_content` is captured in full):
+here, `error` only ever contains the generic 400 exception text, since
+`raw_content` never gets populated. Reproduced directly on a real
+`listitem` violation from usa.gov (retried the identical call, failed
+identically) — not a transient blip. Already safe: caught as a non-429
+`httpx.HTTPStatusError`, classified `error_type="http_error"`, that
+violation cleanly aborted with zero partial state, same as any other
+failure. Only 2 data points exist so far — not enough to tell whether
+this is content-dependent or just sampling variance at temperature=0.2,
+so no prompt tuning has been attempted. If `error_type='http_error'`
+shows up at a meaningful rate during Phase 5's per-rule failure-rate
+tracking (Section 9), that's the real trigger to investigate further.
+
+## 8. Phase 2 — reasoning layer architecture
+
+**Exactly 4 LangGraph nodes** (`backend/app/graph.py`), linear edges,
+Reviewer → Impact → Developer → Verifier → END. Verifier is a structural
+stub in Phase 2 (returns `status="pending_verification"`, no LLM call, no
+Playwright re-check) — Phase 3 fills in the real apply-fix-and-reverify
+logic without restructuring the graph.
+
+**Nodes are pure functions over a shared per-violation state dict — none
+of them touch the database.** `main.py`'s `run_scan` invokes the compiled
+graph once per open violation (sequentially — matches Groq's real rate
+limits above) and only commits `violations.confidence`/
+`impact_assessments`/`fixes` together, in one transaction, after the full
+graph succeeds. A failure at any node (Groq timeout, rate limit, malformed
+JSON, schema-validation failure) propagates straight out of
+`graph.ainvoke()` before any DB write happens for that violation — so a
+partially-successful run (e.g. Reviewer and Impact succeed, Developer
+hits a 429) leaves that violation with **zero** rows in
+`impact_assessments`/`fixes`, identical to "not yet processed," never a
+half-written row. Verified live: a real 429 on the Developer node during
+testing left `violations.confidence` null and 0 rows in both
+`impact_assessments` and `fixes` for that violation, confirmed via direct
+`psql` query.
+
+**Impact Agent's URL-pattern heuristic** (`/checkout /cart /payment
+/login /signin /signup /register /contact /search`) runs before any LLM
+call; only ambiguous URLs fall back to the LLM. A pattern match gets a
+deterministic `business_risk_score=1.0` — no LLM judgment needed for a
+definitive match.
+
+**`llm_call_logs` gained three columns in Phase 2:** `is_mock` (bool),
+`error` (Text, full exception + a raw-response snippet, capped at 8000
+chars), `error_type` (small controlled vocabulary: `timeout`,
+`rate_limited`, `http_error`, `json_decode_error`, `validation_error`,
+`unknown`). Every real call logs a row — success or failure — per
+CLAUDE.md's non-optional instrumentation rule; `error_type` is a clean
+categorical field so failure-rate analysis (and Phase 4's planned
+per-agent success% panel) is a `GROUP BY`, not string-parsing exception
+names out of free text.
+
+**Persistent cache is Reviewer-only** (`llm_response_cache` table, keyed
+on sha256 of `agent + wcag_rule + normalized html_snippet`). Not used for
+Developer (its output carries an instance-specific `target_selector` —
+reusing a cached response across two different violations would hand one
+violation another's selector) or Impact's LLM-fallback (which reasons
+about the page URL, not the violating element — a different key shape
+entirely). Both deferred to Phase 3's real cost-optimization scope.
+Normalization is deliberately conservative: whitespace collapse + tag/
+attribute-name lowercasing only, never attribute values or text content
+(several locked rules need real attribute values to reason correctly —
+e.g. `color-contrast`'s inline colors, `html-lang-valid`'s `lang` value).
+Verified live: an identical repeated violation showed `cache_hit=true`
+with `latency_ms=0`/`tokens_used=0` on the second and third calls.
+
+**`LLM_MOCK` env flag** returns canned, schema-valid responses instead of
+calling Groq, for testing graph wiring/DB writes/API shape without
+spending real quota. `is_mock` is never a parameter nodes pass — it's a
+hardcoded literal inside `llm_client.py`'s two private dispatch functions,
+so there's no code path where it could be set wrong. Verified live via the
+real `/scan` endpoint with `LLM_MOCK=true`: 43/43 violations got mock
+confidence/impact/fix, 129/129 `llm_call_logs` rows in that window showed
+`is_mock=true`, zero real Groq calls made.
+
+## 8b. Phase 2 addendum — rate-limit-aware pacing (added after Phase 2's own verification, not part of the original Phase 2 plan)
+
+Running a real scan against 43 real violations (W3C's WAI "bad"
+accessibility demo page) hit repeated Groq 429s almost immediately.
+Reading the response headers revealed the real binding constraint:
+**6,000 tokens/minute** (`x-ratelimit-limit-tokens`), not the ~60 RPM
+figure Section 7's model-choice math was based on. At ~650 tokens/real
+call, that's only ~9 sustainable calls/minute — without pacing, any scan
+past a handful of violations would hit repeated 429s as the *common*
+case rather than the occasional one the per-violation `try/except` was
+designed to absorb, silently losing real violation coverage.
+
+**Fixed immediately, not folded into Phase 3.** Phase 3's planned cost
+optimization (caching, model routing) is about making *fewer* calls; this
+is about not exceeding the rate of calls actually made — a different
+problem, cheap to fix once understood, and not worth leaving broken for
+every large-site test between now and Phase 3.
+
+**Lives entirely in `backend/app/llm_client.py`**, not `run_scan`'s loop.
+`_call_real` already sees every real response; `run_scan`'s loop operates
+per-violation, but one violation can trigger 2-3 real calls across
+Reviewer/Impact/Developer, so pacing has to apply between individual
+calls, not between violations, or three back-to-back calls for one
+violation could still blow the budget before the next violation's pacing
+check ever ran.
+
+**Adaptive, not fixed-delay.** Module-level state (`_remaining_tokens`,
+`_reset_at_monotonic`) is updated from Groq's real headers after every
+real call — success or 429, both carry them. Before a new real call, if
+remaining tokens are below a safety margin (**1,500 tokens** — raised from
+an initial 1,000 after seeing real Developer calls run up to 1,362
+tokens, above that first margin) *and* a reset deadline is known, sleep
+exactly until that deadline; otherwise proceed immediately with zero
+delay. Runs calls back-to-back whenever there's genuine headroom.
+
+**Concurrency-safe via one `asyncio.Lock`** (`_rate_limit_lock`) wrapping
+the pace-check + real HTTP call + state update as one atomic sequence
+(`_make_paced_request`). This project already runs concurrent scans via
+FastAPI `BackgroundTasks` (Phase 1's documented no-shared-browser-pool
+limitation) — without a lock, two concurrent scans could each read "budget
+looks fine" before either updates the shared state. Serializing the
+network call itself costs nothing real: Groq's own ceiling already caps
+achievable throughput to ~9 calls/minute regardless of local concurrency.
+
+**Failure handling is unchanged.** A 429 that still occurs despite pacing
+(clock skew, a burst that slips through) is still caught by `_call_real`'s
+existing `try/except` exactly as before Phase 2 — logged with
+`error_type="rate_limited"`, that violation skipped cleanly. This is a
+proactive layer in front of that handling, not a replacement for it.
+
+**Deliberately not handled:** request-based limits
+(`x-ratelimit-*-requests`). The *observed* bottleneck was tokens/minute,
+not requests/minute — pacing for a constraint that wasn't actually hit
+would be solving a problem not in evidence.
+
+**Verified live, small scale:** two back-to-back calls with healthy budget
+ran in ~1-1.5s each with no pacing delay; a third call correctly detected
+only 35 tokens remaining (well under the margin) and slept 59.61s — the
+exact real reset window Groq reported — before proceeding, successfully
+avoiding a 429 that would otherwise have occurred at that budget level.
+
+**Verified live, full scale — real before/after comparison, not an
+estimate:** re-ran the same 43-violation W3C WAI "bad" demo page scan that
+originally hit 43/43 failed violations unpaced. Paced result: **124 total
+real calls, 118 succeeded, 6 failed (5 `rate_limited` + 1 `http_error`) —
+exactly matching the 6 violations (of 43) that ended up without a
+confidence score.** Every failed call maps to exactly one aborted
+violation with zero downstream calls for it, confirming the "abort on
+first failure, no partial state" design holds under sustained real load,
+not just a single staged failure. Net: **100% → 14% violation failure
+rate** from pacing alone.
+
+*(First pass at this comparison used a wrong time window — a bare
+timestamp compared against a `timestamptz` column got interpreted as UTC
+by Postgres, pulling in hours of unrelated earlier testing and producing
+an inflated, misleading 88-failure count. Caught and corrected before
+reporting; the 124/118/6 figures above use the scan's actual
+`started_at`/`completed_at` UTC bounds.)*
+
+**Margin raised from 1,000 to 1,500 after this run:** Developer calls were
+observed up to 1,362 tokens (Reviewer/Impact stay lower, ~400-980) — above
+the original 1,000 margin, meaning some calls could see a "safe-looking"
+remaining-token count that wasn't actually enough to cover a longer
+Developer response, plausibly explaining part of the residual 6 failures.
+1,500 clears the observed max with real headroom.
+
+**Re-verified at the same full scale with the new margin — real numbers,
+not left as a guess:** re-ran the identical 43-violation scan a third
+time with `TOKEN_SAFETY_MARGIN=1500`. Result: **129/129 real calls
+succeeded, 0 failures of any kind, 43/43 violations got full confidence/
+impact/fix.** Up from 118/124 calls (95%) and 37/43 violations (86%) at
+the 1,000 margin. Closes the loop this section opened: the residual
+failures at 1,000 genuinely were a margin-sizing problem, not some other
+unresolved issue.
+
+## 9. Phase 5 guardrails (decided in Phase 2 planning, enforced when Phase 5 starts)
+
+1. **Hard-refuse, not a warning:** the Phase 5 evaluation runner must
+   check `LLM_MOCK` at startup and fail loudly if true — mock data
+   silently entering real precision/recall/calibration numbers would
+   violate CLAUDE.md's ban on invented metrics.
+2. **Cache stays enabled during Phase 5** (no disable flag — forgetting
+   to re-enable it is a real risk, and the cost savings matter more at
+   30-50-site scale, not less). Instead, EVALUATION.md's confidence-
+   calibration calculation must filter to `cache_hit=false` rows only: a
+   cached judgment reused across pages is still correct for precision/
+   recall, but treating N cache-hit copies of one real judgment as N
+   independent samples would understate real variance and bias
+   calibration numbers toward looking artificially consistent.
+3. **Track and report the `error`/`error_type` failure rate per rule
+   type** in EVALUATION.md. A violation whose reasoning failed never gets
+   a confidence score and is silently absent from whatever sample Phase 5
+   evaluates — if failures aren't uniform across rule types, the eval
+   sample would be systematically biased without this being visible.

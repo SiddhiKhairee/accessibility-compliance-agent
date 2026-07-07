@@ -11,7 +11,14 @@ and requires human approval before opening a real GitHub PR.
 - Agent orchestration: LangGraph — exactly 4 nodes: Reviewer, Impact,
   Developer, Verifier. Do not add a 5th node without an explicit, distinct
   responsibility — node-count bloat is the failure mode to avoid here.
-- LLM: local via Ollama (zero cost — note latency/quality tradeoffs if relevant)
+- LLM: `qwen/qwen3-32b` via Groq's free-tier API (`reasoning_format:
+  "hidden"`, `response_format: {"type": "json_object"}`). Changed from the
+  original local-via-Ollama plan in Phase 2 planning: this machine has only
+  ~2.2GB RAM free of 16GB, making a local 7B+ model a real swap-thrashing
+  risk alongside Docker/Postgres/Playwright. Genuinely free (no card,
+  verified against Groq's own docs), but is a third-party API — page
+  HTML/violation content leaves the machine. Full reasoning logged in
+  `C:\Users\siddh\.claude\plans\delegated-sniffing-lollipop.md`.
 - Backend: FastAPI + BackgroundTasks (non-blocking scan endpoint)
 - DB: PostgreSQL — schema is fixed, see `docs/schema.md` (do not add
   orgs/users/multi-tenancy — no real concurrent users to justify it)

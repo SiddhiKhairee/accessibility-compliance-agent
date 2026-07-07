@@ -24,7 +24,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crawler import DEFAULT_MAX_DEPTH, DEFAULT_MAX_PAGES, crawl_site
 from db import async_session_factory, dispose_engine, get_db, init_engine
-from models import Page, Scan, ScanStatus, Site, Violation, ViolationStatus
+from graph import reasoning_graph
+from models import (
+    Fix,
+    FixFailureReason,
+    FixVerificationStatus,
+    ImpactAssessment,
+    Page,
+    Scan,
+    ScanStatus,
+    Site,
+    Violation,
+    ViolationStatus,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("accessibility_agent")
@@ -51,6 +63,26 @@ class ScanCreateResponse(BaseModel):
     status: ScanStatus
 
 
+class ImpactAssessmentOut(BaseModel):
+    id: int
+    is_critical_path: bool
+    business_risk_score: float | None
+    reasoning_text: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class FixOut(BaseModel):
+    id: int
+    proposed_code_diff: str | None
+    target_selector: str | None
+    verification_status: FixVerificationStatus | None
+    failure_reason: FixFailureReason | None
+    retry_count: int
+
+    model_config = {"from_attributes": True}
+
+
 class ViolationOut(BaseModel):
     id: int
     wcag_rule: str
@@ -60,6 +92,12 @@ class ViolationOut(BaseModel):
     status: ViolationStatus
     html_snippet: str | None
     message: str | None
+    # Phase 2: populated once the reasoning pass completes for this
+    # violation; null if reasoning hasn't run yet or failed (see run_scan's
+    # per-violation error handling — a failure leaves these unset, not
+    # partially set).
+    impact_assessment: ImpactAssessmentOut | None
+    fix: FixOut | None
 
     model_config = {"from_attributes": True}
 
@@ -140,6 +178,8 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
             await db.commit()
         return
 
+    violations_for_reasoning: list[dict] = []
+
     async with async_session_factory() as db:
         for pg in crawled_pages:
             # Every crawled page gets a row now — loaded or failed — so
@@ -170,7 +210,7 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                 )
 
             for v in pg.violations:
-                db.add(Violation(
+                violation_row = Violation(
                     page_id=page_row.id,
                     wcag_rule=v.wcag_rule,
                     element_selector=v.element_selector,
@@ -178,8 +218,58 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                     status=ViolationStatus.open,
                     html_snippet=v.html_snippet,
                     message=v.message,
-                ))
+                )
+                db.add(violation_row)
+                await db.flush()  # need violation_row.id for the reasoning pass below
+                violations_for_reasoning.append({
+                    "id": violation_row.id,
+                    "wcag_rule": violation_row.wcag_rule,
+                    "element_selector": violation_row.element_selector,
+                    "html_snippet": violation_row.html_snippet or "",
+                    "message": violation_row.message or "",
+                    "page_url": page_row.url,
+                })
 
+        await db.commit()
+
+    # Phase 2 reasoning pass: run the 4-node LangGraph sequentially, one
+    # violation at a time — matches Groq's free-tier rate limits and this
+    # project's hardware/quota constraints (see design.md). Each violation
+    # gets its own DB session and exactly one commit, reached only if the
+    # full graph succeeds; a failure at any node propagates out of
+    # `ainvoke()` before anything is written for that violation (see
+    # graph.py / llm_client.py module docstrings — no partial state is
+    # possible by construction, not convention).
+    for v in violations_for_reasoning:
+        try:
+            final_state = await reasoning_graph.ainvoke({"violation": v})
+        except Exception as e:
+            logger.warning("scan=%s violation=%s reasoning failed: %s", scan_id, v["id"], e)
+            continue
+
+        reviewer_result = final_state["reviewer_result"]
+        impact_result = final_state["impact_result"]
+        developer_result = final_state["developer_result"]
+
+        async with async_session_factory() as db:
+            violation_row = await db.get(Violation, v["id"])
+            violation_row.confidence = reviewer_result.confidence_score
+            db.add(ImpactAssessment(
+                violation_id=v["id"],
+                is_critical_path=impact_result.is_critical_path,
+                reasoning_text=impact_result.reasoning_text,
+                business_risk_score=impact_result.business_risk_score,
+            ))
+            db.add(Fix(
+                violation_id=v["id"],
+                proposed_code_diff=developer_result.proposed_code_diff,
+                target_selector=developer_result.target_selector,
+                verification_status=None,
+                retry_count=0,
+            ))
+            await db.commit()
+
+    async with async_session_factory() as db:
         scan = await db.get(Scan, scan_id)
         scan.status = ScanStatus.done
         scan.completed_at = datetime.now(timezone.utc)

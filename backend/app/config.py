@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
     ENVIRONMENT: str = "development"
+    GROQ_API_KEY: str = ""
 
 
 settings = Settings()

@@ -165,13 +165,22 @@ class Violation(Base):
     # Added beyond schema.md's literal column list — see module docstring.
 
     page: Mapped["Page"] = relationship(back_populates="violations")
+    # Phase 2: added now that main.py's run_scan actually queries through
+    # these (GET /scan/{id} needs to surface confidence/impact/fix per
+    # violation). uselist=False since each scan produces fresh Violation
+    # rows (the crawler re-crawls from scratch every scan), so a violation
+    # gets at most one impact_assessment/fix in this design — no unique DB
+    # constraint added for this, so two rows existing would surface as a
+    # loud SQLAlchemy error rather than silently picking one.
+    impact_assessment: Mapped["ImpactAssessment | None"] = relationship(
+        back_populates="violation", uselist=False, lazy="selectin"
+    )
+    fix: Mapped["Fix | None"] = relationship(back_populates="violation", uselist=False, lazy="selectin")
 
 
-# impact_assessments / fixes / approvals / llm_call_logs: FK columns only, no
-# relationship() defined — nothing in Phase 1 queries through them. Phase 2/3
-# authors should pick their own loading strategy (selectin vs joined, etc.)
-# when they actually need one, rather than inheriting an unused default set
-# by this phase.
+# approvals / llm_call_logs: FK columns only, no relationship() defined —
+# nothing queries through them yet. Phase 3/4 authors should pick their own
+# loading strategy when they actually need one.
 
 
 class ImpactAssessment(Base):
@@ -182,6 +191,8 @@ class ImpactAssessment(Base):
     is_critical_path: Mapped[bool] = mapped_column(nullable=False, default=False)
     reasoning_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     business_risk_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    violation: Mapped["Violation"] = relationship(back_populates="impact_assessment")
 
 
 class Fix(Base):
@@ -199,6 +210,8 @@ class Fix(Base):
     )
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     verified_at: Mapped[datetime | None] = mapped_column(_TZ_DATETIME, nullable=True)
+
+    violation: Mapped["Violation"] = relationship(back_populates="fix")
 
 
 class Approval(Base):
@@ -225,4 +238,34 @@ class LlmCallLog(Base):
     model_used: Mapped[str] = mapped_column(String(100), nullable=False)
     cache_hit: Mapped[bool] = mapped_column(nullable=False)
     confidence_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(_TZ_DATETIME, nullable=False)
+    # Added beyond schema.md's literal column list, Phase 2 — see
+    # llm_client.py module docstring for why is_mock is a dedicated column
+    # rather than an overloaded model_used sentinel value.
+    is_mock: Mapped[bool] = mapped_column(nullable=False, default=False)
+    # Full exception type + message + a raw-response snippet, capped at
+    # 8000 chars in llm_client.py before insert (Text has no real storage
+    # cost; the cap just guards against a pathological runaway response).
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Small controlled vocabulary (timeout/rate_limited/http_error/
+    # json_decode_error/validation_error/unknown) kept separate from
+    # `error` so failure-rate analysis is a clean categorical filter, not
+    # string-parsing exception names out of free text.
+    error_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+
+class LlmResponseCache(Base):
+    __tablename__ = "llm_response_cache"
+
+    # Reviewer-agent-only persistent cache (Phase 2 scope). Not used for
+    # Impact/Developer — see llm_client.py module docstring: Developer's
+    # output carries an instance-specific target_selector unsafe to reuse
+    # across violations, and Impact's LLM-fallback reasons about the page
+    # URL, not the violating element, so this key shape doesn't apply to
+    # it. Both are deferred to Phase 3's real cost-optimization scope.
+    id: Mapped[int] = mapped_column(primary_key=True)
+    wcag_rule: Mapped[str] = mapped_column(String(100), nullable=False)
+    # sha256("Reviewer" + wcag_rule + normalized_html_snippet)
+    cache_key: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    response_json: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(_TZ_DATETIME, nullable=False)
