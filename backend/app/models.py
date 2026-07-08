@@ -34,7 +34,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 # offset-aware datetimes" the moment a tz-aware Python datetime is bound to
 # a plain `timestamp without time zone` column — hit and fixed during Phase
 # 1 verification (see PHASE1_COMPLETION_REPORT.md).
-_TZ_DATETIME = DateTime(timezone=True)
+_TZ_DATETIME = DateTime(timezone=False)
 
 
 class Base(DeclarativeBase):
