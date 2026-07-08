@@ -57,7 +57,7 @@ phase's deliverable is checked off and verified.
       chain via a one-line conditional guard added to migrations/env.py so
       a caller-set sqlalchemy.url isn't clobbered back to dev — see
       design.md Section 10)*
-- [ ] 2.5b — Phase 1 regression tests: detector unit tests against static
+- [x] 2.5b — Phase 1 regression tests: detector unit tests against static
       fixture HTML with known, hand-verified violations (not live sites);
       crawler tests (same-domain restriction, max_pages/max_depth capping,
       skip+log-on-failure) against a local test server, not the real
@@ -82,7 +82,33 @@ phase's deliverable is checked off and verified.
 - [ ] **Verify:** CI is green on a clean run, and red when an intentional
       regression is reintroduced
 
+## Phase 2.6 — Detector `reviewOnFail` Gap (backlog, found during 2.5b)
+- [ ] Audit all 9 locked v1 rules (not just `bypass`/`duplicate-id-aria`)
+      for `reviewOnFail: true` in axe-core's rule metadata — confirm
+      whether any other locked rules share this gap, since only 2 were
+      found so far by accident (fixture verification), not via a full audit
+- [ ] Decide how `incomplete`-array results should be handled for
+      `reviewOnFail` rules — e.g. read `incomplete` for just the affected
+      rules, treat them differently from violations (confidence caveat),
+      or some other explicit decision — write the decision and reasoning
+      into design.md before implementing
+- [ ] Implement the decided approach in detector.py
+- [ ] Update/add fixture tests in backend/tests/detector/test_detector.py
+      to reflect the new behavior (the existing known-gap tests will need
+      to change from "asserts absence" to "asserts presence" if the gap
+      gets closed)
+- [ ] Re-verify: `bypass` and `duplicate-id-aria` fixtures that previously
+      asserted absence now correctly surface, with no regressions on the
+      other 7 rules' existing passing tests
+- [ ] **Deliverable:** detector.py reliably surfaces all 9 locked rules, or
+      an explicit, documented reason why any specific rule still can't
+- [ ] **Verify:** full 2.5b test suite still green, plus new assertions for
+      the previously-gapped rules
+
 ## Phase 3 — Fix Verification + Cost Optimization
+**Note:** Phase 3 verification logic should account for Phase 2.6's
+detector `reviewOnFail` findings (see Phase 2.6) before assuming all 9
+locked rules are reachable via `detect_violations()`.
 - [ ] Verification Agent applies fix locally at target selector, re-runs FULL detector
 - [ ] Diff entire before/after violation set (not just the one flagged rule)
 - [ ] Retry-once-then-manual_review logic with failure_reason enum
@@ -254,3 +280,100 @@ phase's deliverable is checked off and verified.
      a real Groq call — that's 2.5c's job once graph/mock regression tests
      exist. 2.5b/c/d/e untouched — no regression tests, no CI YAML, no lint
      tooling added this session. -->
+<!-- 2026-07-07: Phase 2.5b complete — 28 real pytest tests added (26 new +
+     2.5a's original 2), all green: `pytest backend/tests/ -v` →
+     "28 passed" (confirmed stable across 2 consecutive full runs). No real
+     internet, no real Groq, no real dev DB touched — confirmed directly
+     (dev `sites`/`scans` row counts unchanged at 4/15 before and after).
+     Detector: 17 tests (backend/tests/detector/test_detector.py) against
+     16 static HTML fixtures under backend/tests/fixtures/detector_pages/,
+     each hand-run against the real axe-core detector before being trusted
+     as a fixture. 13 fixtures each assert exactly one expected
+     (rule, severity) pair with zero noise from the other 8 locked rules;
+     one clean-page control asserts zero violations; one multi-violation
+     fixture proves one Violation row per (rule, element).
+     Real gap discovered during fixture verification (not previously
+     documented — see design.md Section 3 addendum): `bypass` and
+     `duplicate-id-aria` are marked `reviewOnFail: true` in axe-core's own
+     rule metadata, so a genuine failure of either lands in axe's
+     `incomplete` result array, not `violations` — detector.py's
+     detect_violations() only reads `violations`, so these 2 of 9 locked
+     rules can never produce a Violation row under the current
+     implementation, confirmed via raw axe runs against fixtures that
+     genuinely fail the rule. Codified as known-gap tests rather than
+     fixed (out of scope for a regression-test session; user confirmed this
+     approach). `skip-link` (the other Bypass Blocks rule) resisted several
+     genuine hand-construction attempts this session and was left
+     undetermined rather than asserted on unverified behavior — no fixture
+     added for it.
+     Crawler: 8 tests (backend/tests/crawler/test_crawler.py) against a
+     7-page local fixture site (backend/tests/fixtures/crawler_site/) served
+     by a new stdlib `ThreadingHTTPServer` (backend/tests/fixtures/server.py,
+     no new dependency) — same-domain restriction (external link never
+     resolved, string-compared only), max_depth capping (1 vs 2 vs 3 hops),
+     max_pages capping, priority-pattern queue ordering, and skip+log via
+     two real failure modes: navigation timeout (a monkeypatched-down
+     PAGE_LOAD_TIMEOUT_MS against a /slow endpoint) and connection-refused
+     (an unbound local port) — confirmed during planning that a plain HTTP
+     404 does NOT trigger crawler.py's failure path today (page.goto()
+     doesn't raise on non-2xx), so 404 was deliberately not used as a
+     skip+log trigger.
+     API: 1 test (backend/tests/api/test_scan_roundtrip.py) — real POST
+     /scan → GET /scan/{id} round-trip via httpx's ASGITransport
+     (in-process, no real socket) against main.app, pointed at the test DB
+     by setting DATABASE_URL before main.py's first import (pydantic-
+     settings env-var-over-env-file precedence; no app code touched).
+     Confirmed via starlette source that BackgroundTasks run inside the
+     same ASGI response cycle, so the POST already returns a terminal scan;
+     a bounded-retry poll is still used defensively. Asserts the persisted
+     violation directly against the test DB (not just the API response),
+     and asserts the scan's URL is absent from the real dev DB.
+     Infra fix: `test_engine` (backend/tests/conftest.py) switched from a
+     pooled to a NullPool engine — the pooled version's `pool_pre_ping`
+     failed with a raw `AttributeError` (not a clean DBAPI error it knows
+     how to recover from) when a connection opened early in a session went
+     stale after the many Playwright browser launches 2.5b's detector/
+     crawler tests perform; reproduced directly running the full suite
+     before the fix, resolved after, confirmed stable across 2 full runs.
+     Real bug not guessed: launching Playwright inside a `@pytest.fixture`
+     (async generator, any scope, `async with` or explicit start/stop)
+     hung silently every time (zero output, zero CPU on the spawned
+     chrome-headless-shell processes) — a standalone script outside pytest
+     doing the identical sequence completed in under a second, isolating
+     pytest-asyncio's fixture machinery as the trigger. Fixed by not using
+     a fixture for it at all — a plain helper function called directly from
+     each test body, which never hung. Documented in test_detector.py's
+     module docstring so this isn't rediscovered later.
+     Regression-catch proof: temporarily reverted models.py's
+     `_TZ_DATETIME` to `DateTime(timezone=False)` and applied a real
+     throwaway Alembic migration (test DB only) changing
+     scans.started_at/completed_at back to `timestamp without time zone` —
+     reproducing the exact original mismatch (a code-only attempt first,
+     reverting main.py's datetime.now(timezone.utc) calls to naive, did
+     NOT reproduce it: asyncpg encodes by the DB's actual column type, not
+     the ORM annotation, so that direction is silently fine). With both
+     reverted together, test_scan_roundtrip.py failed with the identical
+     error PHASE1_COMPLETION_REPORT.md recorded:
+     `asyncpg.exceptions.DataError: ... can't subtract offset-naive and
+     offset-aware datetimes`. Reverted models.py, downgraded the test DB
+     via `alembic downgrade` (the project's own tooling, using the same
+     explicit-URL pattern conftest.py uses — the bare CLI defaults to the
+     dev DB via app/config.py and was confirmed to have safely no-opped
+     against it since dev was already at head), deleted the throwaway
+     migration file, then reran the full suite green (28 passed) as final
+     confirmation. Dev DB confirmed untouched throughout (4 sites/15 scans,
+     unchanged before/after the whole session).
+     2.5c/d/e untouched — no Phase 2 reasoning tests, no CI YAML, no lint
+     tooling added this session. -->
+<!-- 2026-07-07: Added Phase 2.6 (backlog, not started) between Phase 2.5
+     and Phase 3, documentation-only — no code, test, or design.md changes
+     this entry. Captures the `bypass`/`duplicate-id-aria` `reviewOnFail`
+     gap found during Phase 2.5b fixture verification (see Phase 2.5b's
+     session-log entry and design.md Section 3) as real follow-up work
+     rather than letting it sit undiscoverable in a completed phase's
+     history: only 2 of the 9 locked rules were checked for this gap, by
+     accident, not via a full audit, so Phase 2.6 starts with auditing all
+     9 before deciding a fix. Added a one-line pointer note at the top of
+     Phase 3 so verification-logic work there doesn't implicitly assume
+     all 9 locked rules are reachable via detect_violations() before this
+     is resolved. -->

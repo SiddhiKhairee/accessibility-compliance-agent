@@ -83,6 +83,30 @@ EVALUATION.md never reports 2.1.1 coverage/precision numbers that read as
 if trap detection happened — per CLAUDE.md, no invented or overstated
 metrics.
 
+**`bypass` and `duplicate-id-aria` (2.4.1 / 4.1.2) can never surface as a
+`Violation` row under the current detector.py, even though they're locked
+v1 rules.** Discovered during Phase 2.5b regression-test fixture
+verification (not previously documented): axe-core marks both rules
+`reviewOnFail: true` in its own rule metadata, meaning a genuine failure of
+either lands in axe's `incomplete` result array, not `violations`.
+`detector.py`'s `detect_violations()` only reads
+`results.response["violations"]`, so no fixture — however constructed —
+can make either rule appear in its output. Confirmed directly: a fixture
+page with no skip-link/heading/landmark, and a fixture with a duplicate id
+referenced via `aria-labelledby`, were both run through a raw axe call and
+genuinely failed, landing in `incomplete` each time (see
+`backend/tests/detector/test_detector.py`'s
+`test_bypass_known_gap_never_surfaces_as_a_violation` and
+`test_duplicate_id_aria_known_gap_never_surfaces_as_a_violation`, which
+codify this as current, observed behavior rather than silently ignoring
+it). Not fixed in 2.5b — that session was scoped to regression tests for
+existing behavior, not new detector logic. A real fix would mean also
+reading axe's `incomplete` array for `reviewOnFail` rules (at minimum for
+these two); flagged here so Phase 3+ doesn't build fix/verification logic
+that implicitly assumes all 9 locked rules are reachable, and so Phase 5's
+EVALUATION.md doesn't report coverage numbers for these two rules that
+overstate what the detector can actually surface.
+
 **Common thread:** every rule in the v1 set has (a) a deterministic
 axe-core check, and (b) a deterministic re-verification path — the
 Verifier Agent can always confirm "violation gone, no new violation
