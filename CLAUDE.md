@@ -26,7 +26,9 @@ and requires human approval before opening a real GitHub PR.
 - Diff viewing: react-diff-viewer
 - GitHub integration: PyGithub (not raw REST calls)
 - Containerization: Docker / Docker Compose (frontend + backend + Postgres only)
-- CI: GitHub Actions — lint + test on every push
+- CI: GitHub Actions — lint + test on every push. Built in Phase 2.5 (see
+  PLAN.md) — not implemented as of Phase 2; do not assume it exists until
+  Phase 2.5 closes.
 
 ## Hard rules
 - No fix ever reaches a PR without an explicit human "Approve & Open PR" click.
@@ -58,8 +60,10 @@ and requires human approval before opening a real GitHub PR.
 
 ## Workflow
 - Follow PLAN.md phase order strictly — Phase 1's detection engine must be
-  solid before Phase 2's multi-agent layer; Phase 3's real fixes must exist
-  before Phase 4's approval UI.
+  solid before Phase 2's multi-agent layer; Phase 2.5's automated test
+  suite + CI must be green before Phase 3's real fixes are built (Phase 3
+  is the highest-risk, most regression-prone code so far); Phase 3's real
+  fixes must exist before Phase 4's approval UI.
 - Start each phase in Plan Mode. Confirm the approach before writing code.
 - After finishing a phase: update PLAN.md checkboxes, run tests, then `/clear`
   before starting the next phase's planning.

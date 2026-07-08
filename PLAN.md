@@ -44,6 +44,37 @@ phase's deliverable is checked off and verified.
 - [x] **Deliverable:** violations carry WCAG confirmation, impact score+reasoning, proposed fix
 - [x] **Verify:** subagent review — confirm exactly 4 nodes, no scope creep *(confirmed: exactly 4 `add_node` calls, linear edges, no hidden subgraph, clean responsibility boundaries, no unnecessary abstraction — full report in session log)*
 
+## Phase 2.5 — Automated Test Suite + CI/CD Pipeline
+- [ ] 2.5a — Test infrastructure: pytest + pytest-asyncio; separate test
+      Postgres (docker-compose override or distinct port — never point
+      tests at the real dev DB); Alembic migrations run against the test DB
+      via fixture setup; `.env.test` with `LLM_MOCK=true` forced (no real
+      Groq key needed in CI)
+- [ ] 2.5b — Phase 1 regression tests: detector unit tests against static
+      fixture HTML with known, hand-verified violations (not live sites);
+      crawler tests (same-domain restriction, max_pages/max_depth capping,
+      skip+log-on-failure) against a local test server, not the real
+      internet; API layer POST /scan → GET /scan/{id} round-trip against
+      test DB
+- [ ] 2.5c — Phase 2 regression tests: graph/node sequence in LLM_MOCK mode
+      (Reviewer → Impact → Developer → Verifier); force a mock failure
+      mid-graph, assert zero rows land in impact_assessments/fixes (the
+      "no partial state" guarantee); cache_hit=true on repeated identical
+      normalized input, plus explicit cases for normalization behavior
+      (whitespace/tag-case only, never attribute values); is_mock/error_type
+      logging — every call path writes a row, including failure paths
+- [ ] 2.5d — CI/CD: `.github/workflows/ci.yml` — Postgres service
+      container, Alembic upgrade, lint (ruff/black), pytest, on every push;
+      CI green is the gate before Phase 3 work begins
+- [ ] 2.5e — Verify & close: confirm the suite actually fails on an
+      intentionally reintroduced bug (e.g. the datetime tz bug from Phase 1)
+      — a suite that can't fail proves nothing; update CLAUDE.md/PLAN.md/
+      design.md to reflect what was actually built
+- [ ] **Deliverable:** a real pytest suite covering Phase 1+2 regressions,
+      running in CI on every push, gating Phase 3
+- [ ] **Verify:** CI is green on a clean run, and red when an intentional
+      regression is reintroduced
+
 ## Phase 3 — Fix Verification + Cost Optimization
 - [ ] Verification Agent applies fix locally at target selector, re-runs FULL detector
 - [ ] Diff entire before/after violation set (not just the one flagged rule)
@@ -169,3 +200,13 @@ phase's deliverable is checked off and verified.
      violations) really were a margin-sizing problem. This was the last
      open item before considering Phase 2 (incl. both addenda) fully
      verified end to end. -->
+<!-- 2026-07-07: Inserted Phase 2.5 (Automated Test Suite + CI/CD Pipeline)
+     between Phase 2 and Phase 3, documentation-only. Rationale: no
+     automated test suite or CI exists yet — Phase 1 and Phase 2 were both
+     verified via live manual runs + direct psql checks, not pytest.
+     CLAUDE.md already stated CI intent ("GitHub Actions — lint + test on
+     every push") but it was never built. Phase 3 (applies fixes to live
+     DOM, re-verifies) is the highest-risk, most regression-prone code so
+     far, so real regression coverage needs to exist before Phase 3 starts,
+     not be retrofitted after. No code, tests, or CI config written yet —
+     Plan Mode for 2.5a starts next per CLAUDE.md's workflow rule. -->

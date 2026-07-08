@@ -633,3 +633,11 @@ unresolved issue.
    a confidence score and is silently absent from whatever sample Phase 5
    evaluates — if failures aren't uniform across rule types, the eval
    sample would be systematically biased without this being visible.
+
+## 10. Phase 2.5 — Test suite + CI/CD design decisions
+
+*(Placeholder — to fill in when Phase 2.5 starts. Expected to cover the
+test-DB setup decision — docker-compose override vs. distinct port,
+analogous to how Section 4b documents crawler design decisions — plus
+fixture/mock strategy and anything unexpected found while making Phase 1/2
+code testable. No reasoning exists yet; do not fill this in speculatively.)*
