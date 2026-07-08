@@ -73,14 +73,16 @@ phase's deliverable is checked off and verified.
 - [x] 2.5d — CI/CD: `.github/workflows/ci.yml` — Postgres service
       container, Alembic upgrade, lint (ruff/black), pytest, on every push;
       CI green is the gate before Phase 3 work begins
-- [ ] 2.5e — Verify & close: confirm the suite actually fails on an
+- [x] 2.5e — Verify & close: confirm the suite actually fails on an
       intentionally reintroduced bug (e.g. the datetime tz bug from Phase 1)
       — a suite that can't fail proves nothing; update CLAUDE.md/PLAN.md/
       design.md to reflect what was actually built
-- [ ] **Deliverable:** a real pytest suite covering Phase 1+2 regressions,
+- [x] **Deliverable:** a real pytest suite covering Phase 1+2 regressions,
       running in CI on every push, gating Phase 3
-- [ ] **Verify:** CI is green on a clean run, and red when an intentional
-      regression is reintroduced
+- [x] **Verify:** CI is green on a clean run, and red when an intentional
+      regression is reintroduced *(PR #12: run 28920503993 red — 12
+      failed/29 passed, real datetime-tz regression — then run
+      28920679468 green — 41 passed, after a confirmed byte-clean revert)*
 
 ## Phase 2.6 — Detector `reviewOnFail` Gap (backlog, found during 2.5b)
 - [ ] Audit all 9 locked v1 rules (not just `bypass`/`duplicate-id-aria`)
@@ -500,3 +502,47 @@ locked rules are reachable via `detect_violations()`.
      specifically, no CLAUDE.md/PLAN.md/design.md full rewrite (this
      entry + design.md Section 10's CI subsection are additive, not that
      rewrite). PR #11 held open, not yet merged, pending final review. -->
+<!-- 2026-07-08: PR #11 merged to main as 7598387 (squash), branch
+     deleted. Post-merge CI on main: run 28919812633, success. -->
+<!-- 2026-07-08: Phase 2.5 fully closed (2.5e — verify & close). Fresh
+     full local suite at session start: 41 passed (matches 2.5d, no
+     drift). Full narrative in PHASE2_5_COMPLETION_REPORT.md; summary
+     here.
+     Consolidated CI-level regression proof (distinct from every prior
+     2.5b/c/d proof, which were either local or lint-only): reintroduced
+     the real Phase 1 datetime-tz bug (models.py's _TZ_DATETIME reverted
+     to DateTime(timezone=False), plus a throwaway migration altering
+     scans.started_at/completed_at back to TIMESTAMP WITHOUT TIME ZONE)
+     on a real PR (#12). Quick local sanity check first (reproduced the
+     exact original DataError, fully reverted before touching git).
+     Real CI red: run 28920503993, conclusion=failure — 12 failed, 29
+     passed, broader than planning assumed: _TZ_DATETIME is one shared
+     constant used by every timestamp column (sites.last_scanned_at,
+     scans.*, fixes.verified_at, approvals.decided_at,
+     llm_call_logs.created_at, llm_response_cache.created_at), so
+     reverting it broke every write path touching any of them, not just
+     the one migration this session altered — confirmed via the real
+     generated SQL in the CI log (llm_call_logs inserts also cast
+     created_at as ::TIMESTAMP WITHOUT TIME ZONE). All 12 failures were
+     the identical real asyncpg DataError, reported as the real wider
+     number rather than the originally-assumed narrower one. Reverted;
+     git diff/--stat against the pre-regression commit confirmed empty
+     before pushing. Real CI green: run 28920679468, conclusion=success,
+     41 passed. PR #12 closed without merging (branch was byte-identical
+     to main after revert), branch deleted.
+     Branch protection added on main (your explicit go-ahead, a real
+     repo-settings decision, not code): required_status_checks.checks=
+     [{"context":"test"}], strict=true, enforce_admins=true,
+     allow_force_pushes=false, allow_deletions=false. Confirmed 404
+     "Branch not protected" beforehand, confirmed active via the API
+     afterward.
+     Documentation closure this session: PHASE2_5_COMPLETION_REPORT.md
+     (new, matches PHASE1/PHASE2's format), design.md Section 10 expanded
+     from a PLAN.md-pointer to inlined 2.5a-e decisions, design.md
+     Section 3 gained an explicit "(tracked as Phase 2.6)" pointer next
+     to the bypass/duplicate-id-aria writeup, CLAUDE.md's CI line updated
+     from aspirational to real-and-enforced (PR #11 referenced).
+     Phase 2.5 (2.5a-e) is now fully closed. Phase 3 — real fix-
+     application + reverification, "the highest-risk, most regression-
+     prone code so far" — is gated by a CI pipeline proven, not assumed,
+     to both pass on real green and fail on a real regression. -->

@@ -105,7 +105,10 @@ reading axe's `incomplete` array for `reviewOnFail` rules (at minimum for
 these two); flagged here so Phase 3+ doesn't build fix/verification logic
 that implicitly assumes all 9 locked rules are reachable, and so Phase 5's
 EVALUATION.md doesn't report coverage numbers for these two rules that
-overstate what the detector can actually surface.
+overstate what the detector can actually surface. **Tracked as Phase 2.6
+in PLAN.md** (backlog, not started) — only 2 of the 9 locked rules were
+checked for this gap, by accident, so Phase 2.6 starts with auditing all
+9 before deciding a fix.
 
 **Common thread:** every rule in the v1 set has (a) a deterministic
 axe-core check, and (b) a deterministic re-verification path — the
@@ -660,14 +663,49 @@ unresolved issue.
 
 ## 10. Phase 2.5 — Test suite + CI/CD design decisions
 
-**Test-DB setup, fixture/mock strategy (2.5a/b/c):** full reasoning lives
-in PLAN.md's Phase 2.5a/b/c session-log entries (profile-gated
-`postgres_test` service vs. a docker-compose override file, the Alembic
-`env.py` caller-set-`sqlalchemy.url` guard, `_call_mock`-monkeypatch fault
-injection, the Windows-ProactorEventLoop stale-pooled-connection fix). Not
-duplicated here — a full design.md rewrite of Phase 0-2.5c is 2.5e's
-explicit job ("update CLAUDE.md/PLAN.md/design.md to reflect what was
-actually built"), not this entry's.
+**Test-DB setup (2.5a):** a profile-gated `postgres_test` service added to
+the existing `docker-compose.yml` (`profiles: ["test"]`, port 5434,
+distinct `accessibility_agent_test` database) — not a
+`docker-compose.override.yml`, since that file is already gitignored and
+wouldn't be shared via git. A session-scoped autouse pytest fixture
+(`backend/tests/conftest.py`) runs the real Alembic migration chain
+against this test DB rather than a hand-built schema, enabled by a
+one-line conditional guard added to `migrations/env.py`
+(`if not config.get_main_option("sqlalchemy.url"): ...`) so a caller-set
+`sqlalchemy.url` isn't clobbered back to dev. `.env.test` forces
+`LLM_MOCK=true`, confirmed gitignored.
+
+**Fixture/mock strategy (2.5b/c):** detector/crawler tests run against
+static fixture HTML and a local stdlib `ThreadingHTTPServer`
+(`backend/tests/fixtures/server.py`) — never a live site. Reasoning-layer
+tests force a single-node LLM failure by monkeypatching
+`llm_client._call_mock` at the module level: `call_llm()` resolves
+`_call_mock` as a same-module global at call time, so patching the module
+attribute intercepts it regardless of how `graph.py` imported `call_llm`,
+with zero edits to `llm_client.py` itself. The Reviewer cache and
+`error_type` classification (only reachable through `_call_real`, since
+`LLM_MOCK` short-circuits before both) are tested by calling `_call_real`
+directly with the sole network seam (`_make_paced_request`) monkeypatched
+to return canned `httpx.Response` objects or raise — driving all 6 real
+classification branches through genuine code, not re-implemented test
+logic.
+
+**A real, non-obvious infra bug found and fixed (2.5c):** `db.py`'s
+module-level pooled engine (`pool_pre_ping=True`) is a singleton shared
+across every test subpackage that imports `main`/`db` (both `api/` and
+`graph/`), reused across many test-function event loops (pytest-asyncio's
+default is a fresh event loop per test function). A pooled asyncpg
+connection is bound to the loop that opened it; reusing one across a
+different test's loop raised a raw `AttributeError` inside SQLAlchemy's
+`pool_pre_ping` reconnect logic — the same failure class 2.5b already hit
+and fixed for a different reason (switching a *test-only* verification
+engine to `NullPool`). Since `db.py`'s engine is production code, not a
+test file, the fix instead lives in `graph/conftest.py`: a test-only
+autouse fixture that disposes `db.engine`'s pool both before and after
+every test in that directory. Confirmed this quirk is specifically a
+Windows `ProactorEventLoop` artifact — it never manifested on CI's
+`ubuntu-latest` runner (Linux's default `SelectorEventLoop`), even though
+the dispose fixture still runs there harmlessly.
 
 **CI/CD pipeline (2.5d):** `.github/workflows/ci.yml`, triggered on every
 push (any branch) and PRs into `main`, backend-only (no frontend code
@@ -717,3 +755,27 @@ exists yet). Key decisions:
   `conclusion: "success"` with the same 41-pass count as local — same
   "prove the gate works" standard used throughout Phase 2.5, applied to
   CI itself (see PR #11, runs `28919211909` red / `28919267276` green).
+
+**Verify & close (2.5e):** one consolidated proof that the *whole*
+pipeline — not an individual test or the lint step alone — protects
+Phase 3, distinct from every prior proof (which were either local or
+lint-only): reintroduced the real Phase 1 datetime-tz bug
+(`_TZ_DATETIME` reverted to `DateTime(timezone=False)` + a throwaway
+migration) on a real PR (#12). Real CI red (run `28920503993`): **12
+failed, 29 passed** — wider than planning assumed, because
+`_TZ_DATETIME` is one shared constant used by every timestamp column
+across `models.py`, not just the one migration this session altered;
+confirmed via the real generated SQL in the CI log
+(`llm_call_logs` inserts also cast `created_at` as
+`::TIMESTAMP WITHOUT TIME ZONE`). Reverted (confirmed byte-clean via
+`git diff` against the pre-regression commit); real CI green (run
+`28920679468`): 41 passed. PR #12 closed unmerged (nothing to merge —
+branch was byte-identical to `main` after the revert).
+
+Branch protection added on `main` (explicit decision, confirmed with you
+— a real repo-settings change, not a code change): `required_status_checks`
+requires the `test` check, `strict: true`, `enforce_admins: true`,
+`allow_force_pushes: false`. Confirmed via the GitHub API that no
+protection existed beforehand (`404 "Branch not protected"`).
+
+Full narrative in `PHASE2_5_COMPLETION_REPORT.md`.

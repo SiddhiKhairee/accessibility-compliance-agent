@@ -26,9 +26,13 @@ and requires human approval before opening a real GitHub PR.
 - Diff viewing: react-diff-viewer
 - GitHub integration: PyGithub (not raw REST calls)
 - Containerization: Docker / Docker Compose (frontend + backend + Postgres only)
-- CI: GitHub Actions — lint + test on every push. Built in Phase 2.5 (see
-  PLAN.md) — not implemented as of Phase 2; do not assume it exists until
-  Phase 2.5 closes.
+- CI: GitHub Actions — lint (ruff) + full pytest suite, on every push (any
+  branch) and PRs into `main`. Real and enforced as of Phase 2.5's close
+  (`.github/workflows/ci.yml`, merged via PR #11) — not aspirational.
+  `main` has branch protection requiring the `test` check to pass before
+  merging. Verified via real triggered Actions runs, including a
+  deliberate regression proof (PR #12): red on a real reintroduced bug,
+  green after reverting. See PHASE2_5_COMPLETION_REPORT.md.
 
 ## Hard rules
 - No fix ever reaches a PR without an explicit human "Approve & Open PR" click.
