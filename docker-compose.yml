@@ -20,3 +20,27 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  postgres_test:
+    image: postgres:16-alpine
+    container_name: accessibility_agent_postgres_test
+    profiles: ["test"]
+    # Not started by plain `docker compose up` — only via
+    # `docker compose --profile test up -d postgres_test`. Phase 2.5a: a
+    # fully separate Postgres for the pytest suite, never the dev DB above.
+    environment:
+      POSTGRES_USER: accessibility_agent
+      POSTGRES_PASSWORD: accessibility_agent_dev_password
+      POSTGRES_DB: accessibility_agent_test
+    ports:
+      - "5434:5432"
+      # 5432 = pre-existing native Windows postgres.exe, 5433 = dev container
+      # above. 5434 is a third, distinct port so the test DB can never be
+      # reached by a connection string that was only meant for dev.
+    volumes:
+      - ./pgdata_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U accessibility_agent -d accessibility_agent_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

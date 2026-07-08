@@ -35,6 +35,7 @@ playwright/.cache/
 *.sqlite3
 *.db
 /pgdata/
+/pgdata_test/
 /docker/pgdata/
 
 # --- Local snapshots your crawler saves (raw_html_snapshot_path in schema) ---

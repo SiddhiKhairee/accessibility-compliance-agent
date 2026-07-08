@@ -27,7 +27,12 @@ if config.config_file_name is not None:
 
 # app.config/.env is the single source of truth for the connection string —
 # not alembic.ini's own sqlalchemy.url placeholder, which is left blank.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Only fills it in if a caller hasn't already set one: a programmatic caller
+# (e.g. the pytest suite's Alembic fixture, see backend/tests/conftest.py)
+# can pre-set sqlalchemy.url on its own Config object to point migrations at
+# a different (test) database without this line clobbering it back to dev.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 target_metadata = Base.metadata
 

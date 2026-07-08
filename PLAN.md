@@ -45,11 +45,18 @@ phase's deliverable is checked off and verified.
 - [x] **Verify:** subagent review — confirm exactly 4 nodes, no scope creep *(confirmed: exactly 4 `add_node` calls, linear edges, no hidden subgraph, clean responsibility boundaries, no unnecessary abstraction — full report in session log)*
 
 ## Phase 2.5 — Automated Test Suite + CI/CD Pipeline
-- [ ] 2.5a — Test infrastructure: pytest + pytest-asyncio; separate test
+- [x] 2.5a — Test infrastructure: pytest + pytest-asyncio; separate test
       Postgres (docker-compose override or distinct port — never point
       tests at the real dev DB); Alembic migrations run against the test DB
       via fixture setup; `.env.test` with `LLM_MOCK=true` forced (no real
-      Groq key needed in CI)
+      Groq key needed in CI) *(built as a profile-gated `postgres_test`
+      service in the existing docker-compose.yml, port 5434, distinct
+      `accessibility_agent_test` DB — not an override file, since
+      docker-compose.override.yml is already gitignored and wouldn't be
+      shared; session-scoped autouse pytest fixture runs the real Alembic
+      chain via a one-line conditional guard added to migrations/env.py so
+      a caller-set sqlalchemy.url isn't clobbered back to dev — see
+      design.md Section 10)*
 - [ ] 2.5b — Phase 1 regression tests: detector unit tests against static
       fixture HTML with known, hand-verified violations (not live sites);
       crawler tests (same-domain restriction, max_pages/max_depth capping,
@@ -210,3 +217,40 @@ phase's deliverable is checked off and verified.
      far, so real regression coverage needs to exist before Phase 3 starts,
      not be retrofitted after. No code, tests, or CI config written yet —
      Plan Mode for 2.5a starts next per CLAUDE.md's workflow rule. -->
+<!-- 2026-07-07: Phase 2.5a complete — test infrastructure built and
+     verified live, not just by a single green pytest run. Added
+     `postgres_test` as a profile-gated service in docker-compose.yml
+     (`profiles: ["test"]`, port 5434, DB `accessibility_agent_test`) rather
+     than a docker-compose.override.yml, since that file is already
+     gitignored and wouldn't be shared via git. Added a one-line
+     conditional guard to migrations/env.py so a caller-set
+     `sqlalchemy.url` isn't clobbered back to the dev DB, letting a
+     session-scoped autouse pytest fixture (backend/tests/conftest.py) run
+     the real Alembic chain against the test DB instead of a hand-built
+     schema. `.env.test` forces LLM_MOCK=true (confirmed gitignored via
+     `git check-ignore -v`, no new .gitignore pattern needed for it).
+     `requirements.txt` gained pytest==9.1.1 + pytest-asyncio==1.4.0,
+     regenerated via `pip freeze` while preserving its existing UTF-16LE
+     encoding (confirmed via `file`) — diffed to confirm only the new
+     packages + transitive deps changed.
+     Verified beyond the first green run: (1) direct `psql` into the test
+     container independently confirmed all 10 tables + `alembic_version`
+     at the real head (347a304e5105), while the dev DB's real data (4
+     sites, 15 scans) was unchanged after the test run; (2) plain `docker
+     compose up -d` (no --profile) does NOT start postgres_test — confirmed
+     by stopping it and checking `docker compose ps` only listed the dev
+     service; (3) `alembic current`/`upgrade head` against the dev DB via
+     the normal CLI still resolves correctly post-env.py-change, confirming
+     the guard didn't break the existing dev migration workflow; (4) pytest
+     re-run 3 times total (across a mid-run container restart and a
+     stop/start cycle) stayed green each time, not a lucky first pass.
+     One first-run failure caught and explained, not hidden: the very
+     first `pytest` invocation hit a real asyncpg connection error because
+     the container was still `health: starting`, not yet `healthy` — a
+     race, not a code defect; passed cleanly once healthy.
+     Explicitly not yet provable: `.env.test`'s LLM_MOCK=true is confirmed
+     present in the test environment, but no code in 2.5a's test suite
+     calls llm_client.py, so it hasn't yet been proven to actually prevent
+     a real Groq call — that's 2.5c's job once graph/mock regression tests
+     exist. 2.5b/c/d/e untouched — no regression tests, no CI YAML, no lint
+     tooling added this session. -->
