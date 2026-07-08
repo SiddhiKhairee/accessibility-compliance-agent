@@ -70,7 +70,7 @@ phase's deliverable is checked off and verified.
       normalized input, plus explicit cases for normalization behavior
       (whitespace/tag-case only, never attribute values); is_mock/error_type
       logging — every call path writes a row, including failure paths
-- [ ] 2.5d — CI/CD: `.github/workflows/ci.yml` — Postgres service
+- [x] 2.5d — CI/CD: `.github/workflows/ci.yml` — Postgres service
       container, Alembic upgrade, lint (ruff/black), pytest, on every push;
       CI green is the gate before Phase 3 work begins
 - [ ] 2.5e — Verify & close: confirm the suite actually fails on an
@@ -454,3 +454,49 @@ locked rules are reachable via `detect_violations()`.
      touch fixture behavior.
      2.5d/e untouched — no CI YAML, no lint tooling, no re-verification of
      2.5a/b beyond the full-suite re-runs above. -->
+<!-- 2026-07-08: Phase 2.5d complete — real `.github/workflows/ci.yml`,
+     verified via actual triggered GitHub Actions runs on PR #11
+     (SiddhiKhairee/accessibility-compliance-agent), not just YAML review.
+     Confirmed 2.5a/b/c green locally first (41 passed) before starting,
+     per this session's own gate.
+     Added `ruff` (zero custom config — no ruff.toml/pyproject.toml; its
+     built-in default rule set was sufficient). `ruff check backend/`
+     surfaced exactly one real finding across the entire pre-2.5d
+     codebase: an unused `import pytest` in `backend/tests/crawler/
+     test_crawler.py` (a 2.5b file) — fixed as a user-approved, explicit
+     exception to "don't touch 2.5a/b/c test files" (one-line, zero-
+     behavior-risk removal). Re-ran the full suite after: still 41 passed.
+     First real CI run (not the deliberate one) failed unexpectedly:
+     `test_scan_roundtrip.py`'s isolation check reads `backend/app/.env`
+     (gitignored, absent in a fresh checkout) via `dotenv_values()` to
+     prove a scan never touched the dev DB — `assert dev_database_url is
+     not None` failed since the file didn't exist. Root-caused and fixed
+     without touching that test file: switched from job-level env vars to
+     writing real `.env`/`.env.test` files, backed by *two* Postgres
+     services mirroring docker-compose.yml exactly (5433 dev / 5434 test,
+     not just one), with Alembic applied to both — the dev DB needed its
+     real schema present (a `sites` table), not just to exist, since the
+     isolation check queries it directly. Full reasoning in design.md
+     Section 10.
+     Verified live via `gh` CLI (installed and authenticated mid-session
+     for this purpose) against real triggered runs, not local YAML
+     inspection: fixed config green on both trigger paths — run
+     `28919086956` (push) and `28919088480` (pull_request), both
+     `conclusion: "success"`, both reporting the identical `41 passed` the
+     local suite shows. Then proved the gate actually fails: pushed a
+     deliberate, throwaway unused-import violation — run `28919211909`
+     came back `conclusion: "failure"`, red specifically at the Lint step
+     (Playwright install/Alembic/pytest steps correctly never ran,
+     confirming the fail-fast step ordering). Reverted (diff against the
+     pre-violation commit confirmed empty) and pushed again — run
+     `28919267276` came back `conclusion: "success"`, `41 passed` again.
+     ubuntu-latest chosen over windows-latest: nothing in the app is
+     Windows-specific, and the Windows-ProactorEventLoop stale-pooled-
+     connection quirk 2.5b/2.5c worked around never became CI-relevant on
+     Linux's default SelectorEventLoop (the dispose-fixture still runs,
+     it just never hits the failure mode it guards against). Python 3.14
+     to match the local dev venv exactly.
+     2.5e untouched — no re-verification of the datetime-tz regression
+     specifically, no CLAUDE.md/PLAN.md/design.md full rewrite (this
+     entry + design.md Section 10's CI subsection are additive, not that
+     rewrite). PR #11 held open, not yet merged, pending final review. -->
