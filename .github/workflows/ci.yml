@@ -9,8 +9,28 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Two services mirroring docker-compose.yml's dev (5433) / test (5434)
+    # split exactly, not just one: backend/tests/api/test_scan_roundtrip.py
+    # (2.5b, not modified here) reads backend/app/.env directly via
+    # dotenv_values() to prove a scan never touched the *dev* DB — that
+    # isolation check needs a real, separate, genuinely-idle "dev" Postgres
+    # to be meaningful, not just the test one.
     services:
       postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: accessibility_agent
+          POSTGRES_PASSWORD: accessibility_agent_dev_password
+          POSTGRES_DB: accessibility_agent
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U accessibility_agent -d accessibility_agent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+      postgres_test:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: accessibility_agent
@@ -24,21 +44,29 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-    # DATABASE_URL and TEST_DATABASE_URL are intentionally identical: bare
-    # `alembic upgrade head` (below) reads DATABASE_URL via
-    # app/config.py's Settings; the pytest suite's own migration fixture
-    # (backend/tests/conftest.py) reads TEST_DATABASE_URL directly. Both
-    # must point at this job's Postgres service. Mirrors backend/app/
-    # .env.test's values (that file is gitignored, so it doesn't exist in
-    # this checkout — these env vars are the CI equivalent).
-    env:
-      DATABASE_URL: postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
-      TEST_DATABASE_URL: postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
-      LLM_MOCK: "true"
-      ENVIRONMENT: test
-
     steps:
       - uses: actions/checkout@v4
+
+      # backend/app/.env and .env.test are both gitignored (real secrets/
+      # local-only config), so neither exists in this checkout. Recreates
+      # them as real files — not job-level env vars — so every code path
+      # that reads them (pydantic-settings' Settings() *and*
+      # test_scan_roundtrip.py's direct dotenv_values() read) behaves
+      # exactly like local dev, with zero divergent config path. No
+      # GROQ_API_KEY: it has an empty-string default and is never used
+      # (LLM_MOCK=true; the graph/ tests that call _call_real directly
+      # always monkeypatch the network layer).
+      - name: Write local env files (CI equivalent of gitignored .env/.env.test)
+        run: |
+          cat > backend/app/.env <<'EOF'
+          DATABASE_URL=postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5433/accessibility_agent
+          ENVIRONMENT=development
+          EOF
+          cat > backend/app/.env.test <<'EOF'
+          TEST_DATABASE_URL=postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
+          LLM_MOCK=true
+          ENVIRONMENT=test
+          EOF
 
       - uses: actions/setup-python@v5
         with:
@@ -53,9 +81,28 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps chromium
 
-      - name: Apply Alembic migrations (fail-fast schema check)
+      - name: Apply Alembic migrations to the test DB (fail-fast schema check)
+        # Bare `alembic upgrade head` resolves its DB via app/config.py's
+        # Settings, which defaults to backend/app/.env (dev, port 5433).
+        # Override DATABASE_URL for this one step only, so the fail-fast
+        # check targets the same test DB (5434) pytest's own migration
+        # fixture (backend/tests/conftest.py) already runs against.
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
+        run: alembic upgrade head
+
+      - name: Apply Alembic migrations to the dev DB
+        # A real, long-lived local dev DB already has this schema applied
+        # from prior work; this ephemeral CI dev Postgres starts empty.
+        # test_scan_roundtrip.py's isolation check queries a real `sites`
+        # table on the dev DB (expecting zero matching rows, not a missing
+        # table) — needs the schema present, not just the database.
         working-directory: backend
         run: alembic upgrade head
+
+      - name: Run pytest suite
+        run: pytest backend/tests/ -v
 
       - name: Run pytest suite
         run: pytest backend/tests/ -v
