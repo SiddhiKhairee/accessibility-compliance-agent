@@ -8,8 +8,6 @@ graph.ainvoke()'s return value alone, so these tests prove the *real* call
 path was taken (agent_name/is_mock/cache_hit columns), not just that the
 mock schema happened to validate.
 """
-import os
-
 from sqlalchemy import text
 
 from agents.developer.schema import DeveloperOutput
