@@ -100,15 +100,34 @@ genuinely failed, landing in `incomplete` each time (see
 `test_duplicate_id_aria_known_gap_never_surfaces_as_a_violation`, which
 codify this as current, observed behavior rather than silently ignoring
 it). Not fixed in 2.5b — that session was scoped to regression tests for
-existing behavior, not new detector logic. A real fix would mean also
-reading axe's `incomplete` array for `reviewOnFail` rules (at minimum for
-these two); flagged here so Phase 3+ doesn't build fix/verification logic
-that implicitly assumes all 9 locked rules are reachable, and so Phase 5's
-EVALUATION.md doesn't report coverage numbers for these two rules that
-overstate what the detector can actually surface. **Tracked as Phase 2.6
-in PLAN.md** (backlog, not started) — only 2 of the 9 locked rules were
-checked for this gap, by accident, so Phase 2.6 starts with auditing all
-9 before deciding a fix.
+existing behavior, not new detector logic.
+
+**Fixed in Phase 2.6.** A full audit (live: loaded the real bundled
+`axe.min.js` in headless Chromium and queried `axe._audit.rules` directly
+for `reviewOnFail` across all 16 rule IDs spanning the 9 locked rules)
+confirmed `bypass` and `duplicate-id-aria` are the *only* 2 rules with this
+gap — nothing else was silently missed. `detect_violations()` now also
+reads axe's `incomplete` array, scoped narrowly to just these 2 rule IDs
+(`REVIEW_ON_FAIL_RULE_IDS` in detector.py), and tags the resulting
+`Violation` rows `detection_confidence="needs_review"` (vs `"confirmed"`
+for normal `violations` entries) so nothing downstream conflates an
+axe-uncertain result with a fully-confirmed one. A pre-flight check (real
+raw axe call against the same 2 fixtures) confirmed `impact` — which
+becomes `severity` — is present and non-null on both rules' `incomplete`
+nodes, so no fallback-severity special-casing was needed. Persisted via a
+new nullable `violations.detection_confidence` column (Alembic revision
+`92f78d8d9d6b`) — see docs/schema.md for the NULL-vs-"confirmed"
+backfill note.
+
+**Known limitation, intentionally scoped this way:** this phase only makes
+`needs_review` violations *surface and persist* — it does not change how
+the Reviewer / Impact / Developer / Verifier nodes treat them. A
+`needs_review` violation flows through the full reasoning pipeline
+identically to a `confirmed` one today. Actually using
+`detection_confidence` to add extra scrutiny (e.g. in the Reviewer Agent's
+prompt or confidence logic) is deferred to a later phase, not decided
+here — flagged explicitly so this doesn't quietly become a second,
+undocumented gap replacing the first.
 
 **Common thread:** every rule in the v1 set has (a) a deterministic
 axe-core check, and (b) a deterministic re-verification path — the

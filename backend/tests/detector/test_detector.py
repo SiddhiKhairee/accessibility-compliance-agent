@@ -122,22 +122,51 @@ async def test_multi_violation_fixture_produces_one_row_per_rule(test_server):
     assert len(v) == 2  # one row per (rule, element), not merged
 
 
-async def test_bypass_known_gap_never_surfaces_as_a_violation(test_server):
-    """Real, confirmed gap (see design.md limitations section): axe-core
-    marks `bypass` reviewOnFail=true, so a genuine failure lands in axe's
-    `incomplete` array, not `violations`. detect_violations() only reads
-    `violations`, so this locked rule can never appear here even though
+async def test_bypass_incomplete_gap_now_surfaces_as_needs_review(test_server):
+    """Phase 2.6 closes the reviewOnFail gap (see design.md Section 3):
+    axe-core marks `bypass` reviewOnFail=true, so a genuine failure lands in
+    axe's `incomplete` array, not `violations`. detect_violations() now also
+    reads `incomplete` for this rule and tags the result
+    detection_confidence="needs_review" rather than silently dropping it.
     no_bypass.html has no skip-link, heading, or landmark and genuinely
     fails the rule (confirmed via a raw axe run against this exact fixture
-    during 2.5b planning)."""
+    during 2.5b planning, and re-confirmed with `impact` present/non-null
+    during 2.6 planning)."""
     v = await _violations_for(test_server, "no_bypass.html")
-    assert not any(viol.wcag_rule == "bypass" for viol in v)
+    bypass = [viol for viol in v if viol.wcag_rule == "bypass"]
+    assert len(bypass) == 1
+    assert bypass[0].detection_confidence == "needs_review"
+    assert bypass[0].severity != "unknown"
 
 
-async def test_duplicate_id_aria_known_gap_never_surfaces_as_a_violation(test_server):
-    """Same reviewOnFail gap as bypass (see design.md). duplicate_id_aria.html
-    has an aria-labelledby-referenced id duplicated elsewhere on the page —
-    a genuine axe failure, confirmed via a raw axe run to land in
-    `incomplete`, not `violations`, during 2.5b planning."""
+async def test_duplicate_id_aria_incomplete_gap_now_surfaces_as_needs_review(test_server):
+    """Same reviewOnFail gap as bypass (see design.md), now closed the same
+    way. duplicate_id_aria.html has an aria-labelledby-referenced id
+    duplicated elsewhere on the page — a genuine axe failure, confirmed via
+    a raw axe run to land in `incomplete`, not `violations`."""
     v = await _violations_for(test_server, "duplicate_id_aria.html")
-    assert not any(viol.wcag_rule == "duplicate-id-aria" for viol in v)
+    dup = [viol for viol in v if viol.wcag_rule == "duplicate-id-aria"]
+    assert len(dup) == 1
+    assert dup[0].detection_confidence == "needs_review"
+    assert dup[0].severity != "unknown"
+
+
+async def test_other_locked_rules_never_get_needs_review(test_server):
+    """Regression guard on scope, not just on detection working: Phase 2.6
+    only reads `incomplete` for REVIEW_ON_FAIL_RULE_IDS (bypass,
+    duplicate-id-aria). Every other locked rule's existing fixture must
+    still only ever produce detection_confidence="confirmed" — confirming
+    the fix didn't start reading `incomplete` more broadly than intended."""
+    fixtures = [
+        "missing_alt.html", "input_image_alt.html", "missing_label.html",
+        "missing_button_name.html", "aria_input_field_name.html",
+        "positive_tabindex.html", "missing_lang.html", "invalid_lang.html",
+        "bad_list.html", "bad_listitem.html", "bad_definition_list.html",
+        "missing_link_name.html", "color_contrast.html",
+    ]
+    for filename in fixtures:
+        v = await _violations_for(test_server, filename)
+        assert v, f"{filename} produced no violations at all"
+        assert all(viol.detection_confidence == "confirmed" for viol in v), (
+            f"{filename} unexpectedly produced a needs_review violation"
+        )

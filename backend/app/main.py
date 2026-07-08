@@ -92,6 +92,9 @@ class ViolationOut(BaseModel):
     status: ViolationStatus
     html_snippet: str | None
     message: str | None
+    # "confirmed" / "needs_review" (Phase 2.6) / None for rows written
+    # before this column existed — see models.py.
+    detection_confidence: str | None
     # Phase 2: populated once the reasoning pass completes for this
     # violation; null if reasoning hasn't run yet or failed (see run_scan's
     # per-violation error handling — a failure leaves these unset, not
@@ -218,6 +221,7 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                     status=ViolationStatus.open,
                     html_snippet=v.html_snippet,
                     message=v.message,
+                    detection_confidence=v.detection_confidence,
                 )
                 db.add(violation_row)
                 await db.flush()  # need violation_row.id for the reasoning pass below

@@ -84,28 +84,40 @@ phase's deliverable is checked off and verified.
       failed/29 passed, real datetime-tz regression — then run
       28920679468 green — 41 passed, after a confirmed byte-clean revert)*
 
+**Note:** `.github/workflows/ci.yml` as built in Phase 2.5 covers
+**backend only** — lint (ruff) + the full pytest suite against
+`backend/`. No frontend code exists yet (confirmed during 2.5d), so no
+frontend lint/test/CI was built. Do not assume the current CI gate covers
+the whole project once the frontend ships in Phase 4 — see Phase 4.5.
+
 ## Phase 2.6 — Detector `reviewOnFail` Gap (backlog, found during 2.5b)
-- [ ] Audit all 9 locked v1 rules (not just `bypass`/`duplicate-id-aria`)
+- [x] Audit all 9 locked v1 rules (not just `bypass`/`duplicate-id-aria`)
       for `reviewOnFail: true` in axe-core's rule metadata — confirm
       whether any other locked rules share this gap, since only 2 were
       found so far by accident (fixture verification), not via a full audit
-- [ ] Decide how `incomplete`-array results should be handled for
+      *(confirmed live: only `bypass`/`duplicate-id-aria`, of all 16 rule
+      IDs across the 9 locked rules, are `reviewOnFail: true`)*
+- [x] Decide how `incomplete`-array results should be handled for
       `reviewOnFail` rules — e.g. read `incomplete` for just the affected
       rules, treat them differently from violations (confidence caveat),
       or some other explicit decision — write the decision and reasoning
-      into design.md before implementing
-- [ ] Implement the decided approach in detector.py
-- [ ] Update/add fixture tests in backend/tests/detector/test_detector.py
+      into design.md before implementing *(read `incomplete` scoped to
+      just these 2 rule IDs, tag results `detection_confidence=
+      "needs_review"` vs `"confirmed"` — decision + reasoning in design.md
+      Section 3)*
+- [x] Implement the decided approach in detector.py
+- [x] Update/add fixture tests in backend/tests/detector/test_detector.py
       to reflect the new behavior (the existing known-gap tests will need
       to change from "asserts absence" to "asserts presence" if the gap
       gets closed)
-- [ ] Re-verify: `bypass` and `duplicate-id-aria` fixtures that previously
+- [x] Re-verify: `bypass` and `duplicate-id-aria` fixtures that previously
       asserted absence now correctly surface, with no regressions on the
       other 7 rules' existing passing tests
-- [ ] **Deliverable:** detector.py reliably surfaces all 9 locked rules, or
+- [x] **Deliverable:** detector.py reliably surfaces all 9 locked rules, or
       an explicit, documented reason why any specific rule still can't
-- [ ] **Verify:** full 2.5b test suite still green, plus new assertions for
-      the previously-gapped rules
+- [x] **Verify:** full 2.5b test suite still green, plus new assertions for
+      the previously-gapped rules *(42 passed — 41 prior + 1 net new: 2
+      tests flipped, 1 added)*
 
 ## Phase 3 — Fix Verification + Cost Optimization
 **Note:** Phase 3 verification logic should account for Phase 2.6's
@@ -124,6 +136,23 @@ locked rules are reachable via `detect_violations()`.
 - [ ] System Performance tab: throughput, pipeline time (median/p95), per-agent latency+success%, cache hit%, verification breakdown, scan success rate, PR metrics, accessibility score trend
 - [ ] Review & Approve tab: side-by-side diff viewer + "Approve & Open PR" button (human click required)
 - [ ] **Deliverable:** clickable fullstack demo — detection, reasoning, cost, approval end to end
+
+## Phase 4.5 — Frontend testing + CI/CD (backlog, placeholder scope only)
+**Note:** placeholder, same pattern as design.md Section 10 was handled
+before Phase 2.5 started — no tooling decisions invented here. Fill in
+for real once frontend work in Phase 4 actually starts.
+- [ ] Full frontend test suite (component tests — likely Vitest/React
+      Testing Library or whatever fits the eventual frontend stack,
+      decided when this phase starts, not now)
+- [ ] Extend `.github/workflows/ci.yml` (or add a parallel job) to
+      lint/test/build the frontend on every push — same enforcement
+      standard Phase 2.5d built for the backend (real triggered Actions
+      runs, proven to fail on a real regression and recover, not just
+      YAML review)
+- [ ] **Deliverable:** CI gate covers frontend + backend together, not
+      backend only
+- [ ] **Verify:** same red/green proof standard as Phase 2.5e — CI green
+      on a clean run, red when an intentional regression is reintroduced
 
 ## Phase 5 — Evaluation & Metrics
 - [ ] Run pipeline across 30-50 real public sites
@@ -546,3 +575,50 @@ locked rules are reachable via `detect_violations()`.
      application + reverification, "the highest-risk, most regression-
      prone code so far" — is gated by a CI pipeline proven, not assumed,
      to both pass on real green and fail on a real regression. -->
+<!-- 2026-07-08: Phase 2.6 complete — the reviewOnFail gap 2.5b found by
+     accident is now closed, not just documented. Audit (live, not
+     inferred): loaded the real bundled axe.min.js in headless Chromium
+     and queried axe._audit.rules directly for reviewOnFail across all 16
+     rule IDs spanning the 9 locked rules — confirmed only bypass and
+     duplicate-id-aria are reviewOnFail:true; nothing else was silently
+     missed, including skip-link (previously left "undetermined" in 2.5b
+     for an unrelated reason, now confirmed reviewOnFail:false).
+     Decision (written to design.md Section 3 before implementing, per
+     CLAUDE.md workflow): read axe's `incomplete` array, scoped narrowly to
+     just these 2 rule IDs (REVIEW_ON_FAIL_RULE_IDS in detector.py), and
+     tag the resulting Violation rows detection_confidence="needs_review"
+     vs "confirmed" for normal violations — doesn't violate Phase 0's
+     "no manual-judgment rules" lock since detection stays fully automated
+     and the existing Reviewer Agent is the natural place to eventually use
+     the signal, not a new 5th LangGraph node.
+     Real pre-flight check before writing the extraction loop (user-
+     requested, not assumed): ran a raw axe call against the exact
+     no_bypass.html/duplicate_id_aria.html fixtures 2.5b proved genuinely
+     fail their rule, and printed the real incomplete node objects —
+     confirmed `impact` (which becomes `severity`) is present and non-null
+     for both (serious/critical respectively), so the existing
+     `v["impact"] or "unknown"` fallback could be reused as-is with no
+     special-casing.
+     Implementation: detector.py's detect_violations() gained a second
+     extraction loop over results.response["incomplete"], filtered to
+     REVIEW_ON_FAIL_RULE_IDS; AXE_OPTIONS resultTypes extended to include
+     "incomplete". New nullable violations.detection_confidence column
+     (String(20), matching the existing severity-is-plain-String
+     precedent, not a Postgres enum) via Alembic revision 92f78d8d9d6b,
+     wired through main.py's run_scan and ViolationOut. docs/schema.md and
+     design.md both carry an explicit note: pre-migration rows are NULL,
+     not "confirmed" — no backfill planned, flagged so a future
+     WHERE detection_confidence='confirmed' query doesn't silently drop
+     them. design.md also carries an explicit known-limitation note: this
+     phase only makes needs_review violations surface/persist, it does not
+     change how the Reviewer/Impact/Developer/Verifier nodes treat them —
+     deferred, not decided, to avoid quietly creating a second undocumented
+     gap in place of the first.
+     Verified: full suite 42 passed (41 prior + 1 net new — the 2
+     known-gap tests flipped from "asserts absence" to "asserts presence
+     with detection_confidence=='needs_review'", plus 1 new regression
+     test confirming the other 13 rule IDs never produce a needs_review
+     row). Migration applied and confirmed via direct psql on both the dev
+     DB (995 existing violations rows, all NULL on the new column, count
+     unchanged before/after) and the test DB (column present via \d
+     violations). -->
