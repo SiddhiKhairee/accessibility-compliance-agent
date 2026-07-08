@@ -103,6 +103,3 @@ jobs:
 
       - name: Run pytest suite
         run: pytest backend/tests/ -v
-
-      - name: Run pytest suite
-        run: pytest backend/tests/ -v
