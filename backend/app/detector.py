@@ -31,8 +31,19 @@ LOCKED_RULE_IDS = [
     "link-name",                           # 9. Link Purpose (2.4.4)
 ]
 
+# `bypass` and `duplicate-id-aria` are marked `reviewOnFail: true` in
+# axe-core's own rule metadata (confirmed live, Phase 2.6: loaded the real
+# bundled axe.min.js in a headless Chromium page and queried
+# `axe._audit.rules` directly for all 16 rule IDs above — see design.md
+# Section 3 / PLAN.md Phase 2.6). That means a genuine failure of either
+# rule lands in axe's `incomplete` result array, not `violations` — without
+# this, detect_violations() silently misses every real failure of these 2
+# locked rules. Hardcoded rather than re-queried at runtime, same rationale
+# as LOCKED_RULE_IDS: verified once, deterministic, no runtime cost.
+REVIEW_ON_FAIL_RULE_IDS = ["bypass", "duplicate-id-aria"]
+
 AXE_OPTIONS = {
-    "resultTypes": ["violations"],
+    "resultTypes": ["violations", "incomplete"],
     "runOnly": {"type": "rule", "values": LOCKED_RULE_IDS},
 }
 
@@ -44,6 +55,13 @@ class Violation:
     severity: str  # axe "impact": minor / moderate / serious / critical
     html_snippet: str
     message: str
+    # "confirmed" (axe reached a definitive fail) or "needs_review" (pulled
+    # from axe's `incomplete` array for a REVIEW_ON_FAIL_RULE_IDS rule —
+    # axe itself wasn't fully confident). Defaults to "confirmed" so every
+    # existing call site is unaffected. See design.md Section 3: this phase
+    # only surfaces/persists needs_review violations, it does not change
+    # how downstream agent nodes treat them.
+    detection_confidence: str = "confirmed"
     # No `confidence` field here on purpose — axe-core has no equivalent
     # signal to offer. That's the Reviewer Agent's job (Phase 2), not
     # something to fake here.
@@ -68,6 +86,20 @@ async def detect_violations(page: Page) -> list[Violation]:
                 severity=v["impact"] or "unknown",
                 html_snippet=node.get("html", ""),
                 message="; ".join(c["message"] for c in checks),
+            ))
+
+    for v in results.response["incomplete"]:
+        if v["id"] not in REVIEW_ON_FAIL_RULE_IDS:
+            continue
+        for node in v["nodes"]:
+            checks = node.get("all", []) + node.get("any", []) + node.get("none", [])
+            violations.append(Violation(
+                wcag_rule=v["id"],
+                element_selector=", ".join(node["target"]),
+                severity=v["impact"] or "unknown",
+                html_snippet=node.get("html", ""),
+                message="; ".join(c["message"] for c in checks),
+                detection_confidence="needs_review",
             ))
 
     return violations

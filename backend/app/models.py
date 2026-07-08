@@ -163,6 +163,11 @@ class Violation(Base):
     # Added beyond schema.md's literal column list — see module docstring.
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Added beyond schema.md's literal column list — see module docstring.
+    # "confirmed" / "needs_review" (Phase 2.6, see design.md Section 3) —
+    # nullable, no backfill: rows written before this column existed are
+    # NULL, not "confirmed". Plain String like `severity` above, not an
+    # enum, for the same reason.
+    detection_confidence: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     page: Mapped["Page"] = relationship(back_populates="violations")
     # Phase 2: added now that main.py's run_scan actually queries through

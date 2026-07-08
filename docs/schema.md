@@ -40,6 +40,14 @@ migration, never hand-edited in prod (see CLAUDE.md).
   and Phase 2's Developer Agent needs it without re-deriving it from the raw
   HTML snapshot)
 - `message` (nullable — added for the same reason as `html_snippet`)
+- `detection_confidence` (nullable — Phase 2.6: "confirmed" for a normal
+  axe `violations` result, or "needs_review" for the 2 `reviewOnFail` rules
+  (`bypass`, `duplicate-id-aria`) whose real failures land in axe's
+  `incomplete` array instead — see design.md Section 3. **Rows written
+  before this column existed are `NULL`, not `"confirmed"` — no backfill
+  is planned.** A `WHERE detection_confidence = 'confirmed'` query or
+  dashboard filter must account for `NULL` or it will silently drop every
+  pre-migration row.)
 
 ## impact_assessments
 - `id`
