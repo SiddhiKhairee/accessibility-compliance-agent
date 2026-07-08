@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: accessibility_agent
+          POSTGRES_PASSWORD: accessibility_agent_dev_password
+          POSTGRES_DB: accessibility_agent_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd="pg_isready -U accessibility_agent -d accessibility_agent_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    # DATABASE_URL and TEST_DATABASE_URL are intentionally identical: bare
+    # `alembic upgrade head` (below) reads DATABASE_URL via
+    # app/config.py's Settings; the pytest suite's own migration fixture
+    # (backend/tests/conftest.py) reads TEST_DATABASE_URL directly. Both
+    # must point at this job's Postgres service. Mirrors backend/app/
+    # .env.test's values (that file is gitignored, so it doesn't exist in
+    # this checkout — these env vars are the CI equivalent).
+    env:
+      DATABASE_URL: postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
+      TEST_DATABASE_URL: postgresql+asyncpg://accessibility_agent:accessibility_agent_dev_password@localhost:5434/accessibility_agent_test
+      LLM_MOCK: "true"
+      ENVIRONMENT: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint (ruff)
+        run: ruff check backend/
+
+      - name: Install Playwright browsers
+        run: playwright install --with-deps chromium
+
+      - name: Apply Alembic migrations (fail-fast schema check)
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Run pytest suite
+        run: pytest backend/tests/ -v

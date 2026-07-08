@@ -6,7 +6,6 @@ closed local port — never the real internet. `snapshot_dir=tmp_path` on
 every call keeps tests from ever writing into the real /data/raw_html/.
 """
 import crawler
-import pytest
 
 from fixtures.server import find_unused_port
 
