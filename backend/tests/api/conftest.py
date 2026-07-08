@@ -6,9 +6,10 @@ config.py/db.py/main.py: pydantic-settings gives real environment
 variables priority over its `env_file`, so setting DATABASE_URL here
 before main.py's first import (which pulls in config.py -> db.py, both of
 which read settings.DATABASE_URL once at import time) redirects the whole
-app to the test DB for this subpackage only. No other test file imports
-main/db/config, so import order is safe — confirmed by grepping the rest
-of backend/tests/ before writing this.
+app to the test DB for this subpackage only. backend/tests/graph/conftest.py
+(added in Phase 2.5c) does the identical override for its own subpackage —
+safe regardless of which one's import runs first in a full-suite run,
+since both set DATABASE_URL to the same TEST_DATABASE_URL value.
 """
 import os
 import sys

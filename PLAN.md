@@ -63,7 +63,7 @@ phase's deliverable is checked off and verified.
       skip+log-on-failure) against a local test server, not the real
       internet; API layer POST /scan → GET /scan/{id} round-trip against
       test DB
-- [ ] 2.5c — Phase 2 regression tests: graph/node sequence in LLM_MOCK mode
+- [x] 2.5c — Phase 2 regression tests: graph/node sequence in LLM_MOCK mode
       (Reviewer → Impact → Developer → Verifier); force a mock failure
       mid-graph, assert zero rows land in impact_assessments/fixes (the
       "no partial state" guarantee); cache_hit=true on repeated identical
@@ -377,3 +377,80 @@ locked rules are reachable via `detect_violations()`.
      Phase 3 so verification-logic work there doesn't implicitly assume
      all 9 locked rules are reachable via detect_violations() before this
      is resolved. -->
+<!-- 2026-07-08: Phase 2.5c complete — 13 real pytest tests added
+     (backend/tests/graph/), all green alongside 2.5a/b's original 28:
+     `pytest backend/tests/ -v` → "41 passed", confirmed stable across 3
+     consecutive full runs (plus 2 isolated `backend/tests/graph/`-only
+     runs before that). No real Groq call, no real dev DB touched —
+     confirmed directly (dev `sites`/`scans` unchanged at 4/15 before and
+     after every run this session).
+     graph/test_graph_sequence.py (3 tests): calls `reasoning_graph.
+     ainvoke()` directly on a non-critical-path violation, asserting all 4
+     node result types plus — queried straight from llm_call_logs, not
+     inferred from the return value — exactly one real is_mock=true row
+     each for Reviewer/Impact/Developer and zero for Verifier; a second
+     test proves the Impact critical-path URL heuristic genuinely bypasses
+     the LLM (zero new Impact log rows, not just "the mock response looked
+     right"); a third pins the Verifier stub's `pending_verification`
+     status and its zero-log-rows contract, deliberately not exercising
+     any Phase 3 DOM-recheck behavior.
+     graph/test_partial_state.py (1 test): the "no partial state" guarantee
+     is actually enforced by main.py's run_scan (single ainvoke() +
+     single-commit per violation), not by graph.py itself — graph nodes
+     never touch the DB — so this test runs the real API layer (POST /scan
+     against the existing `api_scan_target.html` fixture) rather than
+     calling ainvoke() in isolation. Forces a deterministic Developer-only
+     failure by monkeypatching `llm_client._call_mock` (call_llm() resolves
+     it as a same-module global at call time, so the patch takes effect
+     with zero edits to llm_client.py/graph.py). Confirms: scan still
+     reaches status="done" (a per-violation reasoning failure doesn't fail
+     the whole scan), zero rows in impact_assessments/fixes for that
+     violation, violations.confidence stays NULL, and exactly 2 real
+     llm_call_logs rows (Reviewer, Impact) were written before the forced
+     failure — proving the graph got 2 nodes deep, not that it failed
+     immediately.
+     graph/test_llm_client_cache.py (3 tests) + test_llm_client_error_logging.py
+     (6 tests): both call `_call_real` directly with only the network seam
+     (`_make_paced_request`) monkeypatched, since the Reviewer cache and
+     error_type classification are only reachable through `_call_real`
+     (LLM_MOCK short-circuits before both). Cache tests prove a repeated
+     identical input is a real DB-backed cache_hit (second call's
+     `_make_paced_request` raises if invoked — cache hit never touches
+     it), that whitespace/tag-case variants collide to the same cache_key,
+     and that a differing attribute *value* does not (2 distinct cache_key
+     rows, network hit twice) — the conservative-normalization claim
+     proven both directions, not just asserted. Error-logging tests drive
+     all 6 real `_classify_error` branches (timeout, rate_limited,
+     http_error, json_decode_error, validation_error, unknown) through
+     genuine code paths (a raised httpx exception, or a crafted
+     httpx.Response per case), each asserting the exact `is_mock`/
+     `error_type` column values via direct DB query, not just row count.
+     Regression-catch proof (not just asserted): temporarily replaced
+     run_scan's single `ainvoke()`+commit with an incremental
+     per-node-call/per-commit version (a realistic historical version of
+     this bug class — commit ImpactAssessment right after impact_node
+     succeeds, before developer_node is even attempted). Re-ran
+     test_partial_state.py: failed exactly as expected, with a real
+     confidence=0.9 committed despite the forced Developer failure
+     (`assert violation["confidence"] is None` → `AssertionError: assert
+     0.9 is None`). Reverted main.py to its original form; `git diff
+     --stat`/`git diff` on backend/app/main.py confirmed empty before
+     re-running the full suite green again (41 passed) — the transient
+     edit never landed in the working tree.
+     Infra fix (not anticipated in planning): db.py's module-level pooled
+     engine (`pool_pre_ping=True`) is a singleton shared across every test
+     subpackage that imports main/db (api/, and now graph/), reused across
+     many test-function event loops. Hit the identical stale-asyncpg-
+     connection `AttributeError` 2.5b fixed for `test_engine` via NullPool
+     — but db.py is production code, not something to repoint. Fixed via a
+     test-only autouse fixture in graph/conftest.py that disposes
+     `db.engine`'s pool both before and after every test in that directory
+     (before, in case api/'s tests already poisoned it earlier in the same
+     session; after, so the next test in any directory starts clean).
+     Also fixed a now-stale comment in api/conftest.py ("no other test
+     file imports main/db/config") that graph/conftest.py's addition
+     invalidated — comment-only edit, verified via an isolated
+     `pytest backend/tests/api/ -v` run (still 1 passed) that it didn't
+     touch fixture behavior.
+     2.5d/e untouched — no CI YAML, no lint tooling, no re-verification of
+     2.5a/b beyond the full-suite re-runs above. -->
