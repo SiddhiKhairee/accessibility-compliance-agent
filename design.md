@@ -660,8 +660,60 @@ unresolved issue.
 
 ## 10. Phase 2.5 — Test suite + CI/CD design decisions
 
-*(Placeholder — to fill in when Phase 2.5 starts. Expected to cover the
-test-DB setup decision — docker-compose override vs. distinct port,
-analogous to how Section 4b documents crawler design decisions — plus
-fixture/mock strategy and anything unexpected found while making Phase 1/2
-code testable. No reasoning exists yet; do not fill this in speculatively.)*
+**Test-DB setup, fixture/mock strategy (2.5a/b/c):** full reasoning lives
+in PLAN.md's Phase 2.5a/b/c session-log entries (profile-gated
+`postgres_test` service vs. a docker-compose override file, the Alembic
+`env.py` caller-set-`sqlalchemy.url` guard, `_call_mock`-monkeypatch fault
+injection, the Windows-ProactorEventLoop stale-pooled-connection fix). Not
+duplicated here — a full design.md rewrite of Phase 0-2.5c is 2.5e's
+explicit job ("update CLAUDE.md/PLAN.md/design.md to reflect what was
+actually built"), not this entry's.
+
+**CI/CD pipeline (2.5d):** `.github/workflows/ci.yml`, triggered on every
+push (any branch) and PRs into `main`, backend-only (no frontend code
+exists yet). Key decisions:
+
+- **Real `.env`/`.env.test` files, not job-level env vars.** Both are
+  gitignored and don't exist in a fresh CI checkout. Initially tried
+  job-level `env:` (functionally equivalent — `load_dotenv` no-ops
+  harmlessly when the file's missing, real env vars pass through), but a
+  real first-run failure changed this: `test_scan_roundtrip.py` (2.5b)
+  reads `backend/app/.env` directly via `dotenv_values()` — a raw file
+  parse, bypassing `os.environ` entirely — to prove a scan never touched
+  the dev DB. That check needs the file to actually exist. Switched to
+  writing real files, which also turned out to be the more faithful
+  mirror of local dev (same code path, same mechanism) rather than a
+  CI-only shortcut.
+- **Two Postgres services, mirroring `docker-compose.yml` exactly**
+  (`postgres` on 5433 = dev, `postgres_test` on 5434 = test), not one.
+  The isolation check above needs a real, separate, queryable dev
+  database — and since it queries a real `sites` table (expecting zero
+  matching rows, not a missing table), Alembic runs against *both*
+  databases in CI, not just the test one.
+- **`ubuntu-latest`, not `windows-latest`.** Nothing in the app is
+  Windows-specific. The stale-pooled-asyncpg-connection issue 2.5b/2.5c
+  hit and worked around (`graph/conftest.py`'s dispose-before-and-after
+  fixture) is a Windows ProactorEventLoop artifact specifically and
+  doesn't reproduce on Linux's default SelectorEventLoop — confirmed by
+  the CI runs going green without that workaround being CI-relevant at
+  all (the fixture still runs, just never hits the failure mode it
+  guards against).
+- **An explicit, separate `alembic upgrade head` step**, even though
+  pytest's own `run_migrations` fixture (`backend/tests/conftest.py`,
+  session-scoped, autouse) already runs the real migration chain
+  automatically. Technically redundant (idempotent — already-at-head is a
+  no-op) but isolates "did the schema apply" from "did tests pass" in the
+  Actions log, and runs before the slower Playwright/pytest steps.
+- **`ruff` with zero custom config** (no `ruff.toml`/`pyproject.toml`).
+  `ruff check backend/` with its built-in default rule selection
+  surfaced exactly one real finding on the entire pre-2.5d codebase (an
+  unused `import pytest` in a 2.5b test file) — sufficient to satisfy
+  CLAUDE.md's "lint" promise without inventing a broader style migration
+  nobody asked for.
+- **Proven, not assumed, to actually gate real regressions**: a
+  deliberately reintroduced unused-import violation on a throwaway commit
+  produced a real `conclusion: "failure"` at the Lint step specifically
+  (downstream steps skipped), reverting it produced a real
+  `conclusion: "success"` with the same 41-pass count as local — same
+  "prove the gate works" standard used throughout Phase 2.5, applied to
+  CI itself (see PR #11, runs `28919211909` red / `28919267276` green).
