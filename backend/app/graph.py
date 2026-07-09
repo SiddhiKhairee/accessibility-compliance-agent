@@ -24,8 +24,9 @@ from agents.impact.schema import ImpactOutput
 from agents.reviewer import prompt as reviewer_prompt
 from agents.reviewer.schema import ReviewerOutput
 from agents.verifier.schema import VerifierOutput
-from llm_client import call_llm
-from models import AgentName
+from llm_client import IMPACT_FALLBACK_MODEL_NAME, call_llm
+from models import AgentName, FixFailureReason, FixVerificationStatus
+from verifier import verify_fix
 
 
 class ViolationInput(TypedDict):
@@ -39,6 +40,11 @@ class ViolationInput(TypedDict):
 
 class ReasoningState(TypedDict, total=False):
     violation: ViolationInput
+    # Page-scoped, not violation-scoped — every violation on the same page
+    # shares the same baseline (the full set of violations detected on that
+    # page before any fix was applied). Threaded in by main.py's run_scan so
+    # verifier_node never has to query the DB (see module docstring).
+    baseline_violations: list[dict]
     reviewer_result: ReviewerOutput
     impact_result: ImpactOutput
     developer_result: DeveloperOutput
@@ -87,6 +93,12 @@ async def impact_node(state: ReasoningState) -> dict:
         system_prompt=impact_prompt.SYSTEM_PROMPT,
         user_prompt=user_prompt,
         schema=ImpactOutput,
+        # Impact's ambiguous-case judgment (a single risk score + reasoning)
+        # is coarser than Developer's fix-generation, making it a reasonable
+        # candidate for a smaller/cheaper model — Reviewer/Developer keep
+        # the fix-quality-critical MODEL_NAME (Phase 3 cost-optimization
+        # scope, see llm_client.py).
+        model=IMPACT_FALLBACK_MODEL_NAME,
     )
     return {"impact_result": result}
 
@@ -99,19 +111,72 @@ async def developer_node(state: ReasoningState) -> dict:
     result = await call_llm(
         agent_name=AgentName.Developer,
         wcag_rule=v["wcag_rule"],
-        html_snippet=None,
+        # Real html_snippet (was None) — needed now that Developer is
+        # cacheable too (Phase 3, see llm_client.py's generalized cache key).
+        html_snippet=v["html_snippet"],
         system_prompt=developer_prompt.SYSTEM_PROMPT,
         user_prompt=user_prompt,
         schema=DeveloperOutput,
+        # On a cache hit, llm_client.py always overrides target_selector with
+        # this value rather than trusting the cached one — target_selector
+        # is a verbatim copy of the input, not independently generated
+        # content, so this fully neutralizes the one real Developer-caching
+        # risk (see llm_client.py module docstring).
+        element_selector=v["element_selector"],
     )
     return {"developer_result": result}
 
 
 async def verifier_node(state: ReasoningState) -> dict:
-    # Phase 2 structural stub only — no LLM call, no Playwright re-check.
-    # Phase 3 fills in the real apply-fix-and-reverify logic here without
-    # touching graph topology (see agents/verifier/schema.py).
-    return {"verifier_result": VerifierOutput()}
+    v = state["violation"]
+    baseline = state["baseline_violations"]
+    developer_result = state["developer_result"]
+
+    attempt = await verify_fix(
+        page_url=v["page_url"],
+        original_wcag_rule=v["wcag_rule"],
+        original_element_selector=v["element_selector"],
+        target_selector=developer_result.target_selector,
+        proposed_code_diff=developer_result.proposed_code_diff,
+        baseline=baseline,
+    )
+
+    retry_count = 0
+    if attempt.outcome != "verified":
+        # Mechanical retry only: same proposed_code_diff, freshly reloaded
+        # page, no new Developer LLM call. The retry's own outcome is always
+        # authoritative for the final verdict, even if the first attempt had
+        # a cleaner signal — one deterministic rule, no special-casing.
+        retry_count = 1
+        attempt = await verify_fix(
+            page_url=v["page_url"],
+            original_wcag_rule=v["wcag_rule"],
+            original_element_selector=v["element_selector"],
+            target_selector=developer_result.target_selector,
+            proposed_code_diff=developer_result.proposed_code_diff,
+            baseline=baseline,
+        )
+
+    if attempt.outcome == "verified":
+        result = VerifierOutput(
+            verification_status=FixVerificationStatus.verified,
+            retry_count=retry_count,
+        )
+    elif attempt.outcome in ("violation_persists", "new_violation"):
+        # Fix applied cleanly, detector reran cleanly, but the violation
+        # persists or a new one appeared — a confident automated "no", not a
+        # tooling failure.
+        result = VerifierOutput(
+            verification_status=FixVerificationStatus.rejected,
+            retry_count=retry_count,
+        )
+    else:  # "error" — a technical failure that persisted through the retry
+        result = VerifierOutput(
+            verification_status=FixVerificationStatus.manual_review,
+            failure_reason=FixFailureReason(attempt.failure_reason),
+            retry_count=retry_count,
+        )
+    return {"verifier_result": result}
 
 
 def _build_graph():

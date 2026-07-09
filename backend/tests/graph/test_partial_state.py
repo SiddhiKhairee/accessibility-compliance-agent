@@ -38,10 +38,10 @@ async def _poll_until_terminal(client, scan_id: int, max_attempts: int = 20, int
 async def test_no_partial_state_on_developer_failure(api_client, test_server, test_engine, monkeypatch):
     original_call_mock = llm_client._call_mock
 
-    async def failing_call_mock(agent_name, schema):
+    async def failing_call_mock(agent_name, schema, model=None):
         if agent_name == AgentName.Developer:
             raise llm_client.LlmCallError("forced test failure (Developer) — proving no-partial-state guarantee")
-        return await original_call_mock(agent_name, schema)
+        return await original_call_mock(agent_name, schema, model)
 
     monkeypatch.setattr(llm_client, "_call_mock", failing_call_mock)
 

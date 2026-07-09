@@ -121,13 +121,25 @@ backfill note.
 
 **Known limitation, intentionally scoped this way:** this phase only makes
 `needs_review` violations *surface and persist* — it does not change how
-the Reviewer / Impact / Developer / Verifier nodes treat them. A
-`needs_review` violation flows through the full reasoning pipeline
-identically to a `confirmed` one today. Actually using
-`detection_confidence` to add extra scrutiny (e.g. in the Reviewer Agent's
-prompt or confidence logic) is deferred to a later phase, not decided
-here — flagged explicitly so this doesn't quietly become a second,
-undocumented gap replacing the first.
+the Reviewer / Impact / Developer nodes treat them. A `needs_review`
+violation flows through Reviewer/Impact/Developer identically to a
+`confirmed` one today. Actually using `detection_confidence` to add extra
+scrutiny (e.g. in the Reviewer Agent's prompt or confidence logic) is
+deferred to a later phase, not decided here — flagged explicitly so this
+doesn't quietly become a second, undocumented gap replacing the first.
+
+**Partially addressed in Phase 3:** the Verifier's before/after diff
+(`verifier.py`'s `verify_fix()`) deliberately ignores `detection_confidence`
+entirely — its baseline/after-set pairs are plain `(wcag_rule,
+element_selector)` tuples, so a `needs_review` violation participates in
+the "original gone, no new violation" check exactly like a `confirmed`
+one (confirmed via a real fix against `duplicate_id_aria.html`'s
+`needs_review` violation — see PLAN.md's Phase 3 session log). This was a
+deliberate choice, not an oversight: axe itself already isn't fully
+confident about these 2 rules, so demanding *more* certainty at
+verification time than detection time would be inconsistent — the
+Verifier's job is to confirm the violation is gone, not to re-litigate
+axe's own confidence in having found it originally.
 
 **Common thread:** every rule in the v1 set has (a) a deterministic
 axe-core check, and (b) a deterministic re-verification path — the
@@ -505,10 +517,34 @@ tracking (Section 9), that's the real trigger to investigate further.
 ## 8. Phase 2 — reasoning layer architecture
 
 **Exactly 4 LangGraph nodes** (`backend/app/graph.py`), linear edges,
-Reviewer → Impact → Developer → Verifier → END. Verifier is a structural
-stub in Phase 2 (returns `status="pending_verification"`, no LLM call, no
-Playwright re-check) — Phase 3 fills in the real apply-fix-and-reverify
-logic without restructuring the graph.
+Reviewer → Impact → Developer → Verifier → END. Verifier was a structural
+stub in Phase 2 (returned `status="pending_verification"`, no LLM call, no
+Playwright re-check).
+
+**Phase 3: Verifier is real, no graph restructuring needed.**
+`verifier_node` calls a new flat module, `backend/app/verifier.py`'s
+`verify_fix()` (same own-Playwright-lifecycle convention as
+`detector.py`/`crawler.py`, no DB access): loads the live page fresh,
+validates `proposed_code_diff` structurally (stdlib `html.parser`
+tag-balance check — catches gross/truncated breakage, not a full HTML
+validator, since none is in `requirements.txt`), replaces the target
+element's outerHTML via `Locator.evaluate()`, reruns the **full**
+`detect_violations()`, and diffs the whole after-set against the page's
+pre-fix baseline (threaded into `ReasoningState` by `run_scan`, never
+queried by the node itself — nodes still never touch the DB). Verdicts:
+`verified` (original gone, no new violation), `rejected` (fix and
+re-detection both ran cleanly, but the violation persists or a new one
+appeared — a confident automated "no"), or `manual_review` (a technical
+failure — timeout, invalid HTML, selector didn't resolve, apply threw —
+persisted through one mechanical retry, i.e. failure_reason is set).
+Retry is mechanical only: same `proposed_code_diff`, freshly reloaded
+page, no new Developer LLM call — so Verifier itself never appears in
+`llm_call_logs`. `fixes.verified_at` is stamped on any terminal verdict,
+not only `verified`, matching `scans.completed_at`'s stamp-on-success-or-
+failure precedent. Verified live against real Groq output (not just
+mocked tests): a real Developer-proposed fix for a `missing_alt.html`-
+style violation was applied via real Playwright DOM mutation and
+confirmed `verified` end-to-end.
 
 **Nodes are pure functions over a shared per-violation state dict — none
 of them touch the database.** `main.py`'s `run_scan` invokes the compiled
@@ -542,19 +578,32 @@ categorical field so failure-rate analysis (and Phase 4's planned
 per-agent success% panel) is a `GROUP BY`, not string-parsing exception
 names out of free text.
 
-**Persistent cache is Reviewer-only** (`llm_response_cache` table, keyed
-on sha256 of `agent + wcag_rule + normalized html_snippet`). Not used for
-Developer (its output carries an instance-specific `target_selector` —
-reusing a cached response across two different violations would hand one
-violation another's selector) or Impact's LLM-fallback (which reasons
-about the page URL, not the violating element — a different key shape
-entirely). Both deferred to Phase 3's real cost-optimization scope.
+**Persistent cache was Reviewer-only in Phase 2** (`llm_response_cache`
+table, keyed on sha256 of `agent + wcag_rule + normalized html_snippet`).
 Normalization is deliberately conservative: whitespace collapse + tag/
 attribute-name lowercasing only, never attribute values or text content
 (several locked rules need real attribute values to reason correctly —
 e.g. `color-contrast`'s inline colors, `html-lang-valid`'s `lang` value).
 Verified live: an identical repeated violation showed `cache_hit=true`
 with `latency_ms=0`/`tokens_used=0` on the second and third calls.
+
+**Phase 3: cache extended to Developer.** `target_selector` was the only
+real risk (instance-specific, unsafe to reuse verbatim across two
+different violations) — but it's not independently generated content, the
+Developer prompt tells the LLM to copy `element_selector` verbatim, so a
+cache hit always overrides `target_selector` with the *current* call's
+`element_selector` rather than trusting the cached value, fully
+neutralizing the risk. Confirmed via a dedicated test
+(`test_developer_cache_hit_overrides_target_selector`) and observed live:
+a real second scan of the same page hit the Reviewer cache
+(`cache_hit=true`). Impact's LLM-fallback is still not cached — it reasons
+about the page URL, not the violating element, a different key shape
+entirely — but is now routed to a smaller/cheaper model instead
+(`IMPACT_FALLBACK_MODEL_NAME = "llama-3.1-8b-instant"`, verified live
+against Groq's real API: HTTP 200, and its own independent 14400 req /
+6000 token rate-limit budget, confirmed separate from `qwen/qwen3-32b`'s —
+see Section 8b's per-model rate-limit-state update below). Reviewer and
+Developer stay on `qwen/qwen3-32b` — fix-quality-critical steps untouched.
 
 **`LLM_MOCK` env flag** returns canned, schema-valid responses instead of
 calling Groq, for testing graph wiring/DB writes/API shape without
@@ -599,6 +648,25 @@ an initial 1,000 after seeing real Developer calls run up to 1,362
 tokens, above that first margin) *and* a reset deadline is known, sleep
 exactly until that deadline; otherwise proceed immediately with zero
 delay. Runs calls back-to-back whenever there's genuine headroom.
+
+**Phase 3 update: per-model, not per-account.** Now that Impact routes to
+`IMPACT_FALLBACK_MODEL_NAME` (Section 8 above), `_remaining_tokens`/
+`_reset_at_monotonic` became `dict[str, ...]` keyed by resolved model
+name — confirmed live (not assumed) that Groq tracks the 6,000
+tokens/minute budget independently per model: a same-second probe showed
+`qwen/qwen3-32b` at 1000 req/6000 token limits and `llama-3.1-8b-instant`
+at a completely separate 14400 req/6000 token limits, each decrementing
+independently. A single shared budget would have either needlessly
+throttled Impact's small-model calls using qwen3-32b's observed usage, or
+vice versa.
+
+**Also found live during Phase 3 verification: `reasoning_format:
+"hidden"` is qwen3-specific, not a general Groq chat-completions
+parameter.** Sending it with `llama-3.1-8b-instant` returns a hard 400
+(`"reasoning_format is not supported with this model"`), not a graceful
+ignore — reproduced directly (a real scan's Impact call failed this way
+before the fix). `_call_real`'s payload now only includes
+`reasoning_format` when `resolved_model == MODEL_NAME`.
 
 **Concurrency-safe via one `asyncio.Lock`** (`_rate_limit_lock`) wrapping
 the pace-check + real HTTP call + state update as one atomic sequence
