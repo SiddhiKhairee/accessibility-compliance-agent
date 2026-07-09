@@ -61,10 +61,21 @@ migration, never hand-edited in prod (see CLAUDE.md).
 - `violation_id`
 - `proposed_code_diff`
 - `target_selector`
-- `verification_status` (verified / rejected / manual_review)
-- `failure_reason` (nullable: invalid_html, dom_changed, playwright_timeout, diff_failed_to_apply)
-- `retry_count`
-- `verified_at`
+- `verification_status` (verified / rejected / manual_review — `rejected`
+  means the fix applied and the full detector reran cleanly, but the
+  violation persisted or a new one appeared; `manual_review` means a
+  technical failure, e.g. timeout/invalid HTML/selector not found,
+  persisted through the one automatic retry)
+- `failure_reason` (nullable: invalid_html, dom_changed, playwright_timeout,
+  diff_failed_to_apply — only ever set alongside `manual_review`, never
+  alongside `rejected`)
+- `retry_count` (0 or 1 — Phase 3's retry is mechanical only: the same
+  proposed fix re-attempted against a freshly reloaded page, no new
+  Developer LLM call)
+- `verified_at` (Phase 3: stamped whenever the Verifier reaches ANY
+  terminal verdict — verified, rejected, or manual_review alike — not only
+  on a positive result. Matches this schema's own `scans.completed_at`
+  precedent of stamping on success or failure.)
 
 ## approvals
 - `id`

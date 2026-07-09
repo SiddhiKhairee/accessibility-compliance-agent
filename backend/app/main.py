@@ -212,6 +212,16 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                     scan_id, pg.url, pg.detection_error,
                 )
 
+            # The full pre-fix violation set for this page — threaded into
+            # the graph state so the Verifier can diff its post-fix rerun
+            # against it without any node touching the DB (see graph.py's
+            # module docstring). Built once per page from data already in
+            # memory (crawl_site's own detection pass), not re-queried.
+            baseline_for_page = [
+                {"wcag_rule": v.wcag_rule, "element_selector": v.element_selector}
+                for v in pg.violations
+            ]
+
             for v in pg.violations:
                 violation_row = Violation(
                     page_id=page_row.id,
@@ -226,12 +236,15 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                 db.add(violation_row)
                 await db.flush()  # need violation_row.id for the reasoning pass below
                 violations_for_reasoning.append({
-                    "id": violation_row.id,
-                    "wcag_rule": violation_row.wcag_rule,
-                    "element_selector": violation_row.element_selector,
-                    "html_snippet": violation_row.html_snippet or "",
-                    "message": violation_row.message or "",
-                    "page_url": page_row.url,
+                    "violation": {
+                        "id": violation_row.id,
+                        "wcag_rule": violation_row.wcag_rule,
+                        "element_selector": violation_row.element_selector,
+                        "html_snippet": violation_row.html_snippet or "",
+                        "message": violation_row.message or "",
+                        "page_url": page_row.url,
+                    },
+                    "baseline_violations": baseline_for_page,
                 })
 
         await db.commit()
@@ -244,9 +257,10 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
     # `ainvoke()` before anything is written for that violation (see
     # graph.py / llm_client.py module docstrings — no partial state is
     # possible by construction, not convention).
-    for v in violations_for_reasoning:
+    for entry in violations_for_reasoning:
+        v = entry["violation"]
         try:
-            final_state = await reasoning_graph.ainvoke({"violation": v})
+            final_state = await reasoning_graph.ainvoke(entry)
         except Exception as e:
             logger.warning("scan=%s violation=%s reasoning failed: %s", scan_id, v["id"], e)
             continue
@@ -254,6 +268,7 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
         reviewer_result = final_state["reviewer_result"]
         impact_result = final_state["impact_result"]
         developer_result = final_state["developer_result"]
+        verifier_result = final_state["verifier_result"]
 
         async with async_session_factory() as db:
             violation_row = await db.get(Violation, v["id"])
@@ -268,8 +283,14 @@ async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> No
                 violation_id=v["id"],
                 proposed_code_diff=developer_result.proposed_code_diff,
                 target_selector=developer_result.target_selector,
-                verification_status=None,
-                retry_count=0,
+                verification_status=verifier_result.verification_status,
+                failure_reason=verifier_result.failure_reason,
+                retry_count=verifier_result.retry_count,
+                # Stamped whenever the verifier reaches any terminal verdict
+                # (verified/rejected/manual_review alike), not only on a
+                # positive result — matches this file's own
+                # Scan.completed_at convention (set on success or failure).
+                verified_at=datetime.now(timezone.utc),
             ))
             await db.commit()
 

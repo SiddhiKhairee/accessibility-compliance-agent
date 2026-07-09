@@ -46,7 +46,7 @@ async def _assert_no_cache_row(engine, wcag_rule: str) -> None:
 async def test_error_logging_timeout(test_engine, monkeypatch):
     wcag_rule = f"error-test-timeout-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         raise httpx.TimeoutException("simulated timeout")
 
     monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
@@ -64,7 +64,7 @@ async def test_error_logging_timeout(test_engine, monkeypatch):
 async def test_error_logging_rate_limited(test_engine, monkeypatch):
     wcag_rule = f"error-test-429-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         return _make_groq_response(429), 5
 
     monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
@@ -82,7 +82,7 @@ async def test_error_logging_rate_limited(test_engine, monkeypatch):
 async def test_error_logging_http_error(test_engine, monkeypatch):
     wcag_rule = f"error-test-500-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         return _make_groq_response(500), 5
 
     monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
@@ -100,7 +100,7 @@ async def test_error_logging_http_error(test_engine, monkeypatch):
 async def test_error_logging_json_decode_error(test_engine, monkeypatch):
     wcag_rule = f"error-test-jsondecode-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         json_body = {"choices": [{"message": {"content": "no braces here"}}], "usage": {"total_tokens": 10}}
         return _make_groq_response(200, json_body), 5
 
@@ -119,7 +119,7 @@ async def test_error_logging_json_decode_error(test_engine, monkeypatch):
 async def test_error_logging_validation_error(test_engine, monkeypatch):
     wcag_rule = f"error-test-validation-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         json_body = {"choices": [{"message": {"content": '{"foo": "bar"}'}}], "usage": {"total_tokens": 10}}
         return _make_groq_response(200, json_body), 5
 
@@ -138,7 +138,7 @@ async def test_error_logging_validation_error(test_engine, monkeypatch):
 async def test_error_logging_unknown(test_engine, monkeypatch):
     wcag_rule = f"error-test-unknown-{uuid.uuid4().hex[:12]}"
 
-    async def fake_request(payload, headers):
+    async def fake_request(model, payload, headers):
         # No "choices" key at all -> data["choices"][0] raises a bare
         # KeyError, which _classify_error doesn't recognize -> "unknown".
         json_body = {"usage": {"total_tokens": 5}}

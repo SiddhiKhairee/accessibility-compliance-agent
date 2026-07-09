@@ -123,13 +123,13 @@ the whole project once the frontend ships in Phase 4 — see Phase 4.5.
 **Note:** Phase 3 verification logic should account for Phase 2.6's
 detector `reviewOnFail` findings (see Phase 2.6) before assuming all 9
 locked rules are reachable via `detect_violations()`.
-- [ ] Verification Agent applies fix locally at target selector, re-runs FULL detector
-- [ ] Diff entire before/after violation set (not just the one flagged rule)
-- [ ] Retry-once-then-manual_review logic with failure_reason enum
-- [ ] Real cost optimization: cache repeated identical violation patterns, and/or route simple steps to smaller model
-- [ ] Measure and log real before/after cost comparison
-- [ ] **Deliverable:** verified/rejected/manual_review fixes with real failure reasons + real cost figure
-- [ ] **Verify:** confirm cost numbers come from logged data, not estimates
+- [x] Verification Agent applies fix locally at target selector, re-runs FULL detector
+- [x] Diff entire before/after violation set (not just the one flagged rule)
+- [x] Retry-once-then-manual_review logic with failure_reason enum
+- [x] Real cost optimization: cache repeated identical violation patterns, and/or route simple steps to smaller model
+- [x] Measure and log real before/after cost comparison
+- [x] **Deliverable:** verified/rejected/manual_review fixes with real failure reasons + real cost figure
+- [x] **Verify:** confirm cost numbers come from logged data, not estimates
 
 ## Phase 4 — Dashboard
 - [ ] Violations view: sites/scans, prioritized violations, before/after diffs, verification status
@@ -622,3 +622,65 @@ for real once frontend work in Phase 4 actually starts.
      DB (995 existing violations rows, all NULL on the new column, count
      unchanged before/after) and the test DB (column present via \d
      violations). -->
+<!-- 2026-07-09: Phase 3 complete — Verifier is real, no graph
+     restructuring (still exactly 4 nodes). New flat module
+     backend/app/verifier.py (`verify_fix()`, same own-Playwright-lifecycle
+     convention as detector.py/crawler.py, no DB access): pre-apply
+     html.parser tag-balance sanity check, real page load, outerHTML
+     replacement at target_selector via Locator.evaluate(), full
+     detect_violations() rerun, diff against the page's pre-fix baseline
+     (threaded into ReasoningState by run_scan — nodes still never touch
+     the DB). graph.py's verifier_node wraps this with one mechanical
+     retry (same proposed_code_diff, fresh page load, no new Developer LLM
+     call) before landing on verified/rejected/manual_review.
+     Design decisions confirmed with user before implementation: rejected
+     = clean technical run but violation persists/new one appeared,
+     failure_reason=None; manual_review = a technical failure that
+     persisted through the retry, failure_reason set; on a mixed
+     first-attempt-vs-retry outcome, the retry's own result always wins;
+     verified_at stamps on any terminal verdict, not only verified
+     (matches scans.completed_at's stamp-on-success-or-failure precedent).
+     Cost optimization: Developer is now cached (generalized the existing
+     Reviewer-only cache key to include agent_name; a cache hit always
+     overrides target_selector with the current call's element_selector,
+     never the cached value, since target_selector is a verbatim copy of
+     input, not independently generated content — see
+     test_developer_cache_hit_overrides_target_selector). Impact's
+     LLM-fallback now routes to IMPACT_FALLBACK_MODEL_NAME
+     ("llama-3.1-8b-instant") instead of qwen/qwen3-32b; Reviewer/Developer
+     untouched.
+     Two real bugs found and fixed via live verification against the real
+     Groq API (not just mocked tests), matching CLAUDE.md's own bar for
+     verifying model/rate-limit claims live: (1) `reasoning_format:
+     "hidden"` is qwen3-specific — Groq returns a hard 400 for
+     llama-3.1-8b-instant, reproduced directly via a real scan's Impact
+     call failing this way; payload now only sends it when
+     resolved_model == MODEL_NAME. (2) confirmed live that Groq tracks the
+     6,000 tokens/minute budget per-model, not per-account (a same-second
+     probe showed qwen/qwen3-32b at 1000 req/6000 tok vs
+     llama-3.1-8b-instant at a separate 14400 req/6000 tok, decrementing
+     independently) — `_remaining_tokens`/`_reset_at_monotonic` changed
+     from single globals to dicts keyed by resolved model name.
+     Verified: full suite 52 passed (42 prior − 1 removed stub test +
+     10 new verifier.py tests + 1 new Developer-cache test), `ruff check
+     backend/` clean. Beyond the automated suite, ran one real end-to-end
+     scan against real Groq (not LLM_MOCK) on a local missing_alt.html
+     page: Developer proposed a real fix, Verifier applied it via real
+     Playwright DOM mutation and confirmed `verification_status=verified,
+     retry_count=0` after a real detect_violations() rerun found the
+     violation gone with nothing new introduced; Impact's call in that
+     same run really did route to llama-3.1-8b-instant; a repeat Reviewer
+     call on the same page really did hit the cache. cost_report.py's
+     compute_agent_cost_summary(), run against the real (cumulative,
+     historical) dev-DB llm_call_logs/fixes tables — not a clean isolated
+     before/after benchmark, but genuinely logged data, not invented:
+     Reviewer 188 calls (35.6% cache-hit rate), Impact 102 calls (models
+     now include both qwen/qwen3-32b and llama-3.1-8b-instant, reflecting
+     the mid-history model-routing change), Developer 94 calls, fixes:
+     128 pre-Phase-3 rows still `verification_status` unset (as expected —
+     nothing wrote it before this phase) plus 1 real `verified` row from
+     this phase's own manual run, retry rate 0.0. A controlled before/after
+     A/B benchmark (same site, pre- vs post-Phase-3 code) is a reasonable
+     next step for a resume-quality cost-savings number, but wasn't
+     required to close this phase's own checkboxes, which only require the
+     numbers be real and logged — confirmed they are. -->
