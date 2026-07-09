@@ -119,9 +119,20 @@ Ran one real scan (`POST`-equivalent via `run_scan()` directly) against a local 
 - **`needs_review` vs `confirmed` are diffed identically by design**, not by oversight — the Verifier's job is confirming the violation is gone, not re-litigating axe's own detection confidence. Reviewer/Impact/Developer still don't use `detection_confidence` for extra scrutiny (unchanged from Phase 2.6's original deferral).
 - **Today's cost numbers (Section 5) are cumulative history, not an isolated benchmark** — see the honest caveats there.
 
-## 9. Real final state
+## 9. Remote CI verification (not just local pytest)
+
+Local 52/52 is not treated as sufficient on its own, per this project's own Phase 2.5 CI/branch-protection standard. Pushed `phase-3-fix-verification` and opened PR #16 into `main`:
+
+- **Push-triggered run**: [`29055775871`](https://github.com/SiddhiKhairee/accessibility-compliance-agent/actions/runs/29055775871) — `conclusion: success`, all steps green (lint, Playwright install, both Alembic migration checks, full pytest suite), 2m18s.
+- **PR-triggered run**: [`29055787660`](https://github.com/SiddhiKhairee/accessibility-compliance-agent/actions/runs/29055787660) — `conclusion: success`.
+- **PR #16 merge readiness**: `mergeStateStatus: "CLEAN"`, `mergeable: "MERGEABLE"`, both `test` status checks report `SUCCESS`.
+- **Branch protection on `main`** (confirmed via `gh api .../branches/main/protection`, not assumed carried over from Phase 2.5): `required_status_checks.contexts: ["test"]`, `strict: true`, `enforce_admins: true`, `allow_force_pushes: false`, `allow_deletions: false` — the real gate that must pass before merge is in place and satisfied.
+- PR not merged — merging is the user's call, not made here.
+
+## 10. Real final state
 
 - 52/52 pytest tests passing locally, `ruff check backend/` clean.
+- Remote CI green on both the push and PR triggers for `phase-3-fix-verification` (PR #16), branch protection's required `test` check satisfied.
 - One real, non-mocked, end-to-end `verified` Fix produced against real Groq + real Playwright + real axe-core.
 - Two real bugs found by live verification (not assumed away by mocked tests), both fixed and regression-checked live.
 - Phase 3 checkboxes closed in PLAN.md, with a full session-log entry; `docs/schema.md` and `design.md` updated to describe the real behavior, not the Phase 2 stub.
