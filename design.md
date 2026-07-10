@@ -985,4 +985,103 @@ project's "clickable demo" scope, not a hardened production serve).
 `http://backend:8000` — the frontend runs client-side in the host's
 browser, which can't resolve Docker-internal service names.
 
-Full narrative in `PHASE2_5_COMPLETION_REPORT.md`.
+Full narrative in `PHASE4_COMPLETION_REPORT.md`.
+
+## 12. Phase 4.5 — Frontend testing + CI/CD
+
+Fills in `PLAN.md`'s Phase 4.5 placeholder ("decided when this phase
+starts, not now") now that real frontend code exists. Same "raise the
+decision, write the reasoning down" discipline Section 10 used for the
+backend's Phase 2.5 CI/CD work.
+
+**Tooling: Vitest + React Testing Library, no MSW.** Vite-native, shares
+the existing `vite.config.ts` transform pipeline — no alternative
+seriously considered since nothing existed to substitute *from*.
+`api/client.ts`'s exported functions (or, for page-level tests, the
+`useScanSelector` hook itself) are mocked directly via `vi.mock`, mirroring
+the backend's own preference (Section 10) for monkeypatching the real
+seam over a heavier mocking framework.
+
+**Config kept separate** (`frontend/vitest.config.ts`, not a merged `test`
+block in `vite.config.ts`), matching this project's existing dev/test
+separation pattern (`.env`/`.env.test`, distinct Postgres services).
+
+**Tests colocated** (`Component.test.tsx` next to `Component.tsx`), not a
+mirrored `frontend/tests/` tree like the backend's own convention — at
+~11 test files, duplicating the `components/`/`pages`/`hooks`/`api`
+directory structure wasn't worth the indirection, and colocation is the
+standard Vitest/RTL pattern. `tsconfig.app.json`'s `include: ["src"]`
+already covered it with zero config changes.
+
+**A real gap found while wiring up `setupTests.ts`, not just a config
+nit.** With `globals: false` (explicit `import { expect } from "vitest"`
+everywhere, consistent with `verbatimModuleSyntax`), React Testing
+Library's auto-cleanup never self-registers — it only activates when it
+detects a *global* `afterEach` (jest, or Vitest's `globals: true`). Every
+test after the first in a file was seeing leftover DOM from prior tests
+(duplicate badges, stale SVGs, miscounted bars) until an explicit
+`afterEach(cleanup)` was added to `setupTests.ts`.
+
+**A real production bug found and fixed, not just a testing gap
+(R1).** `useScanSelector.ts`'s site→scans effect and `refetchScan` both
+fired a fetch with no check, on resolution, that the response still
+matched the current selection. Rapid reselection (scan A, then scan B
+before A resolved) could let A's late response silently overwrite B's
+already-rendered state. Confirmed via a direct grep of `frontend/src` for
+any staleness guard (`AbortController`/`cancelled`/etc.) — zero matches.
+Fixed before writing the test that would otherwise have just locked in
+the bug: the site→scans effect uses an effect-cleanup `cancelled` flag;
+`refetchScan` uses a ref-based "latest request" token instead, since it's
+also invoked imperatively by `ReviewApproveView`/`ViolationsView` outside
+the effect that originally triggered it. Landed as its own commit
+(`5fb7783`), separate from every test file, called out explicitly rather
+than folded silently into a nominally "add tests" phase. Regression
+tests: `useScanSelector.test.ts`'s two "guards against a stale ... response"
+tests fire two overlapping requests with the second resolving first, and
+assert the hook's state reflects the second (current) selection.
+
+**Async test convention, standardized once.** All loading→error→success
+assertions use RTL's `findBy*`/`waitFor`, never a manual `act()` wrapper —
+documented as a comment in `setupTests.ts` during the first checkpoint so
+every later test file follows the same pattern instead of improvising.
+
+**`oxlint` was already part of the Phase 4 scaffold**, not new tooling
+introduced here — confirmed via `package.json`'s existing `"lint": "oxlint"`
+script and the existing `.oxlintrc.json`. The CI job's lint step just
+wires up what Phase 4 already configured.
+
+**CI: an independent `frontend` job in the existing `ci.yml`**, parallel
+to `test`, no Postgres/backend services — the frontend suite mocks
+`api/client.ts`, never hits a real backend, so the job has nothing to
+wait on. `actions/setup-node@v4` (22.x) → `npm ci` → `oxlint` → `tsc -b`
+→ `vitest run` → `vite build`.
+
+**Regression proof, same standard as Phase 2.5e, tightened to the exact
+assertion.** `ReviewApproveView.tsx`'s `combined_verification_status ===
+"clean"` gate (the check controlling whether the download link renders)
+was inverted to `!==`, on real pushes to the `phase-4.5` branch — not a
+hypothetical. Red run
+[29124818143](https://github.com/SiddhiKhairee/accessibility-compliance-agent/actions/runs/29124818143):
+`frontend` job failed at the Vitest step with exactly the 3
+`ReviewApproveView.test.tsx` download-gating tests failing (`renders the
+download link when ... 'clean'`, `does NOT render ... 'violations_remain'`,
+`does NOT render ... null`) — all 9 other tests in that file and every
+other test file stayed green, and the backend `test` job was unaffected
+(frontend-only change). Reverted (confirmed byte-clean via `git diff`
+against the pre-regression commit); green run
+[29124965399](https://github.com/SiddhiKhairee/accessibility-compliance-agent/actions/runs/29124965399):
+both jobs passing.
+
+**Branch hygiene note.** The R1 fix was accidentally committed directly to
+local `main` before a `phase-4.5` branch existed. Caught and corrected
+before any push: `phase-4.5` created at that commit, local `main` moved
+back to `origin/main` (confirmed identical via `git fetch` + `git log
+origin/main..main`/`main..origin/main`, both empty, before touching
+anything). Final commit order on `phase-4.5` is R1-fix-first rather than
+interleaved with the Checkpoint 1 tooling commit, by explicit choice
+(avoids a history-rewriting `git reset` for a cosmetic reordering) — still
+separate, non-squashed commits for each unit of work (R1 fix; tooling+
+component tests; hook+client tests; page tests; CI extension; regression-
+proof push + revert).
+
+Full narrative in `PHASE4_5_COMPLETION_REPORT.md`.

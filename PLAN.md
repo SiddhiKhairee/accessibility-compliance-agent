@@ -150,18 +150,25 @@ locked rules are reachable via `detect_violations()`.
 **Note:** placeholder, same pattern as design.md Section 10 was handled
 before Phase 2.5 started — no tooling decisions invented here. Fill in
 for real once frontend work in Phase 4 actually starts.
-- [ ] Full frontend test suite (component tests — likely Vitest/React
+- [x] Full frontend test suite (component tests — likely Vitest/React
       Testing Library or whatever fits the eventual frontend stack,
       decided when this phase starts, not now)
-- [ ] Extend `.github/workflows/ci.yml` (or add a parallel job) to
+      *(Vitest + React Testing Library, no MSW — see design.md Section 12.
+      60 tests across components, the useScanSelector hook, api/client.ts,
+      and all three pages.)*
+- [x] Extend `.github/workflows/ci.yml` (or add a parallel job) to
       lint/test/build the frontend on every push — same enforcement
       standard Phase 2.5d built for the backend (real triggered Actions
       runs, proven to fail on a real regression and recover, not just
       YAML review)
-- [ ] **Deliverable:** CI gate covers frontend + backend together, not
+      *(New independent `frontend` job, no Postgres/backend services.)*
+- [x] **Deliverable:** CI gate covers frontend + backend together, not
       backend only
-- [ ] **Verify:** same red/green proof standard as Phase 2.5e — CI green
+- [x] **Verify:** same red/green proof standard as Phase 2.5e — CI green
       on a clean run, red when an intentional regression is reintroduced
+      *(Red run 29124818143 — inverted ReviewApproveView.tsx's download-
+      link gate, exactly the 3 download-gating tests failed, nothing
+      else. Green run 29124965399 after a byte-clean revert.)*
 
 ## Phase 5 — Evaluation & Metrics
 - [ ] Run pipeline across 30-50 real public sites
@@ -843,3 +850,75 @@ for real once frontend work in Phase 4 actually starts.
      snapshot path returns a clean 400) — 83/83 passing, `ruff check`
      clean. design.md Section 11 and PHASE4_COMPLETION_REPORT.md updated
      to document this as closed, not silently patched. -->
+<!-- 2026-07-10: Phase 4.5 complete — frontend testing + CI/CD, worked in
+     four checkpoints on a `phase-4.5` branch (not main), each committed
+     and pushed before starting the next rather than batched at the end.
+
+     Tooling: Vitest + React Testing Library, no MSW — mirrors the
+     backend's own preference (design.md Section 10) for monkeypatching
+     the real seam (api/client.ts's exports, or the useScanSelector hook
+     directly for page tests) over a heavier mocking framework. Config
+     kept separate (vitest.config.ts, not merged into vite.config.ts) and
+     tests colocated (Component.test.tsx next to Component.tsx, not a
+     mirrored tests/ tree) — both explicit decisions, not defaults picked
+     without thought. Full reasoning in design.md Section 12.
+
+     Checkpoint 1: vitest/RTL/jsdom tooling + setupTests.ts + tests for
+     StatusBadge/TrendLineChart/BarChart/ViolationDiff (18 tests). Found
+     and fixed a real setup gap along the way: with globals:false, RTL's
+     auto-cleanup never self-registers, so every test after the first in
+     a file saw leftover DOM from prior tests until an explicit
+     afterEach(cleanup) was added.
+
+     Checkpoint 2: a real production bug found and fixed, not just a
+     testing gap (R1) — useScanSelector.ts's site->scans effect and
+     refetchScan both fired a fetch with no check that a resolving
+     response still matched the current selection; rapid reselection
+     could let a stale response silently overwrite newer state. Grepped
+     frontend/src first to confirm zero existing guards, then fixed
+     before writing the test that would otherwise have locked in the bug.
+     Landed as its own commit (5fb7783), separate from every test file,
+     called out explicitly per your instruction rather than folded
+     silently into a nominally "add tests" phase. Then
+     useScanSelector.test.ts (8 tests, including two dedicated stale-
+     response regression tests) + client.test.ts (6 tests).
+
+     Checkpoint 3: page tests for ViolationsView (10), PerformanceView
+     (6), and ReviewApproveView (11, heaviest) — approvableViolations()
+     filtering, approve/reject + bulk-approve wiring, Generate button
+     label branching, and three dedicated tests locking down the
+     download-link gate (combined_verification_status === "clean" only).
+
+     Checkpoint 4: extended ci.yml with an independent `frontend` job
+     (no Postgres/backend services), verified green on a real triggered
+     run. Then the red/green regression proof, tightened per your
+     instruction to capture the specific failing assertion, not just "CI
+     went red": inverted ReviewApproveView.tsx's download-link gate on a
+     real push, red run 29124818143 — exactly the 3 download-gating
+     tests failed, all 9 other tests in that file and every other file
+     stayed green, backend `test` job unaffected. Reverted (byte-clean
+     via git diff against the pre-regression commit), green run
+     29124965399.
+
+     Branch-hygiene correction, caught mid-session: the R1 fix commit
+     landed directly on local main before phase-4.5 existed (an
+     oversight — should have branched first). Confirmed origin/main was
+     untouched (git fetch + empty diff both directions) before creating
+     phase-4.5 at that commit and moving local main back, both confirmed
+     with you before running (branch pointer moves are treated as
+     destructive by this session's tooling). Final commit order on
+     phase-4.5 is R1-fix-first rather than interleaved with Checkpoint
+     1's tooling commit — a deliberate choice to avoid a history-
+     rewriting reset for what would have been a purely cosmetic
+     reordering, confirmed with you.
+
+     60/60 frontend tests passing, `tsc -b` clean, `oxlint` clean, `vite
+     build` clean, both CI jobs green on the real pushed branch. Branch
+     protection intentionally NOT touched yet (design.md Section 12
+     Decision 6 — needs your explicit go-ahead) and no PR into main
+     opened yet (per your instruction, only once this phase is fully
+     done). design.md Section 12 and PHASE4_5_COMPLETION_REPORT.md
+     written. One unrelated drive-by fix: design.md Section 11 ended
+     with a stale "Full narrative in PHASE2_5_COMPLETION_REPORT.md" copy-
+     paste leftover (should reference PHASE4_COMPLETION_REPORT.md) -
+     corrected while adding Section 12 immediately after it. -->
