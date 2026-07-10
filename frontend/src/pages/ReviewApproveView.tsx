@@ -94,7 +94,7 @@ export default function ReviewApproveView() {
               const approvedCount = approvable.filter((v) => v.fix?.latest_approval_decision === "approved").length;
               const totalCount = approvable.length;
               const result = generateResults[page.id];
-              const canDownload = page.combined_verification_status !== "clean";
+              const canDownload = page.combined_verification_status === "clean";
 
               return (
                 <div className="card" key={page.id}>
