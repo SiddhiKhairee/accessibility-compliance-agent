@@ -13,19 +13,27 @@ BackgroundTasks is in-process and non-durable — see design.md Section 4f
 for the documented, accepted limitation (not something this file works
 around).
 """
+import hashlib
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crawler import DEFAULT_MAX_DEPTH, DEFAULT_MAX_PAGES, crawl_site
+import cost_report
+import page_fixer
+from config import settings
+from crawler import DEFAULT_MAX_DEPTH, DEFAULT_MAX_PAGES, SNAPSHOT_DIR, crawl_site
 from db import async_session_factory, dispose_engine, get_db, init_engine
 from graph import reasoning_graph
 from models import (
+    Approval,
+    ApprovalDecision,
     Fix,
     FixFailureReason,
     FixVerificationStatus,
@@ -50,6 +58,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Accessibility Compliance Agent", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_ORIGIN],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ScanRequest(BaseModel):
@@ -79,6 +94,14 @@ class FixOut(BaseModel):
     verification_status: FixVerificationStatus | None
     failure_reason: FixFailureReason | None
     retry_count: int
+    # Not a Fix model attribute (Approval has no relationship() defined on
+    # Fix — see models.py's own note inviting Phase 3/4 to add one when
+    # actually needed). Defaults to None here so ScanOut.model_validate()
+    # doesn't error on the missing attribute; get_scan below fills in the
+    # real value afterward via a separate query. Needed so the Review &
+    # Approve tab doesn't lose track of prior approve/reject decisions on
+    # a page refresh.
+    latest_approval_decision: ApprovalDecision | None = None
 
     model_config = {"from_attributes": True}
 
@@ -112,6 +135,12 @@ class PageOut(BaseModel):
     status: str | None
     failure_reason: str | None
     violations: list[ViolationOut]
+    # Phase 4: page_fixer.py's combine-and-reverify output — see
+    # POST /pages/{id}/generate-fixed-page.
+    fixed_html_snapshot_path: str | None
+    combined_verification_status: str | None
+    combined_verification_detail: str | None
+    combined_verified_at: datetime | None
 
     model_config = {"from_attributes": True}
 
@@ -152,7 +181,256 @@ async def get_scan(scan_id: int, db: AsyncSession = Depends(get_db)):
     scan = await db.get(Scan, scan_id)
     if scan is None:
         raise HTTPException(status_code=404, detail="scan not found")
-    return scan
+
+    scan_out = ScanOut.model_validate(scan)
+
+    fix_ids = [
+        v.fix.id for page in scan_out.pages for v in page.violations if v.fix is not None
+    ]
+    if fix_ids:
+        approval_rows = (await db.execute(
+            select(Approval).where(Approval.fix_id.in_(fix_ids)).order_by(Approval.fix_id, desc(Approval.id))
+        )).scalars().all()
+        latest_by_fix: dict[int, Approval] = {}
+        for a in approval_rows:
+            latest_by_fix.setdefault(a.fix_id, a)
+        for page in scan_out.pages:
+            for v in page.violations:
+                if v.fix is not None and v.fix.id in latest_by_fix:
+                    v.fix.latest_approval_decision = latest_by_fix[v.fix.id].decision
+
+    return scan_out
+
+
+class SiteOut(BaseModel):
+    id: int
+    url: str
+    last_scanned_at: datetime | None
+    latest_scan_status: ScanStatus | None
+
+    model_config = {"from_attributes": True}
+
+
+class ScanSummaryOut(BaseModel):
+    """Deliberately lighter than ScanOut — no `pages` — for listing many
+    scans at once. Scan.pages' lazy="selectin" relationship still triggers
+    on load regardless (see module docstring below for why that's left
+    alone rather than reworked), but this model just never serializes it."""
+
+    id: int
+    site_id: int
+    status: ScanStatus
+    started_at: datetime | None
+    completed_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+@app.get("/sites", response_model=list[SiteOut])
+async def list_sites(db: AsyncSession = Depends(get_db)):
+    """Avoids Site.scans (no lazy strategy declared, would need an explicit
+    selectinload) and definitely avoids Scan.pages' lazy="selectin" cascade
+    (which would recursively pull every page/violation/fix for every scan
+    just to show a site list) — a plain aggregate query for "latest scan
+    per site" instead, joined back onto Site."""
+    latest_scan_subq = (
+        select(Scan.site_id, func.max(Scan.id).label("latest_scan_id"))
+        .group_by(Scan.site_id)
+        .subquery()
+    )
+    rows = (await db.execute(
+        select(Site, Scan.status)
+        .join(latest_scan_subq, latest_scan_subq.c.site_id == Site.id, isouter=True)
+        .join(Scan, Scan.id == latest_scan_subq.c.latest_scan_id, isouter=True)
+        .order_by(Site.id)
+    )).all()
+    return [
+        SiteOut(id=site.id, url=site.url, last_scanned_at=site.last_scanned_at, latest_scan_status=status)
+        for site, status in rows
+    ]
+
+
+@app.get("/scans", response_model=list[ScanSummaryOut])
+async def list_scans(site_id: int | None = None, db: AsyncSession = Depends(get_db)):
+    query = select(Scan).order_by(desc(Scan.id))
+    if site_id is not None:
+        query = query.where(Scan.site_id == site_id)
+    scans = (await db.execute(query)).scalars().all()
+    return scans
+
+
+class ApprovalRequest(BaseModel):
+    decision: ApprovalDecision
+    approver: str
+
+
+class ApprovalOut(BaseModel):
+    id: int
+    fix_id: int
+    approver: str | None
+    decision: ApprovalDecision | None
+    decided_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+@app.post("/fixes/{fix_id}/approval", response_model=ApprovalOut, status_code=201)
+async def create_approval(fix_id: int, req: ApprovalRequest, db: AsyncSession = Depends(get_db)):
+    """Always inserts a new Approval row rather than updating one in place —
+    a human can change their mind later, and the most recent row per fix_id
+    is what generate-fixed-page (below) treats as authoritative. Restricted
+    to verified fixes: approving/rejecting a fix that never passed
+    verification (rejected/manual_review/still pending) has nothing
+    trustworthy to approve."""
+    fix = await db.get(Fix, fix_id)
+    if fix is None:
+        raise HTTPException(status_code=404, detail="fix not found")
+    if fix.verification_status != FixVerificationStatus.verified:
+        raise HTTPException(
+            status_code=400,
+            detail=f"fix {fix_id} is not verified (status={fix.verification_status}); only verified fixes can be approved/rejected",
+        )
+
+    approval = Approval(
+        fix_id=fix_id, approver=req.approver, decision=req.decision,
+        decided_at=datetime.now(timezone.utc),
+    )
+    db.add(approval)
+    await db.commit()
+    await db.refresh(approval)
+    return approval
+
+
+class GenerateFixedPageResponse(BaseModel):
+    page_id: int
+    status: str  # "clean" | "violations_remain" | "error"
+    detail: str
+    fixes_included_count: int
+    fixes_pending_count: int
+    download_available: bool
+
+
+@app.post("/pages/{page_id}/generate-fixed-page", response_model=GenerateFixedPageResponse)
+async def generate_fixed_page(page_id: int, db: AsyncSession = Depends(get_db)):
+    """Partial approval is allowed, explicitly: whatever is approved at
+    call time gets combined, and the response always reports exactly how
+    many of the page's verified fixes were included vs not — never silent
+    about a partial result. Requires at least one approved fix to exist.
+
+    Runs synchronously (not BackgroundTasks) — scoped to one page's
+    violations, not a whole site crawl, so it doesn't need POST /scan's
+    async pattern.
+    """
+    page = await db.get(Page, page_id)
+    if page is None:
+        raise HTTPException(status_code=404, detail="page not found")
+    if page.status != "loaded" or page.raw_html_snapshot_path is None:
+        raise HTTPException(
+            status_code=400,
+            detail="page has no raw HTML snapshot to combine fixes onto (status != 'loaded')",
+        )
+
+    violations = (await db.execute(
+        select(Violation).where(Violation.page_id == page_id)
+    )).scalars().all()
+    baseline = [{"wcag_rule": v.wcag_rule, "element_selector": v.element_selector} for v in violations]
+
+    verified_violations = [v for v in violations if v.fix is not None and v.fix.verification_status == FixVerificationStatus.verified]
+    total_fixes_count = len(verified_violations)
+    fix_ids = [v.fix.id for v in verified_violations]
+
+    latest_approval_by_fix: dict[int, Approval] = {}
+    if fix_ids:
+        approval_rows = (await db.execute(
+            select(Approval).where(Approval.fix_id.in_(fix_ids)).order_by(Approval.fix_id, desc(Approval.id))
+        )).scalars().all()
+        for a in approval_rows:
+            latest_approval_by_fix.setdefault(a.fix_id, a)
+
+    approved_violations = [
+        v for v in verified_violations
+        if latest_approval_by_fix.get(v.fix.id) is not None
+        and latest_approval_by_fix[v.fix.id].decision == ApprovalDecision.approved
+    ]
+    fixes_included_count = len(approved_violations)
+    fixes_pending_count = total_fixes_count - fixes_included_count
+
+    if fixes_included_count == 0:
+        raise HTTPException(status_code=400, detail="no approved fixes on this page to generate")
+
+    fixes_to_apply = [
+        page_fixer.FixToApply(
+            wcag_rule=v.wcag_rule,
+            element_selector=v.element_selector,
+            target_selector=v.fix.target_selector,
+            proposed_code_diff=v.fix.proposed_code_diff,
+        )
+        for v in approved_violations
+    ]
+
+    result = await page_fixer.apply_verified_fixes_to_page(
+        page_url=page.url,
+        raw_html_snapshot_path=page.raw_html_snapshot_path,
+        fixes=fixes_to_apply,
+        baseline=baseline,
+    )
+
+    combined_detail = f"{fixes_included_count}/{total_fixes_count} violations addressed; {result.detail}"
+
+    page.combined_verification_status = result.status
+    page.combined_verification_detail = combined_detail
+    page.combined_verified_at = datetime.now(timezone.utc)
+    if result.status == "clean" and result.fixed_html is not None:
+        # SNAPSHOT_DIR is only ever created by crawler.py's crawl_site()
+        # (mkdir(parents=True, exist_ok=True)) — a fresh checkout that
+        # never ran a real scan (e.g. CI, which builds this state directly
+        # via fixture rows) has no data/raw_html/ directory at all yet.
+        # Real bug caught by CI, not local dev: this machine already had
+        # the directory from prior real scans, masking it.
+        SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+        filename = hashlib.sha256(f"fixed:{page.id}".encode()).hexdigest()[:16] + ".html"
+        fixed_path = SNAPSHOT_DIR / filename
+        fixed_path.write_text(result.fixed_html, encoding="utf-8")
+        page.fixed_html_snapshot_path = str(fixed_path)
+    await db.commit()
+
+    return GenerateFixedPageResponse(
+        page_id=page_id,
+        status=result.status,
+        detail=combined_detail,
+        fixes_included_count=fixes_included_count,
+        fixes_pending_count=fixes_pending_count,
+        download_available=result.status == "clean",
+    )
+
+
+@app.get("/pages/{page_id}/download-fixed")
+async def download_fixed_page(page_id: int, db: AsyncSession = Depends(get_db)):
+    page = await db.get(Page, page_id)
+    if page is None:
+        raise HTTPException(status_code=404, detail="page not found")
+    if page.combined_verification_status != "clean" or page.fixed_html_snapshot_path is None:
+        raise HTTPException(status_code=404, detail="no clean fixed page available for this page")
+    return FileResponse(
+        page.fixed_html_snapshot_path, media_type="text/html",
+        filename=f"page_{page_id}_fixed.html",
+    )
+
+
+@app.get("/performance/summary")
+async def get_performance_summary(site_id: int | None = None, db: AsyncSession = Depends(get_db)):
+    """Wraps cost_report.py's query functions — no metric logic duplicated
+    here. `pr_metrics` is explicitly None: Phase 4 deliberately doesn't open
+    real GitHub PRs (see design.md's Phase 4 section), so there's nothing
+    real to report yet — an honest placeholder, not a silently missing
+    field, so the dashboard can render "N/A" rather than guessing why the
+    key is absent."""
+    return {
+        "agent_cost_summary": await cost_report.compute_agent_cost_summary(db),
+        "scan_performance_summary": await cost_report.compute_scan_performance_summary(db),
+        "accessibility_score_trend": await cost_report.compute_accessibility_score_trend(db, site_id=site_id),
+        "pr_metrics": None,
+    }
 
 
 async def run_scan(scan_id: int, url: str, max_pages: int, max_depth: int) -> None:

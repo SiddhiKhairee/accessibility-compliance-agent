@@ -16,9 +16,10 @@ call.
 import asyncio
 import html.parser
 import logging
+import re
 from dataclasses import dataclass
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Locator, async_playwright
 
 from detector import detect_violations
 
@@ -34,6 +35,18 @@ _VOID_ELEMENTS = {
     "area", "base", "br", "col", "embed", "hr", "img", "input",
     "link", "meta", "param", "source", "track", "wbr",
 }
+
+# html-has-lang/html-lang-valid target the `<html>` element itself — applying
+# these as an outerHTML replacement would force the Developer LLM to
+# regenerate the entire page just to set one attribute (real truncation
+# risk) and, combined with any other fix on the same page (page_fixer.py),
+# would silently overwrite every other already-applied fix. Applied instead
+# as a targeted `lang` attribute set — see agents/developer/prompt.py's
+# rule guidance for these two rule IDs, which instructs the Developer agent
+# to return only the language code as proposed_code_diff, not markup.
+LANG_RULE_IDS = {"html-has-lang", "html-lang-valid"}
+
+_BCP47_RE = re.compile(r"^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$")
 
 
 @dataclass
@@ -96,6 +109,42 @@ def _looks_like_invalid_html(snippet: str) -> bool:
     return False
 
 
+def _looks_like_invalid_lang_code(value: str) -> bool:
+    """LANG_RULE_IDS' proposed_code_diff is a bare BCP 47 code (e.g. "en"),
+    not markup — _looks_like_invalid_html's tag-balance check would wrongly
+    reject every valid code here (no tags present at all), so this is a
+    separate, narrow sanity check instead."""
+    stripped = value.strip()
+    if not stripped or len(stripped) > 35:
+        return True
+    return _BCP47_RE.match(stripped) is None
+
+
+async def apply_fix_to_locator(
+    locator: Locator, wcag_rule: str, proposed_code_diff: str,
+    timeout_s: float = APPLY_TIMEOUT_S,
+) -> None:
+    """Applies one fix to a live DOM locator. Raises on failure — callers
+    (verify_fix below, and page_fixer.py's multi-fix combiner) classify the
+    failure themselves rather than this helper owning a result type, since
+    the two callers report failures differently. LANG_RULE_IDS use a
+    targeted attribute set; everything else keeps the original outerHTML
+    replacement — see LANG_RULE_IDS' module-level comment for why."""
+    if wcag_rule in LANG_RULE_IDS:
+        await asyncio.wait_for(
+            locator.evaluate(
+                "(el, lang) => { el.setAttribute('lang', lang); }",
+                proposed_code_diff.strip(),
+            ),
+            timeout=timeout_s,
+        )
+    else:
+        await asyncio.wait_for(
+            locator.evaluate("(el, html) => { el.outerHTML = html; }", proposed_code_diff),
+            timeout=timeout_s,
+        )
+
+
 async def verify_fix(
     page_url: str,
     original_wcag_rule: str,
@@ -110,7 +159,13 @@ async def verify_fix(
     ...}, ...] for every violation detected on this page before any fix was
     applied — supplied by the caller, never queried here.
     """
-    if _looks_like_invalid_html(proposed_code_diff):
+    if original_wcag_rule in LANG_RULE_IDS:
+        if _looks_like_invalid_lang_code(proposed_code_diff):
+            return VerifyAttemptResult(
+                outcome="error", failure_reason="invalid_html",
+                detail="proposed_code_diff is not a plausible BCP 47 language code",
+            )
+    elif _looks_like_invalid_html(proposed_code_diff):
         return VerifyAttemptResult(
             outcome="error", failure_reason="invalid_html",
             detail="proposed_code_diff failed pre-apply structural sanity check",
@@ -151,14 +206,11 @@ async def verify_fix(
             )
 
         try:
-            await asyncio.wait_for(
-                locator.evaluate("(el, html) => { el.outerHTML = html; }", proposed_code_diff),
-                timeout=APPLY_TIMEOUT_S,
-            )
+            await apply_fix_to_locator(locator, original_wcag_rule, proposed_code_diff)
         except Exception as e:
             return VerifyAttemptResult(
                 outcome="error", failure_reason="diff_failed_to_apply",
-                detail=f"outerHTML replacement failed: {e}",
+                detail=f"fix application failed: {e}",
             )
 
         try:

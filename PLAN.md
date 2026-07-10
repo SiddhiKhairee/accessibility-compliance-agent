@@ -132,10 +132,19 @@ locked rules are reachable via `detect_violations()`.
 - [x] **Verify:** confirm cost numbers come from logged data, not estimates
 
 ## Phase 4 — Dashboard
-- [ ] Violations view: sites/scans, prioritized violations, before/after diffs, verification status
-- [ ] System Performance tab: throughput, pipeline time (median/p95), per-agent latency+success%, cache hit%, verification breakdown, scan success rate, PR metrics, accessibility score trend
-- [ ] Review & Approve tab: side-by-side diff viewer + "Approve & Open PR" button (human click required)
-- [ ] **Deliverable:** clickable fullstack demo — detection, reasoning, cost, approval end to end
+- [x] Violations view: sites/scans, prioritized violations, before/after diffs, verification status
+- [x] System Performance tab: throughput, pipeline time (median/p95), per-agent latency+success%, cache hit%, verification breakdown, scan success rate, PR metrics, accessibility score trend
+- [x] Review & Approve tab: side-by-side diff viewer + approve/reject + "Generate fixed page" →
+      "Download fixed page" (real PyGithub PR deferred to optional Phase 6 — see design.md
+      Section 11; human click still required for every step, no fully-automatic path)
+- [x] **Deliverable:** clickable fullstack demo — detection, reasoning, cost, approval end to end
+- [x] **Verify:** 81 backend tests passing (up from 52 at Phase 3 close), `ruff check` clean,
+      frontend `tsc -b && vite build` clean, full containerized stack (`docker compose up`)
+      built and live-verified via real Playwright browser automation against real dev-DB
+      data — golden path (approve → generate → download) and the violations_remain edge
+      case (no download button) both confirmed, zero browser console errors, two real
+      layout bugs found and fixed (bar-chart label collision, diff-viewer horizontal
+      overflow) rather than shipped unnoticed
 
 ## Phase 4.5 — Frontend testing + CI/CD (backlog, placeholder scope only)
 **Note:** placeholder, same pattern as design.md Section 10 was handled
@@ -684,3 +693,153 @@ for real once frontend work in Phase 4 actually starts.
      next step for a resume-quality cost-savings number, but wasn't
      required to close this phase's own checkboxes, which only require the
      numbers be real and logged — confirmed they are. -->
+<!-- 2026-07-10: Phase 4 complete — dashboard + verified fixed-page
+     delivery, real PyGithub PR deferred to optional Phase 6 (see design.md
+     Section 11 for full reasoning, resolved collaboratively before any
+     code was written this phase): most scanned sites aren't GitHub repos
+     at all, so a generic "Approve & Open PR" button had nothing real to
+     push to. The real deliverable instead: approve fixes on a page (per-
+     fix grain, matching the existing schema) → combine every approved,
+     individually-verified fix onto one copy of the page → full detector
+     reruns once on the combined result → download if clean.
+
+     Four planning-time decisions, each resolved and written into design.md
+     before implementation (not silently assumed): (1) live-page drift
+     between verification and generation, resolved by combining fixes
+     against the page's already-captured raw_html_snapshot_path
+     (`page.set_content()`) rather than a fresh live reload — proven
+     directly by a test whose page_url points at a domain that would fail
+     to resolve if ever fetched, and combination still succeeds; (2) partial
+     approval explicitly allowed, not blocked, with the API response always
+     reporting fixes_included_count/fixes_pending_count and the frontend
+     button label reading directly from it; (3) CORS scoped to a real
+     FRONTEND_ORIGIN setting, never a wildcard; (4) an "accessibility score"
+     definition introduced for the first time (open_violations/page_count
+     per scan, trended by completed_at) since nothing in schema.md defined
+     one before.
+
+     One correctness hardening done as an explicit prerequisite (not
+     silently bundled): html-has-lang/html-lang-valid's target_selector is
+     the whole `<html>` element — before this phase, "fixing" it the same
+     way every other rule is fixed (full outerHTML replacement) would have
+     forced the Developer LLM to regenerate the entire page for one
+     attribute (real truncation risk) and would have silently overwritten
+     every other already-applied fix once fixes started being combined onto
+     one page. Fixed via a shared `verifier.apply_fix_to_locator()` helper
+     (reused by both the existing per-fix verify_fix() and the new
+     page_fixer.py combiner) that special-cases these two rule IDs to a
+     targeted `setAttribute('lang', ...)` call; Developer's rule guidance
+     changed to return only the bare language code for these two rules, not
+     markup. Regression-proven combined with an unrelated fix on the same
+     page (test_page_fixer.py), not just in isolation.
+
+     Backend: html-lang hardening + 3 new lang-rule tests (verifier.py);
+     Alembic migration 06c057e5a1fc adding 4 nullable Page columns
+     (fixed_html_snapshot_path, combined_verification_status,
+     combined_verification_detail, combined_verified_at), applied to dev
+     DB live (confirmed via psql: all 4 present, all NULL on existing rows,
+     5 sites/17 scans unchanged); new flat module page_fixer.py (same own-
+     Playwright-lifecycle convention as detector.py/verifier.py) + 9 tests;
+     5 new API endpoints (GET /sites, GET /scans, POST /fixes/{id}/approval,
+     POST /pages/{id}/generate-fixed-page, GET /pages/{id}/download-fixed)
+     + CORSMiddleware + 12 new tests, including one proving GET /scan/{id}
+     reflects the *latest* Approval decision per fix (added a
+     latest_approval_decision field main.py computes via a separate query,
+     since Approval has no relationship() defined on Fix — models.py's own
+     comment invited this when actually needed); cost_report.py extended
+     with scan-performance and accessibility-score-trend queries + latency/
+     success-rate added to the existing per-agent breakdown, wired to a new
+     GET /performance/summary endpoint, + 6 new tests. Final count: 81
+     backend tests passing (52 at Phase 3 close + 29 new), `ruff check`
+     clean throughout — confirmed after every step, not just once at the
+     end.
+
+     Frontend: first frontend code in this project. Vite + React +
+     TypeScript scaffold; `react-diff-viewer` substituted for
+     `react-diff-viewer-continued` (same API, actively-maintained fork) —
+     the original is unmaintained and its React 15/16 peer-dep genuinely
+     fails to install against React 19, confirmed via a real `npm install`
+     ERESOLVE error, not assumed. Three views (Violations, System
+     Performance, Review & Approve) sharing a `useScanSelector` hook;
+     System Performance's charts followed the dataviz skill's procedure for
+     real (color-last, single sequential hue for magnitude, thin marks,
+     hover tooltips, no legend needed for single-series charts) rather than
+     picking colors first.
+
+     Live-verified in a real browser via Playwright (chromium-cli wasn't
+     available; adapted the skill's fallback pattern using the Python
+     Playwright already in this project's venv), not just `tsc`/`vite
+     build` passing: seeded real Violation/Fix rows into the dev DB (bypass
+     LLM_MOCK's known limitation — mock Developer output's
+     target_selector="mock-selector" can never actually verify against a
+     real page, so a mock /scan can't produce real "verified" fixes to
+     review), then drove the actual golden path (approve → generate →
+     download button appears, confirmed via a real GET that returns the
+     combined HTML with the real fix applied) and the violations_remain
+     edge case (approve a fix that doesn't really fix anything → no
+     download button, confirmed via a 0 count, not just "didn't crash").
+     Zero browser console errors throughout. Found and fixed two real
+     layout bugs this way, not shipped unnoticed: the bar chart's x-axis
+     labels collided ("ImpactDeveloper" running together) because bars were
+     spaced by their own width instead of equal category slots; the diff
+     viewer overflowed its card and the page's own viewport width, fixed
+     with a scoped overflow-x:auto wrapper + min-width:0 on the grid
+     column (a CSS-grid default that otherwise lets wide content grow the
+     track past its fair share). Demo rows deleted afterward via a scoped,
+     pre-confirmed-URL-pattern cleanup script — dev DB back to exactly 5
+     sites/17 scans, verified via psql before and after.
+
+     Containerization completed for real, not just extended as the plan
+     assumed: neither backend/ nor frontend/ had a Dockerfile before this
+     phase — only Postgres was containerized, despite CLAUDE.md's stated
+     "frontend + backend + Postgres only" scope. Added backend/Dockerfile
+     (Python 3.14, `playwright install --with-deps chromium` matching
+     ci.yml's own step exactly, an entrypoint running `alembic upgrade
+     head` before serving) and frontend/Dockerfile (`vite preview`,
+     VITE_API_BASE_URL baked in at build time as the host-browser-reachable
+     `http://localhost:8000`, deliberately not the Docker-internal service
+     name). Both images built and run live via `docker compose up`, not
+     just `docker build` — real bug caught and fixed during this
+     verification, not a hypothetical: a leftover local `vite dev` process
+     (a genuinely separate Windows process invisible to this session's bash
+     `ps`, only found via `netstat`/`tasklist`) was still bound to
+     `[::1]:5173`, which `curl localhost`/a browser resolves to ahead of
+     Docker's `0.0.0.0` proxy — so an early check appeared to hit the
+     container but was actually still hitting stale dev-mode HMR output.
+     Killed via `taskkill`, re-verified the container's own `dist/
+     index.html` (confirmed via `docker exec`) matches what's actually
+     served, then re-ran the Playwright smoke test against the real
+     containerized pair (frontend container → backend container, the one
+     new variable containerization introduces) — 0 console errors,
+     confirming CORS/VITE_API_BASE_URL wiring genuinely works, not just
+     that each container independently serves something. Backend+frontend
+     containers stopped after verification (not left running unattended);
+     Postgres left exactly as it was found.
+
+     Not done this phase, deliberately: real PyGithub PR creation (Phase 6,
+     optional); frontend automated test suite + CI extension (Phase 4.5,
+     already a placeholder in PLAN.md, now real work instead of
+     speculative now that frontend code actually exists); full SPA-
+     hydration-safe standalone redeployment of the downloaded fixed page
+     (documented limitation, design.md Section 11, same treatment as
+     BackgroundTasks' non-durability). -->
+<!-- 2026-07-10: Phase 4 follow-up — a loose end from pre-implementation
+     review closed out. raw_html_snapshot_path has been nullable since
+     Phase 1 (only set for status="loaded" pages), and page_fixer.py is a
+     new, second consumer of that column beyond its original use; the
+     null-handling case was never explicitly tested or mentioned in the
+     completion report. main.py's generate_fixed_page endpoint already
+     guarded against it (400), but page_fixer.py itself did not — its
+     `except OSError` around Path(raw_html_snapshot_path).read_text(...)
+     does not catch the TypeError Path(None) actually raises, confirmed
+     directly (not just reasoned about) via a standalone
+     `Path(None).read_text()` repro. This broke page_fixer.py's own
+     documented "never raises" contract for that one input if the module
+     were ever called without main.py's guard in front of it. Fixed with
+     an explicit null/empty check before constructing a Path at all, plus
+     two new real tests (module-level: direct call with
+     raw_html_snapshot_path=None returns a structured error, not an
+     exception; endpoint-level: a page with status="loaded" and a null
+     snapshot path returns a clean 400) — 83/83 passing, `ruff check`
+     clean. design.md Section 11 and PHASE4_COMPLETION_REPORT.md updated
+     to document this as closed, not silently patched. -->

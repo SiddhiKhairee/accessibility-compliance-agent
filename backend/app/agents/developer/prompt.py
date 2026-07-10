@@ -21,8 +21,25 @@ RULE_GUIDANCE = {
     "button-name": "Add visible text content, `aria-label`, or `aria-labelledby` so the button has an accessible name.",
     "aria-input-field-name": "Add `aria-label` or `aria-labelledby` so the ARIA input field has an accessible name.",
     "tabindex": "Remove the positive `tabindex` value (or set it to `0`) so it no longer disrupts the natural tab order.",
-    "html-has-lang": "Add a `lang` attribute to the `<html>` element with the page's actual language code.",
-    "html-lang-valid": "Correct the `<html>` element's `lang` attribute to a valid BCP 47 language code.",
+    "html-has-lang": (
+        "This fix is applied as a targeted attribute change, not a full HTML "
+        "replacement (target_selector is the `<html>` element itself, and "
+        "regenerating the whole page as proposed_code_diff would be both "
+        "unreliable and destructive if combined with other fixes on the same "
+        "page). Set `proposed_code_diff` to ONLY the page's actual BCP 47 "
+        "language code (e.g. `en`, `en-US`) based on the page's content — do "
+        "NOT include the `<html>` tag, the `lang` attribute name, quotes, or "
+        "any other markup."
+    ),
+    "html-lang-valid": (
+        "This fix is applied as a targeted attribute change, not a full HTML "
+        "replacement (target_selector is the `<html>` element itself, and "
+        "regenerating the whole page as proposed_code_diff would be both "
+        "unreliable and destructive if combined with other fixes on the same "
+        "page). Set `proposed_code_diff` to ONLY the corrected, valid BCP 47 "
+        "language code (e.g. `en`, `en-US`) — do NOT include the `<html>` "
+        "tag, the `lang` attribute name, quotes, or any other markup."
+    ),
     "bypass": "Add a skip-navigation link as the first focusable element, pointing to the main content region.",
     "skip-link": "Ensure the skip-navigation link is present, focusable, and points to a valid target id.",
     "duplicate-id-aria": "Rename one of the duplicate `id` values so ARIA/label references resolve unambiguously.",

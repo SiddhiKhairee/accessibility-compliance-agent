@@ -194,6 +194,76 @@ async def test_verify_fix_needs_review_baseline_diffs_like_confirmed(test_server
     assert result.outcome == "verified"
 
 
+async def test_verify_fix_html_has_lang_uses_attribute_set(test_server):
+    """html-has-lang's target_selector is "html" (axe's own target for this
+    rule — element_selector = ", ".join(node["target"]), confirmed via
+    detector.py). proposed_code_diff is just the bare language code per
+    agents/developer/prompt.py's rule guidance for this rule, not full
+    markup — proves _apply_fix_to_locator's attribute-set branch actually
+    fires (an outerHTML replacement attempt with a bare "en" string would
+    blow away the whole page and fail the post-fix reload)."""
+    playwright = await async_playwright().start()
+    try:
+        browser = await playwright.chromium.launch(headless=True)
+        try:
+            page_url = f"{test_server.base_url}/detector_pages/missing_lang.html"
+            result = await verifier.verify_fix(
+                page_url=page_url,
+                original_wcag_rule="html-has-lang",
+                original_element_selector="html",
+                target_selector="html",
+                proposed_code_diff="en",
+                baseline=[{"wcag_rule": "html-has-lang", "element_selector": "html"}],
+            )
+            assert result.outcome == "verified"
+            assert result.failure_reason is None
+        finally:
+            await browser.close()
+    finally:
+        await playwright.stop()
+
+
+async def test_verify_fix_html_lang_valid_uses_attribute_set(test_server):
+    playwright = await async_playwright().start()
+    try:
+        browser = await playwright.chromium.launch(headless=True)
+        try:
+            page_url = f"{test_server.base_url}/detector_pages/invalid_lang.html"
+            result = await verifier.verify_fix(
+                page_url=page_url,
+                original_wcag_rule="html-lang-valid",
+                original_element_selector="html",
+                target_selector="html",
+                proposed_code_diff="en-US",
+                baseline=[{"wcag_rule": "html-lang-valid", "element_selector": "html"}],
+            )
+            assert result.outcome == "verified"
+            assert result.failure_reason is None
+        finally:
+            await browser.close()
+    finally:
+        await playwright.stop()
+
+
+async def test_verify_fix_lang_rule_rejects_markup_as_invalid():
+    """A lang-rule proposed_code_diff that looks like markup (e.g. a
+    hallucinated <html lang="en"> instead of the bare code the prompt asks
+    for) must be caught by the lang-specific sanity check, not silently
+    passed through to setAttribute — no page_url needs to resolve since
+    this is a pre-Playwright check, same as
+    test_verify_fix_invalid_html_caught_pre_playwright."""
+    result = await verifier.verify_fix(
+        page_url="http://127.0.0.1:1/never-fetched",
+        original_wcag_rule="html-has-lang",
+        original_element_selector="html",
+        target_selector="html",
+        proposed_code_diff='<html lang="en">',
+        baseline=[{"wcag_rule": "html-has-lang", "element_selector": "html"}],
+    )
+    assert result.outcome == "error"
+    assert result.failure_reason == "invalid_html"
+
+
 async def test_verifier_node_retry_count_increments_on_first_failure(test_server, monkeypatch):
     """Mechanical retry only: monkeypatch graph.verify_fix to fail once
     then succeed, and confirm the graph-level VerifierOutput reports

@@ -29,6 +29,7 @@ os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
 
 sys.path.insert(0, str(BACKEND_DIR / "app"))
 
+import db as db_module  # noqa: E402 - must import after DATABASE_URL override above
 import main  # noqa: E402 - must import after DATABASE_URL override above
 
 
@@ -37,3 +38,17 @@ async def api_client(run_migrations):
     transport = ASGITransport(app=main.app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _dispose_app_db_engine_between_tests():
+    """Same fix graph/conftest.py already applies, for the same reason —
+    see that file's docstring. Needed here too as of Phase 4:
+    test_dashboard_endpoints.py added direct async_session_factory usage
+    (building fixture rows) interleaved with test_scan_roundtrip.py's
+    Playwright-heavy crawl across separate function-scoped event loops in
+    this same directory, reproducing the identical stale-pooled-connection
+    AttributeError."""
+    await db_module.engine.dispose()
+    yield
+    await db_module.engine.dispose()
