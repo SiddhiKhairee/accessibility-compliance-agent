@@ -27,6 +27,22 @@ migration, never hand-edited in prod (see CLAUDE.md).
   Phase 5's evaluation numbers need this traceable to real logged rows,
   per CLAUDE.md's ban on invented metrics)
 - `failure_reason` (nullable — populated when `status="failed"`)
+- `fixed_html_snapshot_path` (nullable — Phase 4: path to the combined,
+  verified-fixed HTML produced by `page_fixer.py` once a human approves at
+  least one fix on this page and generation succeeds. See design.md's
+  Phase 4 section for why this is applied to `raw_html_snapshot_path`'s
+  frozen content rather than a fresh live reload.)
+- `combined_verification_status` (nullable — "clean" / "violations_remain" /
+  "error". Plain String, not an enum, matching `severity`/
+  `detection_confidence`'s precedent for an evolving vocabulary.)
+- `combined_verification_detail` (nullable — short human-readable summary,
+  e.g. partial-approval counts. Same spirit as `verifier.py`'s
+  `VerifyAttemptResult.detail`.)
+- `combined_verified_at` (nullable — stamped on any terminal outcome
+  (clean/violations_remain/error alike), matching `fixes.verified_at`'s
+  stamp-on-success-or-failure precedent.)
+  **Rows written before this migration are `NULL` on all four columns, not
+  backfilled** — same precedent as `violations.detection_confidence`.
 
 ## violations
 - `id`

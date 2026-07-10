@@ -865,4 +865,124 @@ requires the `test` check, `strict: true`, `enforce_admins: true`,
 `allow_force_pushes: false`. Confirmed via the GitHub API that no
 protection existed beforehand (`404 "Branch not protected"`).
 
+## 11. Phase 4 — Dashboard + verified fixed-page delivery
+
+Phase 4 deliberately changed the shape of the "human approval" step from
+what Section 5's original architecture diagram assumed (`Approve → PyGithub
+→ real PR`). Decided during planning, before any code was written:
+
+**No PyGithub/real PR in Phase 4.** Most scanned sites (`usa.gov`,
+`news.ycombinator.com`, ...) aren't GitHub repos at all — there's nothing
+to fork/push to. Real PR creation is deferred to Phase 6 (optional,
+already scoped there as its own fiddly chain against one real chosen
+target), not invented generically now. `approvals.pr_url`/`pr_status`
+remain in the schema, unused, for Phase 6 to populate later.
+
+**The real deliverable is a verified fixed copy of the page.** A human
+approves fixes on a page (`POST /fixes/{id}/approval`, per-fix grain,
+matching the existing schema) → `page_fixer.py` combines every approved,
+individually-verified fix onto one copy of the page
+(`POST /pages/{id}/generate-fixed-page`) → the full detector reruns once
+on the combined result → if clean, `GET /pages/{id}/download-fixed` serves
+it (optional click, never a forced download).
+
+**Live-page drift between verification and generation, resolved.**
+Verification happens at scan time; human approval — and therefore
+generation — can happen minutes, hours, or days later. If generation
+reloaded the live site fresh at that point, the combined fix could get
+applied to different content than what was actually verified, silently.
+Resolved by having `page_fixer.apply_verified_fixes_to_page()` apply fixes
+to the page's already-captured `raw_html_snapshot_path` via
+`page.set_content()`, never a fresh `page.goto()` — anchoring generation to
+the same scan run's content regardless of approval delay. This doesn't
+guarantee byte-identical content to whatever `verify_fix()`'s own live
+reload saw seconds-to-minutes earlier in the same scan (a smaller,
+pre-existing Phase 3 imprecision) — it eliminates the much larger gap
+Phase 4's human-approval delay would otherwise introduce. Proven directly
+in `test_page_fixer.py::test_ignores_live_page_content_uses_snapshot_only`
+— `page_url` points at a domain that will never resolve, yet combination
+still succeeds, since the live URL is never fetched, only stitched into a
+`<base href>` string.
+
+**`html-has-lang`/`html-lang-valid` hardened as a prerequisite.** These two
+rules' `target_selector` is the `<html>` element itself. Before Phase 4,
+fixing them the same way every other rule is fixed (full outerHTML
+replacement) would have forced the Developer LLM to regenerate the entire
+page just to set one attribute — real truncation risk — and, once multiple
+fixes started being combined onto one page (the whole point of this
+phase), applying it would silently overwrite every other already-applied
+fix on the page. Fixed by special-casing these two rule IDs to a targeted
+`el.setAttribute('lang', ...)` call instead
+(`verifier.apply_fix_to_locator`, shared by both `verify_fix()` and
+`page_fixer.py`), with the Developer agent's rule guidance changed to
+return only the bare language code as `proposed_code_diff`, not markup.
+Regression-proven combined with an unrelated fix on the same page in
+`test_page_fixer.py::test_combines_lang_fix_with_unrelated_fix_clean` —
+the exact scenario this hardening exists for.
+
+**Partial approval is allowed, explicitly, not silently.** If only some of
+a page's fixes are approved, `generate-fixed-page` still proceeds with
+whatever is approved (requiring at least one), and its response always
+reports `fixes_included_count`/`fixes_pending_count` — the frontend's
+"Generate partial fix (N/M approved)" label reads directly from this,
+never presenting a partial result as complete.
+
+**CORS is scoped, not wildcarded.** `FRONTEND_ORIGIN` (default
+`http://localhost:5173`) is the only allowed origin — this project has no
+auth/multi-tenancy layer, so an open CORS policy would have nothing else
+guarding it.
+
+**Accessibility score trend — a definition introduced, not discovered.**
+Nothing in schema.md defined an "accessibility score" before Phase 4.
+Confirmed definition: `count(open violations) / count(pages)` per scan,
+trended across a site's repeat scans by `scans.completed_at` — a direct
+ratio of two already-logged counts, no invented weighting or composite
+formula, lower is better.
+
+**Known, documented limitation — the downloaded fixed page is a frozen
+snapshot.** Detection and fix-verification already operate on the live,
+post-JS-render DOM (a real Playwright browser, `wait_until="networkidle"`)
+so JS-heavy sites are handled correctly for *those* two things — this was
+already true before Phase 4. The *downloaded* fixed page
+(`page.content()` after combination) is a frozen snapshot, though: a
+client-rendered SPA that re-hydrates on load could silently overwrite the
+injected fix the moment its own JS runs again, and relative asset paths in
+the snapshot were relative to the *original* page's URL. Mitigated, not
+solved: a `<base href="{page_url}">` tag is injected before combination
+(so relative CSS/JS/images at least resolve against the real origin,
+needed for accurate rendering during the combined detector rerun too, not
+just the download) — full SPA-hydration-safe standalone redeployment is
+out of scope, the same way BackgroundTasks' non-durability (Section 4f) is
+a documented tradeoff rather than a solved problem.
+
+**Null `raw_html_snapshot_path` handling, closed after review.** This
+column has been nullable since Phase 1 (only set for `status="loaded"`
+pages), and `page_fixer.py` is a new, second consumer of it beyond its
+original use. `main.py`'s `generate_fixed_page` endpoint already guarded
+against a null value (400), but `page_fixer.py` itself did not — its
+`except OSError` around `Path(raw_html_snapshot_path).read_text(...)`
+does not catch the `TypeError` `Path(None)` actually raises, confirmed
+directly (`Path(None).read_text()` → `TypeError`, not `OSError`),
+breaking the module's own "never raises" contract for that one input if
+ever called without `main.py`'s guard in front of it. Fixed with an
+explicit `if not raw_html_snapshot_path:` check before constructing a
+`Path` at all, with real tests at both layers (module-level: a direct
+call with `raw_html_snapshot_path=None` returns a structured error, not
+an exception; endpoint-level: a page with `status="loaded"` and a null
+snapshot path returns a clean 400).
+
+**Containerization completed for real, not just extended.** Neither the
+backend nor the frontend had a `Dockerfile` before Phase 4 — only Postgres
+was containerized, despite CLAUDE.md's stated "frontend + backend +
+Postgres only" scope. Both were added this phase: `backend/Dockerfile`
+(Python 3.14, `playwright install --with-deps chromium` matching
+`ci.yml`'s own step exactly, an entrypoint that runs `alembic upgrade
+head` before serving so `docker compose up` is self-contained) and
+`frontend/Dockerfile` (Node, `vite preview` — appropriate for this
+project's "clickable demo" scope, not a hardened production serve).
+`VITE_API_BASE_URL` is baked in at frontend build time as
+`http://localhost:8000` deliberately, not the Docker-internal
+`http://backend:8000` — the frontend runs client-side in the host's
+browser, which can't resolve Docker-internal service names.
+
 Full narrative in `PHASE2_5_COMPLETION_REPORT.md`.

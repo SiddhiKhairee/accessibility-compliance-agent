@@ -1,0 +1,276 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+.app-header h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.app-nav a {
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.app-nav a:hover {
+  background: var(--bg);
+}
+
+.app-nav a.active {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.app-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--bg);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-ok {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.badge-warn {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.badge-error {
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+.badge-neutral {
+  color: var(--text-muted);
+  background: var(--code-bg);
+}
+
+.button-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 500;
+}
+
+.button-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 500;
+}
+
+.button-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.select-list button {
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text);
+}
+
+.select-list button:hover {
+  background: var(--bg-subtle);
+}
+
+.select-list button.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.layout-columns {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Without this, a grid item's default min-width:auto lets wide content
+   (e.g. the diff viewer's table) grow the 1fr track past its fair share
+   instead of scrolling inside its own overflow-x:auto wrapper. */
+.layout-columns > *:last-child {
+  min-width: 0;
+}
+
+.select-list button {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 800px) {
+  .layout-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Stat tiles --- */
+
+.stat-tile-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.stat-tile {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 140px;
+  background: var(--bg);
+}
+
+.stat-tile-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-tile-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* --- Charts: dataviz-skill-compliant tokens, sequential blue, single
+   hue for magnitude — see references/palette.md. Scoped to .viz-root so
+   light/dark swap in one place. --- */
+
+.viz-root {
+  --chart-surface: #fcfcfb;
+  --chart-text-secondary: #52514e;
+  --chart-muted: #898781;
+  --chart-gridline: #e1e0d9;
+  --chart-baseline: #c3c2b7;
+  --chart-series: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --chart-surface: #1a1a19;
+    --chart-text-secondary: #c3c2b7;
+    --chart-muted: #898781;
+    --chart-gridline: #2c2c2a;
+    --chart-baseline: #383835;
+    --chart-series: #3987e5;
+  }
+}
+
+.chart-title {
+  font-size: 13px;
+  color: var(--chart-text-secondary);
+  margin-bottom: 8px;
+}
+
+.chart-baseline {
+  stroke: var(--chart-baseline);
+  stroke-width: 1;
+}
+
+.chart-bar {
+  fill: var(--chart-series);
+}
+
+.chart-value-label {
+  font-size: 11px;
+  fill: var(--chart-text-secondary);
+}
+
+.chart-axis-label {
+  font-size: 11px;
+  fill: var(--chart-muted);
+}
+
+.chart-line {
+  stroke: var(--chart-series);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-marker {
+  fill: var(--chart-series);
+}
+
+.chart-marker-ring {
+  fill: var(--chart-surface);
+}
+
+.chart-tooltip-bg {
+  fill: var(--chart-text-secondary);
+  opacity: 0.92;
+}
+
+.chart-tooltip-text {
+  font-size: 11px;
+  fill: var(--chart-surface);
+}

@@ -134,6 +134,22 @@ class Page(Base):
     # Added beyond schema.md's literal column list — see module docstring.
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Added beyond schema.md's literal column list — see module docstring.
+    # Phase 4: page_fixer.py's combine-and-reverify output. All four
+    # nullable — only populated once a human approves at least one fix on
+    # this page and POST /pages/{id}/generate-fixed-page runs successfully.
+    # No backfill for pre-migration rows, same precedent as
+    # violations.detection_confidence (Phase 2.6).
+    fixed_html_snapshot_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    # "clean" / "violations_remain" / "error" — plain String like
+    # severity/detection_confidence above, not an enum, for the same
+    # evolving-vocabulary reason.
+    combined_verification_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Short human-readable summary, same spirit as verifier.py's
+    # VerifyAttemptResult.detail — e.g. partial-approval counts.
+    combined_verification_detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Stamped on any terminal outcome (clean/violations_remain/error alike),
+    # matching fixes.verified_at's stamp-on-success-or-failure precedent.
+    combined_verified_at: Mapped[datetime | None] = mapped_column(_TZ_DATETIME, nullable=True)
 
     scan: Mapped["Scan"] = relationship(back_populates="pages")
     violations: Mapped[list["Violation"]] = relationship(

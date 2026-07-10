@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     ENVIRONMENT: str = "development"
     GROQ_API_KEY: str = ""
+    # Phase 4: the one local dev origin the dashboard's CORS policy allows.
+    # Never a wildcard — this project has no auth/multi-tenancy layer, so an
+    # open CORS policy would have nothing else guarding it.
+    FRONTEND_ORIGIN: str = "http://localhost:5173"
 
 
 settings = Settings()
