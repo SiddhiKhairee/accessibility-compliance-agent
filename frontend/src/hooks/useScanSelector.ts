@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getScan, listScans, listSites } from "../api/client";
 import type { ScanOut, ScanSummaryOut, SiteOut } from "../api/types";
 
@@ -23,15 +23,44 @@ export function useScanSelector() {
     }
     setSelectedScanId(null);
     setScan(null);
-    listScans(selectedSiteId).then(setScans).catch((e) => setError(String(e)));
+    // Guards against a stale response: if selectedSiteId changes again
+    // before this listScans() call resolves, this effect's own cleanup
+    // fires first and marks the in-flight response cancelled so it can't
+    // clobber the newer selection's state.
+    let cancelled = false;
+    listScans(selectedSiteId)
+      .then((result) => {
+        if (!cancelled) setScans(result);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedSiteId]);
+
+  // A ref, not an effect-cleanup flag: refetchScan is also invoked
+  // imperatively (e.g. after an approval/generate action) outside the
+  // effect that originally triggered it, so "is this response still
+  // current" has to survive across separate calls, not just one effect's
+  // closure.
+  const latestScanRequestId = useRef(0);
 
   const refetchScan = useCallback(() => {
     if (selectedScanId === null) {
+      latestScanRequestId.current += 1;
       setScan(null);
       return;
     }
-    getScan(selectedScanId).then(setScan).catch((e) => setError(String(e)));
+    const requestId = ++latestScanRequestId.current;
+    getScan(selectedScanId)
+      .then((result) => {
+        if (latestScanRequestId.current === requestId) setScan(result);
+      })
+      .catch((e) => {
+        if (latestScanRequestId.current === requestId) setError(String(e));
+      });
   }, [selectedScanId]);
 
   useEffect(() => {
