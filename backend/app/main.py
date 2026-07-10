@@ -381,6 +381,13 @@ async def generate_fixed_page(page_id: int, db: AsyncSession = Depends(get_db)):
     page.combined_verification_detail = combined_detail
     page.combined_verified_at = datetime.now(timezone.utc)
     if result.status == "clean" and result.fixed_html is not None:
+        # SNAPSHOT_DIR is only ever created by crawler.py's crawl_site()
+        # (mkdir(parents=True, exist_ok=True)) — a fresh checkout that
+        # never ran a real scan (e.g. CI, which builds this state directly
+        # via fixture rows) has no data/raw_html/ directory at all yet.
+        # Real bug caught by CI, not local dev: this machine already had
+        # the directory from prior real scans, masking it.
+        SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
         filename = hashlib.sha256(f"fixed:{page.id}".encode()).hexdigest()[:16] + ".html"
         fixed_path = SNAPSHOT_DIR / filename
         fixed_path.write_text(result.fixed_html, encoding="utf-8")
