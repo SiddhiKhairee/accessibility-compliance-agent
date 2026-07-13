@@ -170,6 +170,49 @@ for real once frontend work in Phase 4 actually starts.
       link gate, exactly the 3 download-gating tests failed, nothing
       else. Green run 29124965399 after a byte-clean revert.)*
 
+      ## Phase 4.6 — Crawler bot-blocking / status-code handling
+      **Note:** found while asking "what happens against a site that blocks bots"
+      before scoping Phase 5 — Phase 5 crawls 30-50 real public sites, so a
+      silent-bad-data gap here would quietly corrupt that eval sample rather than
+      show up as a visible failure. Fix before Phase 5, not during it.
+      - [x] Improve `backend/app/crawler.py`'s per-page load handling:
+            - [x] Check `response.status` after `page.goto()` (Playwright does not
+                  raise on 4xx/5xx by default — only on network-level errors or
+                  timeout) and treat 403/429/503 as `status="failed"` with a
+                  `failure_reason`, same as an existing timeout/network failure
+                  *(`BLOCKED_STATUS_CODES = {403, 429, 503}`; scoped to exactly
+                  these three per user decision — 404/500/etc. stay "loaded",
+                  those are real app errors, not bot-blocking.)*
+            - [x] Basic bot-challenge/CAPTCHA sniff on pages that return 200 but
+                  aren't the real page (e.g. Cloudflare/challenge markers in the
+                  DOM or title) — classify as failed rather than scanning the
+                  challenge page for violations
+                  *(`CHALLENGE_MARKERS` substring sniff against rendered HTML —
+                  heuristic, not exhaustive, documented as such.)*
+            - [ ] Consider a non-default-headless-looking User-Agent if fingerprint-
+                  based blocking shows up in testing (decide from real evidence,
+                  not speculatively)
+                  *(Deferred — no fingerprint-based blocking evidence found during
+                  verification; default headless Chromium UA loaded httpbin.org
+                  and example.com normally. Revisit if real evidence surfaces.)*
+      - [x] **Deliverable:** crawler distinguishes "page didn't load" from "page
+            loaded but we were blocked," and never silently scans a block/CAPTCHA
+            page as if it were real site content
+      - [x] **Verify:** run against at least one real site known to block bots
+            (e.g. one that returns 403 or a Cloudflare challenge to headless
+            Playwright) and confirm it's logged as `failed` with an accurate
+            `failure_reason`, not scanned
+            *(httpstat.us was unreachable/down at verification time — real curl
+            showed the server closing the connection abruptly. Used httpbin.org's
+            `/status/403`, `/status/429`, `/status/503` instead: `python
+            crawler.py https://httpbin.org/status/403` (and 429, 503) each
+            reported `[failed] ... — blocked (status N)`, 0/1 loaded, 0
+            violations — confirming the blocked page is never scanned. Regression
+            check: `https://httpbin.org/status/200` and `https://example.com`
+            both still reported `[loaded]` normally. Full suite: 88/88 backend
+            tests passing, including 5 new crawler tests for 403/429/503/
+            challenge-page/no-link-extraction.)*
+
 ## Phase 5 — Evaluation & Metrics
 - [ ] Run pipeline across 30-50 real public sites
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate

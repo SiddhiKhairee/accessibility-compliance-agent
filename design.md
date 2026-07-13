@@ -188,10 +188,10 @@ were pulled forward into the crawl ahead of generic pages discovered at the
 same depth.
 
 **Authenticated pages are excluded by omission, not detection.** The
-crawler never logs in or holds a session. Pages that require auth simply
-fail to load as expected (redirect, 403, etc.) and are handled by the same
-skip+log path as any other failed page — no separate "is this page
-authenticated" check was needed.
+crawler never logs in or holds a session. Pages that require auth and
+redirect to a login page are handled by the same skip+log path as any
+other failed/blocked page — no separate "is this page authenticated" check
+was needed.
 
 **Failure handling matches the CLAUDE.md hard rule:** each page load has
 its own timeout (10000ms, `networkidle` — see Section 4c) and a failed page
@@ -199,6 +199,24 @@ is logged with a `failure_reason` and skipped, never crashing the rest of
 the crawl. Verified directly: python.org's homepage times out on
 `networkidle` (likely persistent background connections) and the crawler
 reported `0/1 pages loaded successfully` cleanly instead of raising.
+
+**Bot-blocking detection (Phase 4.6).** Playwright's `page.goto()` only
+raises on network-level failures — it does not raise on 4xx/5xx HTTP
+responses, so a naive implementation would silently record a bot-blocked
+page as `status="loaded"` and scan a 403/CAPTCHA page for accessibility
+violations. `crawler.py` now checks `response.status` explicitly after
+every navigation and treats 403/429/503 as `status="failed",
+failure_reason="blocked (status N)"` (404/500/etc. are left as `"loaded"`
+— those are real app errors, not bot-blocking). It also does a best-effort
+substring sniff (`CHALLENGE_MARKERS`) against the rendered HTML for common
+CAPTCHA/Cloudflare-interstitial pages that return a 200 status, classifying
+a match the same way (`failure_reason="blocked (challenge page
+detected)"`). Both paths skip snapshot storage, detection, and link
+extraction — same as any other failed page. This is a heuristic, not a
+guarantee: it will miss anti-bot pages using unrecognized markers, and a
+`User-Agent` change was considered but deferred (no fingerprint-based
+blocking evidence found during verification — see
+PHASE4_6_COMPLETION_REPORT.md).
 
 **Explicitly deferred, not built into v1:** sitemap.xml parsing (not
 universal, and inconsistent in size/quality across sites), infinite-scroll

@@ -4,8 +4,10 @@ server.py — local stdlib HTTP server backing crawler/detector tests.
 No real internet, no new dependency: serves static fixture HTML straight
 off disk (from fixtures/detector_pages/ and fixtures/crawler_site/) plus a
 /slow endpoint that sleeps past a caller-tunable delay, used to exercise
-crawler.py's real Playwright navigation-timeout handling. One server
-backs both detector and crawler tests — one piece of test infra, not two.
+crawler.py's real Playwright navigation-timeout handling, and (Phase 4.6)
+/blocked_403 /blocked_429 /blocked_503 /challenge_page routes used to
+exercise crawler.py's bot-blocking detection. One server backs both
+detector and crawler tests — one piece of test infra, not two.
 """
 import http.server
 import socket
@@ -16,6 +18,19 @@ from pathlib import Path
 FIXTURES_DIR = Path(__file__).parent
 SLOW_DELAY_S = 3.0
 
+# Phase 4.6: synthetic routes for bot-blocking tests. Inline (not fixture
+# files) since the content itself is test-only, same pattern as /slow.
+_BLOCKED_STATUS_ROUTES = {
+    "/blocked_403": 403,
+    "/blocked_429": 429,
+    "/blocked_503": 503,
+}
+_CHALLENGE_PAGE_HTML = (
+    b"<!DOCTYPE html><html lang=\"en\"><head><title>Just a moment...</title>"
+    b"</head><body>Checking your browser before accessing this site."
+    b' <a href="/crawler_site/page_a.html">link</a></body></html>'
+)
+
 
 class _FixtureHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):  # noqa: A002 - stdlib signature
@@ -25,6 +40,15 @@ class _FixtureHandler(http.server.BaseHTTPRequestHandler):
         if self.path == "/slow":
             time.sleep(SLOW_DELAY_S)
             self._respond(b"<!DOCTYPE html><html lang=\"en\"><body>slow</body></html>")
+            return
+
+        if self.path in _BLOCKED_STATUS_ROUTES:
+            status = _BLOCKED_STATUS_ROUTES[self.path]
+            self._respond(f"blocked (status {status})".encode(), status=status)
+            return
+
+        if self.path == "/challenge_page":
+            self._respond(_CHALLENGE_PAGE_HTML)
             return
 
         rel_path = self.path.split("?")[0].lstrip("/")
@@ -41,9 +65,9 @@ class _FixtureHandler(http.server.BaseHTTPRequestHandler):
 
         self._respond(candidate.read_bytes())
 
-    def _respond(self, body: bytes) -> None:
+    def _respond(self, body: bytes, status: int = 200) -> None:
         try:
-            self.send_response(200)
+            self.send_response(status)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
