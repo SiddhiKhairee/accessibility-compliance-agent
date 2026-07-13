@@ -26,7 +26,11 @@ migration, never hand-edited in prod (see CLAUDE.md).
   a row, not just successful ones; Phase 4's scan-success-rate metric and
   Phase 5's evaluation numbers need this traceable to real logged rows,
   per CLAUDE.md's ban on invented metrics)
-- `failure_reason` (nullable — populated when `status="failed"`)
+- `failure_reason` (nullable — populated when `status="failed"`; free text,
+  no fixed vocabulary. Either a raw exception message from a Playwright
+  navigation failure, or, as of Phase 4.6, `"blocked (status N)"` for a
+  403/429/503 response or `"blocked (challenge page detected)"` for a
+  200-status CAPTCHA/anti-bot interstitial — see design.md Section 4b)
 - `fixed_html_snapshot_path` (nullable — Phase 4: path to the combined,
   verified-fixed HTML produced by `page_fixer.py` once a human approves at
   least one fix on this page and generation succeeds. See design.md's

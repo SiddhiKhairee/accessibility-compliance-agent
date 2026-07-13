@@ -90,6 +90,58 @@ async def test_skip_and_log_on_connection_refused(tmp_path):
     assert results[0].failure_reason is not None
 
 
+async def test_skip_and_log_on_403_status(test_server, tmp_path):
+    results = await crawler.crawl_site(
+        _url(test_server, "/blocked_403"),
+        max_pages=1, max_depth=0, snapshot_dir=tmp_path,
+    )
+    assert len(results) == 1
+    assert results[0].status == "failed"
+    assert results[0].failure_reason == "blocked (status 403)"
+
+
+async def test_skip_and_log_on_429_status(test_server, tmp_path):
+    results = await crawler.crawl_site(
+        _url(test_server, "/blocked_429"),
+        max_pages=1, max_depth=0, snapshot_dir=tmp_path,
+    )
+    assert len(results) == 1
+    assert results[0].status == "failed"
+    assert results[0].failure_reason == "blocked (status 429)"
+
+
+async def test_skip_and_log_on_503_status(test_server, tmp_path):
+    results = await crawler.crawl_site(
+        _url(test_server, "/blocked_503"),
+        max_pages=1, max_depth=0, snapshot_dir=tmp_path,
+    )
+    assert len(results) == 1
+    assert results[0].status == "failed"
+    assert results[0].failure_reason == "blocked (status 503)"
+
+
+async def test_skip_and_log_on_challenge_page(test_server, tmp_path):
+    results = await crawler.crawl_site(
+        _url(test_server, "/challenge_page"),
+        max_pages=1, max_depth=0, snapshot_dir=tmp_path,
+    )
+    assert len(results) == 1
+    assert results[0].status == "failed"
+    assert results[0].failure_reason == "blocked (challenge page detected)"
+
+
+async def test_blocked_page_does_not_extract_links(test_server, tmp_path):
+    """The challenge page fixture links to page_a.html — the crawler must
+    not chase links found on a page it just classified as blocked."""
+    results = await crawler.crawl_site(
+        _url(test_server, "/challenge_page"),
+        max_pages=5, max_depth=1, snapshot_dir=tmp_path,
+    )
+    urls = [pg.url for pg in results]
+    assert len(results) == 1
+    assert not any("page_a.html" in u for u in urls)
+
+
 async def test_timeout_does_not_abort_rest_of_crawl(test_server, tmp_path, monkeypatch):
     """A single failed page (timeout, via /slow) must not crash the whole
     crawl — page_d, discovered from the same start page, should still get
