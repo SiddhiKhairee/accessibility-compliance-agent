@@ -168,12 +168,15 @@ async def run_pass1(
     max_pages: int = crawler.DEFAULT_MAX_PAGES,
     max_depth: int = crawler.DEFAULT_MAX_DEPTH,
 ) -> dict:
-    """Pass 1: crawl+detect every corpus site not yet done, then run the
-    Reviewer (only — not the full 4-node graph) on every violation not yet
-    reviewed, checking the daily-budget guard before each real call. Stops
-    cleanly (no exception) and returns budget_stopped=True the moment the
-    guard trips, with the manifest already saved reflecting exactly what
-    got done."""
+    """Pass 1: crawl+detect every corpus site not yet done (free, runs to
+    completion first), then run the Reviewer (only — not the full 4-node
+    graph) on every violation not yet reviewed, checking the daily-budget
+    guard before each real call. Split into two sequential loops so a
+    violation-heavy site can't block later sites from being crawled —
+    crawling has no Groq cost and should never be gated behind review
+    budget. Stops cleanly (no exception) and returns budget_stopped=True
+    the moment the guard trips, with the manifest already saved reflecting
+    exactly what got done."""
     _assert_llm_not_mocked()
 
     daily_cap = settings.EVAL_DAILY_CALL_CAP if daily_cap is None else daily_cap
@@ -196,24 +199,31 @@ async def run_pass1(
     sites_crawled = 0
     violations_reviewed = 0
 
+    # Pass 1a: crawl+detect every site not yet done. No Groq cost, no budget
+    # check — runs the whole corpus in one call regardless of violation counts.
     for row in corpus:
         site_entry = manifest["sites"][row["site_id"]]
+        if site_entry["crawl_detect_status"] == "done":
+            continue
 
-        if site_entry["crawl_detect_status"] != "done":
-            try:
-                pages = await crawler.crawl_site(
-                    site_entry["url"], max_pages=max_pages, max_depth=max_depth,
-                    snapshot_dir=snapshot_dir,
-                )
-                site_entry["pages"] = [_page_entry(pg) for pg in pages]
-                site_entry["crawl_detect_status"] = "done"
-                site_entry["crawl_detect_failure_reason"] = None
-            except Exception as e:
-                site_entry["crawl_detect_status"] = "failed"
-                site_entry["crawl_detect_failure_reason"] = str(e)
-            sites_crawled += 1
-            save_manifest(manifest_path, manifest)
+        try:
+            pages = await crawler.crawl_site(
+                site_entry["url"], max_pages=max_pages, max_depth=max_depth,
+                snapshot_dir=snapshot_dir,
+            )
+            site_entry["pages"] = [_page_entry(pg) for pg in pages]
+            site_entry["crawl_detect_status"] = "done"
+            site_entry["crawl_detect_failure_reason"] = None
+        except Exception as e:
+            site_entry["crawl_detect_status"] = "failed"
+            site_entry["crawl_detect_failure_reason"] = str(e)
+        sites_crawled += 1
+        save_manifest(manifest_path, manifest)
 
+    # Pass 1b: review every violation not yet reviewed, across all crawled
+    # sites, budget-gated before each real call.
+    for row in corpus:
+        site_entry = manifest["sites"][row["site_id"]]
         if site_entry["crawl_detect_status"] != "done":
             continue
 

@@ -10,6 +10,7 @@ import json
 
 import crawler
 import eval_runner
+import pytest
 from agents.reviewer.schema import ReviewerOutput
 from db import async_session_factory
 
@@ -172,3 +173,82 @@ async def test_run_pass1_resumes_only_pending_violations(tmp_path, monkeypatch):
         manifest = json.load(f)
     violations = manifest["sites"]["1"]["pages"][0]["violations"]
     assert all(v["reviewer_status"] == "done" for v in violations)
+
+
+async def test_run_pass1_crawls_all_sites_before_reviewing_any(tmp_path, monkeypatch):
+    """A violation-heavy site (site 1, 3 violations) must not block site 2
+    from being crawled, even when the review budget is already exhausted —
+    crawling and Reviewer scoring are two separate sequential passes, not
+    interleaved per-site."""
+    monkeypatch.setenv("LLM_MOCK", "false")
+    corpus_path = _write_corpus_csv(tmp_path / "corpus.csv", FAKE_CORPUS)
+    manifest_path = tmp_path / "manifest.json"
+
+    heavy_violations = [
+        crawler.Violation(
+            wcag_rule="image-alt", element_selector=f"img.{i}", severity="serious",
+            html_snippet=f"<img class='{i}'>", message="missing alt text",
+        )
+        for i in range(3)
+    ]
+    heavy_page = crawler.CrawledPage(
+        url="http://site-a.test/", depth=0, status="loaded",
+        title="Site A", snapshot_path="/tmp/fake-a.html", violations=heavy_violations,
+    )
+    light_page = crawler.CrawledPage(
+        url="http://site-b.test/", depth=0, status="loaded",
+        title="Site B", snapshot_path="/tmp/fake-b.html", violations=[],
+    )
+
+    async def _fake_crawl_site(url, *args, **kwargs):
+        return [heavy_page] if url == "http://site-a.test" else [light_page]
+    monkeypatch.setattr(crawler, "crawl_site", _fake_crawl_site)
+
+    # Pre-exhausted budget: if review were interleaved with crawl, site 1's
+    # violations would trip this guard before site 2 ever got crawled.
+    async def _fake_over_budget(db, model=None, now=None):
+        return 950
+    monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_over_budget)
+
+    def _fail_if_called(*args, **kwargs):
+        raise AssertionError("reviewer_node should not be called once the budget guard trips")
+    monkeypatch.setattr(eval_runner, "reviewer_node", _fail_if_called)
+
+    async with async_session_factory() as db:
+        result = await eval_runner.run_pass1(
+            db, corpus_path=corpus_path, manifest_path=manifest_path,
+            snapshot_dir=tmp_path / "snapshots", daily_cap=1000, safety_margin_pct=0.9,
+        )
+
+    # Full return shape, not just sites_crawled: proves Pass 1b was actually
+    # reached and stopped correctly, not skipped by an unrelated bug that
+    # happens to also leave sites_crawled == 2.
+    assert result["sites_crawled"] == 2
+    assert result["budget_stopped"] is True
+    assert result["violations_reviewed"] == 0
+
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = json.load(f)
+    assert manifest["sites"]["1"]["crawl_detect_status"] == "done"
+    assert manifest["sites"]["2"]["crawl_detect_status"] == "done"
+
+
+async def test_run_pass1_raises_when_llm_mocked(tmp_path, monkeypatch):
+    monkeypatch.setenv("LLM_MOCK", "true")
+    corpus_path = _write_corpus_csv(tmp_path / "corpus.csv", FAKE_CORPUS[:1])
+    manifest_path = tmp_path / "manifest.json"
+
+    def _fail_if_called(*args, **kwargs):
+        raise AssertionError("crawl_site should not be called when LLM_MOCK is enabled")
+    monkeypatch.setattr(crawler, "crawl_site", _fail_if_called)
+
+    async with async_session_factory() as db:
+        with pytest.raises(eval_runner.LlmMockEnabledError):
+            await eval_runner.run_pass1(
+                db, corpus_path=corpus_path, manifest_path=manifest_path,
+                snapshot_dir=tmp_path / "snapshots",
+            )
+
+    # Strongest assertion here: proves the guard fires before
+    # load_or_init_manifest even runs, not just before reviewer_node/crawl_site.
+    assert not manifest_path.exists()
