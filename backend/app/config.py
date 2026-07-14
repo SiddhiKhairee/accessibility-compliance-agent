@@ -25,6 +25,14 @@ class Settings(BaseSettings):
     # Never a wildcard — this project has no auth/multi-tenancy layer, so an
     # open CORS policy would have nothing else guarding it.
     FRONTEND_ORIGIN: str = "http://localhost:5173"
+    # Phase 5: eval_runner.py's daily-RPD budget guard. This is a fallback
+    # default, not a verified account limit — confirm the real number at
+    # console.groq.com/settings/limits before relying on it for a real
+    # Pass 1 run. Separate from llm_client.py's existing per-minute
+    # per-model token pacing (design.md Section 8b) — that reacts to Groq's
+    # own response headers; this tracks a daily total via llm_call_logs.
+    EVAL_DAILY_CALL_CAP: int = 1000
+    EVAL_DAILY_CAP_SAFETY_MARGIN_PCT: float = 0.9
 
 
 settings = Settings()
