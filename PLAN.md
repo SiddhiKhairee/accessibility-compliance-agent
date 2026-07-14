@@ -214,6 +214,42 @@ for real once frontend work in Phase 4 actually starts.
             challenge-page/no-link-extraction.)*
 
 ## Phase 5 — Evaluation & Metrics
+- [x] **Step 0 — Eval scaffolding + guardrails** (this is infrastructure,
+      not a real run — no site in `eval/eval_corpus_30_sites.csv` has
+      actually been scanned yet):
+      - [x] `backend/app/eval_runner.py` — resumable Pass 1 orchestrator
+            (crawl+detect, free, then Reviewer-only confidence scoring,
+            budget-gated). Checkpoints every site/violation to
+            `eval/progress_pass1.json` so a stop mid-run resumes without
+            re-crawling or re-spending Groq budget. Hard-refuses to start
+            if `LLM_MOCK=true`.
+      - [x] Daily-RPD budget guard: `EVAL_DAILY_CALL_CAP`/
+            `EVAL_DAILY_CAP_SAFETY_MARGIN_PCT` (config.py, default
+            1000/0.9 — confirm your org's real limit at
+            console.groq.com/settings/limits before a real run), checked
+            against real `llm_call_logs` rows (`is_mock=false,
+            cache_hit=false`, today, matching model) before every Reviewer
+            call, filtered by model not agent_name since Groq's RPD cap is
+            per-model-per-account.
+      - [x] `backend/app/eval_sampling.py` — stratified sampler
+            (`wcag_rule` x confidence bucket) feeding `sample_pass2.csv`
+            directly; `sample_manual_labeling.csv` is the distinct pages
+            that same sample touches, so a human has full-page context for
+            recall, not just a per-violation judgment call.
+      - [x] `backend/app/eval_report.py` — real function signatures for all
+            four metrics, structure only, no calculation logic yet (needs
+            real Pass 1/Pass 2 data + hand-filled labels first).
+      - [x] `eval/manual_labels.csv`, `eval/fix_spotcheck.csv` — header-only
+            templates. `eval/progress_pass2.json` — empty schema shell.
+            `eval/progress_pass1.json` — real file, generated for real
+            (free, deterministic, zero Groq calls) from the actual 30-site
+            corpus, all `pending`.
+      - [x] `EVALUATION.md` — section headers only, all TBD.
+      - [x] `backend/tests/eval/` — 17 new tests (budget threshold/DB
+            counting, manifest init/resume/skip/budget-stop, stratified
+            sampling), no real Groq calls or live crawling — `crawler.
+            crawl_site`/`reviewer_node` monkeypatched. Full suite:
+            105/105 passing.
 - [ ] Run pipeline across 30-50 real public sites
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
 - [ ] Spot-check sample of "verified" fixes → false verification rate
