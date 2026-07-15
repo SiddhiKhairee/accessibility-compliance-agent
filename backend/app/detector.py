@@ -31,16 +31,40 @@ LOCKED_RULE_IDS = [
     "link-name",                           # 9. Link Purpose (2.4.4)
 ]
 
-# `bypass` and `duplicate-id-aria` are marked `reviewOnFail: true` in
-# axe-core's own rule metadata (confirmed live, Phase 2.6: loaded the real
-# bundled axe.min.js in a headless Chromium page and queried
-# `axe._audit.rules` directly for all 16 rule IDs above — see design.md
-# Section 3 / PLAN.md Phase 2.6). That means a genuine failure of either
-# rule lands in axe's `incomplete` result array, not `violations` — without
-# this, detect_violations() silently misses every real failure of these 2
-# locked rules. Hardcoded rather than re-queried at runtime, same rationale
-# as LOCKED_RULE_IDS: verified once, deterministic, no runtime cost.
-REVIEW_ON_FAIL_RULE_IDS = ["bypass", "duplicate-id-aria"]
+# Rules whose genuine failures can land in axe's `incomplete` result array
+# instead of `violations` — without this list, detect_violations() (which
+# only reads `violations` for everything else) would silently miss those
+# failures. Two different mechanisms feed this list, not one:
+#
+# - `bypass`, `duplicate-id-aria`: axe-core marks both `reviewOnFail: true`
+#   in its own rule metadata (confirmed live, Phase 2.5/2.6: loaded the real
+#   bundled axe.min.js in a headless Chromium page and queried
+#   `axe._audit.rules` directly for all 16 locked rule IDs — see design.md
+#   Section 3). Metadata predicts these rules *always* need human judgment
+#   on a genuine fail, so they always land in `incomplete`.
+# - `color-contrast`: NOT tagged `reviewOnFail` — added based on direct
+#   runtime evidence, not metadata (Phase 2.6 Part 1 audit). A real page
+#   (target.com, Pass 1a crawl) and a constructed fixture
+#   (color_contrast_ambiguous.html — a background-image case, distinct from
+#   color_contrast.html's flat low-contrast case) both showed a genuine
+#   color-contrast failure landing in `incomplete`, with no metadata flag
+#   predicting it. Metadata predicts "this rule always needs human
+#   judgment"; it does NOT predict "this rule's automated check can become
+#   ambiguous on some pages" — those are different mechanisms, and this
+#   list is now maintained against both, not metadata alone.
+#
+# The other 13 locked rule IDs were each confirmed safe (genuine failure
+# lands in `violations`) against exactly ONE real-failure fixture apiece —
+# see design.md Section 3 for the full audit table. That reduces risk, it
+# does not prove no other page construction could ever push one of those
+# 13 into `incomplete` too. If evaluation data ever looks anomalously
+# sparse for a specific locked rule (e.g. a rule that should appear often
+# across the eval corpus showing suspiciously few hits), treat that as a
+# signal worth re-auditing that rule, not something to dismiss.
+#
+# Hardcoded rather than re-queried/re-audited at runtime, same rationale as
+# LOCKED_RULE_IDS: verified once, deterministic, no runtime cost.
+REVIEW_ON_FAIL_RULE_IDS = ["bypass", "duplicate-id-aria", "color-contrast"]
 
 AXE_OPTIONS = {
     "resultTypes": ["violations", "incomplete"],

@@ -118,6 +118,23 @@ the whole project once the frontend ships in Phase 4 — see Phase 4.5.
 - [x] **Verify:** full 2.5b test suite still green, plus new assertions for
       the previously-gapped rules *(42 passed — 41 prior + 1 net new: 2
       tests flipped, 1 added)*
+- [x] **Addendum (Part 1 + Part 2, corrected 2026-07-15):** the closure
+      above was based on a metadata-only audit (`reviewOnFail` tag) that
+      missed a real gap — `color-contrast` is NOT tagged `reviewOnFail` but
+      can still land in axe's `incomplete` array at runtime on certain
+      pages (discovered via the real Pass 1a crawl against target.com, see
+      Phase 5). Part 1 re-audited all 16 rule IDs empirically (raw axe
+      results per genuine-failure fixture, not metadata) and confirmed
+      `color-contrast` is the only rule beyond the original 2 with this
+      gap; also built the first-ever fixture/test for `skip-link`, which
+      had zero coverage. Part 2 extended `REVIEW_ON_FAIL_RULE_IDS` to
+      `["bypass", "duplicate-id-aria", "color-contrast"]` and rewrote
+      design.md Section 3 to document both discovery mechanisms explicitly,
+      plus an audit-honesty caveat for the other 13 rules (each confirmed
+      safe against exactly one fixture, not exhaustively proven safe). See
+      the 2026-07-15 session log entries (a correction note placed right
+      after the original 2026-07-08 entry, and a full entry at the end of
+      this log).
 
 ## Phase 3 — Fix Verification + Cost Optimization
 **Note:** Phase 3 verification logic should account for Phase 2.6's
@@ -717,6 +734,18 @@ for real once frontend work in Phase 4 actually starts.
      DB (995 existing violations rows, all NULL on the new column, count
      unchanged before/after) and the test DB (column present via \d
      violations). -->
+<!-- 2026-07-15: Correction to the entry above — the 2026-07-08 "Phase 2.6
+     complete" closure turned out to be incomplete. It was based on a
+     metadata-only audit (`reviewOnFail: true` in axe's rule metadata),
+     which correctly found bypass/duplicate-id-aria but cannot, by
+     construction, detect a different kind of gap: a rule whose automated
+     check becomes ambiguous at runtime on some pages without being
+     flagged reviewOnFail at all. That's exactly what happened with
+     color-contrast, found via the real Pass 1a crawl against target.com
+     (Phase 5 eval work) — not previously documented, not caught by the
+     2026-07-08 audit. Real fix + full empirical re-audit of all 16 rule
+     IDs: see the 2026-07-15 "Phase 2.6 Part 1 + Part 2" entry at the end
+     of this log. -->
 <!-- 2026-07-09: Phase 3 complete — Verifier is real, no graph
      restructuring (still exactly 4 nodes). New flat module
      backend/app/verifier.py (`verify_fix()`, same own-Playwright-lifecycle
@@ -1001,3 +1030,58 @@ for real once frontend work in Phase 4 actually starts.
      with a stale "Full narrative in PHASE2_5_COMPLETION_REPORT.md" copy-
      paste leftover (should reference PHASE4_COMPLETION_REPORT.md) -
      corrected while adding Section 12 immediately after it. -->
+<!-- 2026-07-15: Phase 2.6 Part 1 + Part 2 — the reviewOnFail gap fix
+     closed 2026-07-08 was corrected; see the note inserted right after
+     that entry above. Trigger: the real Pass 1a crawl against target.com
+     (Phase 5 eval work) showed a genuine color-contrast failure landing in
+     axe's incomplete array and being silently dropped, even though
+     color-contrast is not reviewOnFail:true — proving the 2026-07-08
+     metadata-only audit's premise (reviewOnFail predicts every rule that
+     can do this) was wrong.
+
+     Part 1 (audit, Plan Mode per CLAUDE.md workflow, results reviewed with
+     the user before Part 2 started): re-audited all 16 locked rule IDs
+     empirically instead of via metadata — each rule's genuine-failure
+     fixture (reused where one existed; built new for skip-link, which had
+     zero prior fixture/test coverage, and for a second color-contrast
+     scenario) run through a raw axe call, bucket read directly off
+     results.response. Result: color-contrast was the only rule beyond the
+     original 2 needing incomplete->needs_review promotion; the other 13
+     rule IDs landed cleanly in violations. skip-link needed a second
+     attempt: a plain always-visible `<a href="#...">` was ruled
+     "inapplicable" by axe's own skip-link-matches check (requires both
+     first-link-on-page AND offscreen-until-focus, the standard
+     hidden-skip-link pattern) before a correctly-constructed fixture
+     produced a real violations-bucket failure.
+
+     Part 2 (fix): REVIEW_ON_FAIL_RULE_IDS extended to ["bypass",
+     "duplicate-id-aria", "color-contrast"]. detector.py's comment above it
+     rewritten to explain the two different mechanisms (reviewOnFail
+     metadata for 2 rules, runtime audit evidence for 1) instead of
+     implying uniform metadata-derivation. New regression test
+     test_color_contrast_incomplete_gap_now_surfaces_as_needs_review mirrors
+     the existing bypass/duplicate-id-aria pattern, using the new
+     color_contrast_ambiguous.html fixture (background-image case).
+     color_contrast.html's existing simple-case test (flat low-contrast
+     text, stays in violations) needed no edit — confirmed unaffected via
+     the Part 1 audit run and detect_violations()'s "confirmed" dataclass
+     default. test_other_locked_rules_never_get_needs_review's docstring
+     updated to explain why color_contrast.html deliberately stays in that
+     "never needs_review" fixture list post-fix. design.md Section 3
+     rewritten to document both discovery mechanisms per rule, the
+     metadata-only audit's real shortcoming, and an explicit audit-honesty
+     caveat: the other 13 rule IDs are each confirmed safe against exactly
+     one fixture, not proven safe against every possible page construction
+     — a signal to re-audit, not dismiss, if eval data ever looks
+     anomalously sparse for a specific rule. No new migration: the existing
+     nullable violations.detection_confidence column already supports this.
+
+     Not done this session (deliberately deferred, per user instruction):
+     eval/progress_pass1.json from the real Pass 1a crawl is now known-
+     stale for color-contrast specifically (any incomplete color-contrast
+     result during that crawl was silently dropped under the pre-fix
+     detector.py) — re-running Pass 1a against the 30-site corpus is a
+     separate follow-up once this fix is merged, not part of this session.
+     eval_runner.py/eval_sampling.py/eval_report.py untouched; Pass 1b not
+     started. Verified: full suite 109 passed (backend/tests/, includes 1
+     net-new test), `ruff check .` clean. -->
