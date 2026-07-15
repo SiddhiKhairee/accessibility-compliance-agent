@@ -1,0 +1,217 @@
+{
+  "run_started_at": null,
+  "last_updated_at": "2026-07-14T03:56:25.928563+00:00",
+  "budget_stopped": false,
+  "sites": {
+    "1": {
+      "url": "https://www.target.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "2": {
+      "url": "https://www.loc.gov",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "3": {
+      "url": "https://www.gov.uk",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "4": {
+      "url": "https://www.bbc.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "5": {
+      "url": "https://www.expedia.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "6": {
+      "url": "https://www.ada.gov",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "7": {
+      "url": "https://www.etsy.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "8": {
+      "url": "https://www.mit.edu",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "9": {
+      "url": "https://github.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "10": {
+      "url": "https://www.walmart.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "11": {
+      "url": "https://www.usa.gov",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "12": {
+      "url": "https://www.wayfair.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "13": {
+      "url": "https://www.w3.org",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "14": {
+      "url": "https://www.espn.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "15": {
+      "url": "https://www.imdb.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "16": {
+      "url": "https://www.tripadvisor.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "17": {
+      "url": "https://www.nytimes.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "18": {
+      "url": "https://stackoverflow.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "19": {
+      "url": "https://www.un.org",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "20": {
+      "url": "https://www.harvard.edu",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "21": {
+      "url": "https://www.booking.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "22": {
+      "url": "https://medium.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "23": {
+      "url": "https://www.zillow.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "24": {
+      "url": "https://www.cnn.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "25": {
+      "url": "https://en.wikipedia.org",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "26": {
+      "url": "https://www.nih.gov",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "27": {
+      "url": "https://www.reddit.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "28": {
+      "url": "https://www.weather.com",
+      "tier": "mid",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "29": {
+      "url": "https://www.forever21.com",
+      "tier": "high",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    },
+    "30": {
+      "url": "https://www.irs.gov",
+      "tier": "low",
+      "crawl_detect_status": "pending",
+      "crawl_detect_failure_reason": null,
+      "pages": []
+    }
+  }
+}
