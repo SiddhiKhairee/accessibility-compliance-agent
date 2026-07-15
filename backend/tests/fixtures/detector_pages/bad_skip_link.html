@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><title>Bad skip link</title>
+<style>
+/* Standard visually-hidden-until-focus skip-link pattern. axe-core's
+   skip-link rule only considers a link a candidate at all if it is BOTH
+   the first <a href> in the document AND offscreen (isSkipLink && isOffscreen
+   in axe-core's skip-link-matches) — a plain, always-visible link is ruled
+   "inapplicable", not a pass or fail. */
+.skip-link { position: absolute; left: -9999px; top: auto; }
+.skip-link:focus { left: 0; top: 0; }
+</style>
+</head>
+<body>
+<a href="#does-not-exist" class="skip-link">Skip to main content</a>
+<nav><a href="/">Home</a></nav>
+<main><h1>Page</h1><p>The skip link is the first link on the page and is offscreen by default (matching axe's skip-link candidate criteria), but its href points at an id that doesn't exist anywhere on the page — genuinely fails `skip-link`.</p></main>
+</body>
+</html>

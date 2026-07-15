@@ -151,12 +151,36 @@ async def test_duplicate_id_aria_incomplete_gap_now_surfaces_as_needs_review(tes
     assert dup[0].severity != "unknown"
 
 
+async def test_color_contrast_incomplete_gap_now_surfaces_as_needs_review(test_server):
+    """Phase 2.6 Part 2 closes a second, differently-discovered gap (see
+    design.md Section 3): unlike bypass/duplicate-id-aria, color-contrast is
+    NOT tagged reviewOnFail=true in axe's own metadata — this gap was found
+    via direct runtime evidence instead (a real page, target.com's Pass 1a
+    crawl, and this fixture: a background-image case where axe can't
+    resolve a single background color). color_contrast_ambiguous.html is a
+    genuine failure, confirmed via a raw axe run to land in `incomplete`,
+    not `violations` — distinct from color_contrast.html's flat
+    low-contrast case, which stays in `violations` unaffected (see
+    test_color_contrast_detected / test_other_locked_rules_never_get_needs_review)."""
+    v = await _violations_for(test_server, "color_contrast_ambiguous.html")
+    cc = [viol for viol in v if viol.wcag_rule == "color-contrast"]
+    assert len(cc) == 1
+    assert cc[0].detection_confidence == "needs_review"
+    assert cc[0].severity != "unknown"
+
+
 async def test_other_locked_rules_never_get_needs_review(test_server):
     """Regression guard on scope, not just on detection working: Phase 2.6
     only reads `incomplete` for REVIEW_ON_FAIL_RULE_IDS (bypass,
-    duplicate-id-aria). Every other locked rule's existing fixture must
-    still only ever produce detection_confidence="confirmed" — confirming
-    the fix didn't start reading `incomplete` more broadly than intended."""
+    duplicate-id-aria, color-contrast). Every other locked rule's existing
+    fixture must still only ever produce detection_confidence="confirmed" —
+    confirming the fix didn't start reading `incomplete` more broadly than
+    intended. color_contrast.html stays in this list deliberately: its flat
+    low-contrast case lands in `violations`, not `incomplete`, so it must
+    still come back "confirmed" even though color-contrast is now in
+    REVIEW_ON_FAIL_RULE_IDS — the promotion only fires for results axe
+    itself puts in `incomplete` (see color_contrast_ambiguous.html's test
+    above for the case that does get promoted)."""
     fixtures = [
         "missing_alt.html", "input_image_alt.html", "missing_label.html",
         "missing_button_name.html", "aria_input_field_name.html",

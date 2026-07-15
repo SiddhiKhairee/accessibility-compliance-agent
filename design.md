@@ -83,41 +83,88 @@ EVALUATION.md never reports 2.1.1 coverage/precision numbers that read as
 if trap detection happened — per CLAUDE.md, no invented or overstated
 metrics.
 
-**`bypass` and `duplicate-id-aria` (2.4.1 / 4.1.2) can never surface as a
-`Violation` row under the current detector.py, even though they're locked
-v1 rules.** Discovered during Phase 2.5b regression-test fixture
-verification (not previously documented): axe-core marks both rules
-`reviewOnFail: true` in its own rule metadata, meaning a genuine failure of
-either lands in axe's `incomplete` result array, not `violations`.
-`detector.py`'s `detect_violations()` only reads
-`results.response["violations"]`, so no fixture — however constructed —
-can make either rule appear in its output. Confirmed directly: a fixture
-page with no skip-link/heading/landmark, and a fixture with a duplicate id
-referenced via `aria-labelledby`, were both run through a raw axe call and
-genuinely failed, landing in `incomplete` each time (see
-`backend/tests/detector/test_detector.py`'s
-`test_bypass_known_gap_never_surfaces_as_a_violation` and
-`test_duplicate_id_aria_known_gap_never_surfaces_as_a_violation`, which
-codify this as current, observed behavior rather than silently ignoring
-it). Not fixed in 2.5b — that session was scoped to regression tests for
-existing behavior, not new detector logic.
+**`bypass`, `duplicate-id-aria`, and `color-contrast` (2.4.1 / 4.1.2 / 1.4.3)
+can each genuinely fail without ever surfacing as a `Violation` row under
+the original detector.py, even though all three are locked v1 rules.** Two
+different discovery paths, two different underlying mechanisms:
 
-**Fixed in Phase 2.6.** A full audit (live: loaded the real bundled
-`axe.min.js` in headless Chromium and queried `axe._audit.rules` directly
-for `reviewOnFail` across all 16 rule IDs spanning the 9 locked rules)
-confirmed `bypass` and `duplicate-id-aria` are the *only* 2 rules with this
-gap — nothing else was silently missed. `detect_violations()` now also
-reads axe's `incomplete` array, scoped narrowly to just these 2 rule IDs
-(`REVIEW_ON_FAIL_RULE_IDS` in detector.py), and tags the resulting
-`Violation` rows `detection_confidence="needs_review"` (vs `"confirmed"`
-for normal `violations` entries) so nothing downstream conflates an
-axe-uncertain result with a fully-confirmed one. A pre-flight check (real
-raw axe call against the same 2 fixtures) confirmed `impact` — which
-becomes `severity` — is present and non-null on both rules' `incomplete`
-nodes, so no fallback-severity special-casing was needed. Persisted via a
-new nullable `violations.detection_confidence` column (Alembic revision
-`92f78d8d9d6b`) — see docs/schema.md for the NULL-vs-"confirmed"
-backfill note.
+- `bypass` / `duplicate-id-aria`: discovered during Phase 2.5b
+  regression-test fixture verification (not previously documented).
+  axe-core marks both rules `reviewOnFail: true` in its own rule metadata,
+  meaning a genuine failure of either *always* lands in axe's `incomplete`
+  result array, not `violations`. Confirmed directly: a fixture page with
+  no skip-link/heading/landmark, and a fixture with a duplicate id
+  referenced via `aria-labelledby`, were both run through a raw axe call
+  and genuinely failed, landing in `incomplete` each time (see
+  `backend/tests/detector/test_detector.py`'s
+  `test_bypass_incomplete_gap_now_surfaces_as_needs_review` and
+  `test_duplicate_id_aria_incomplete_gap_now_surfaces_as_needs_review`).
+- `color-contrast`: discovered later, during the real Pass 1a crawl against
+  target.com (Phase 2.6 Part 1) — not via metadata. `color-contrast` is not
+  tagged `reviewOnFail` at all, so the metadata-only audit below missed it
+  entirely. A real page can still push a genuine `color-contrast` failure
+  into `incomplete` at runtime when axe can't resolve a single background
+  color for the text (an ambiguous/overlapping background, or a background
+  image rather than a flat color) — confirmed reproducible on two
+  independent, differently-constructed cases: target.com itself, and
+  `color_contrast_ambiguous.html` (a background-image case built
+  specifically to reproduce it — see
+  `test_color_contrast_incomplete_gap_now_surfaces_as_needs_review`).
+  `color-contrast`'s *simple* case (`color_contrast.html`, flat
+  low-contrast text) is unaffected and still lands in `violations` — the
+  gap is page-dependent, not purely rule-dependent.
+
+In every case, `detector.py`'s `detect_violations()` only reads
+`results.response["violations"]`, so no fixture — however constructed —
+could make the affected rule appear in its output before this was fixed.
+
+**Metadata-only audit (Phase 2.6, first pass).** A full audit of axe's own
+metadata (live: loaded the real bundled `axe.min.js` in headless Chromium
+and queried `axe._audit.rules` directly for `reviewOnFail` across all 16
+rule IDs spanning the 9 locked rules) confirmed `bypass` and
+`duplicate-id-aria` are the *only* 2 rules tagged `reviewOnFail: true`. This
+was read at the time as "nothing else was silently missed," and
+`REVIEW_ON_FAIL_RULE_IDS` was scoped to just those 2 rule IDs. **That
+conclusion was incomplete.** Metadata predicts *"this rule always needs
+human judgment on a genuine fail"* — it does not predict *"this rule's
+automated check can become ambiguous on some pages."* Those are two
+different mechanisms axe can produce `incomplete` results through, and only
+the first is visible in `axe._audit.rules`. The `color-contrast` gap above
+is exactly the second kind; metadata-only auditing could not have found it.
+
+**Full runtime audit + fix (Phase 2.6 Part 1 + Part 2).** Following the
+`color-contrast` discovery on target.com, all 16 locked rule IDs were
+re-audited empirically instead of via metadata: each rule's genuine-failure
+fixture (reused where one existed, built new for `skip-link`, which had
+none) was run through a raw axe call, with the bucket (`violations` vs
+`incomplete`) read directly off `results.response`. Result: `color-contrast`
+was the only rule beyond the original 2 that needed the same treatment; the
+other 13 rule IDs landed cleanly in `violations` on their fixture.
+`REVIEW_ON_FAIL_RULE_IDS` is now `["bypass", "duplicate-id-aria",
+"color-contrast"]` — `detect_violations()`'s `incomplete`-array handling is
+unchanged in mechanism, still tagging `detection_confidence="needs_review"`
+(vs `"confirmed"` for normal `violations` entries), just scoped to 3 rule
+IDs derived from two different kinds of evidence (metadata for 2, runtime
+audit for 1) instead of metadata alone. A pre-flight check (real raw axe
+call against all 3 fixtures) confirmed `impact` — which becomes `severity`
+— is present and non-null on each rule's `incomplete` nodes, so no
+fallback-severity special-casing was needed. No new migration was needed:
+the existing nullable `violations.detection_confidence` column (Alembic
+revision `92f78d8d9d6b`) already supports arbitrary string values —
+`color-contrast`'s `needs_review` rows reuse it as-is (see docs/schema.md
+for the NULL-vs-"confirmed" backfill note).
+
+**Audit honesty caveat, not just for color-contrast.** The other 13 rule
+IDs were each confirmed safe against exactly ONE genuine-failure fixture
+apiece (see the Phase 2.6 Part 1 audit table, PLAN.md session log). That
+reduces risk — it does not prove no other page construction could ever push
+one of those 13 into `incomplete` too, the same way `color-contrast`'s own
+simple fixture stayed safely in `violations` right up until a real, more
+complex page (target.com) showed otherwise. If evaluation data ever looks
+anomalously sparse for a specific locked rule later (e.g. a rule that
+should appear often across the 30-site eval corpus showing suspiciously few
+hits), that should be treated as a signal worth re-auditing that specific
+rule, not dismissed as the site sample simply not tripping it.
 
 **Known limitation, intentionally scoped this way:** this phase only makes
 `needs_review` violations *surface and persist* — it does not change how
@@ -126,7 +173,7 @@ violation flows through Reviewer/Impact/Developer identically to a
 `confirmed` one today. Actually using `detection_confidence` to add extra
 scrutiny (e.g. in the Reviewer Agent's prompt or confidence logic) is
 deferred to a later phase, not decided here — flagged explicitly so this
-doesn't quietly become a second, undocumented gap replacing the first.
+doesn't quietly become an undocumented gap replacing the ones just closed.
 
 **Partially addressed in Phase 3:** the Verifier's before/after diff
 (`verifier.py`'s `verify_fix()`) deliberately ignores `detection_confidence`
@@ -136,7 +183,7 @@ the "original gone, no new violation" check exactly like a `confirmed`
 one (confirmed via a real fix against `duplicate_id_aria.html`'s
 `needs_review` violation — see PLAN.md's Phase 3 session log). This was a
 deliberate choice, not an oversight: axe itself already isn't fully
-confident about these 2 rules, so demanding *more* certainty at
+confident about these rules, so demanding *more* certainty at
 verification time than detection time would be inconsistent — the
 Verifier's job is to confirm the violation is gone, not to re-litigate
 axe's own confidence in having found it originally.
