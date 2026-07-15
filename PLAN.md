@@ -170,7 +170,7 @@ for real once frontend work in Phase 4 actually starts.
       link gate, exactly the 3 download-gating tests failed, nothing
       else. Green run 29124965399 after a byte-clean revert.)*
 
-      ## Phase 4.6 — Crawler bot-blocking / status-code handling
+## Phase 4.6 — Crawler bot-blocking / status-code handling
       **Note:** found while asking "what happens against a site that blocks bots"
       before scoping Phase 5 — Phase 5 crawls 30-50 real public sites, so a
       silent-bad-data gap here would quietly corrupt that eval sample rather than
