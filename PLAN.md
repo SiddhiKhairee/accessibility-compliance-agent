@@ -1085,3 +1085,44 @@ for real once frontend work in Phase 4 actually starts.
      eval_runner.py/eval_sampling.py/eval_report.py untouched; Pass 1b not
      started. Verified: full suite 109 passed (backend/tests/, includes 1
      net-new test), `ruff check .` clean. -->
+<!-- 2026-07-16: design.md documentation catch-up (documentation only, no
+     code changes) for everything Phase 5 Pass 1a had accumulated since the
+     last design.md update: the review_enabled Pass 1a/1b split, the real
+     30-site crawl-only run, the target.com color-contrast investigation
+     (feeding the 2026-07-15 Phase 2.6 fix above), the post-fix
+     force-recrawl, and a targeted 3-site timeout retry (target.com,
+     bbc.com, espn.com; 10000ms -> 25000ms via a new opt-in
+     page_load_timeout_ms param on crawl_site()/run_pass1(), default
+     unchanged). Added design.md Section 13, six subsections: the Pass
+     1a/1b split's reasoning (13a), Phase 4.6's bot-block handling
+     validated against real corpus numbers (13b), a new file://-snapshot-
+     reproduction-breaks-CSS debugging gotcha found while diagnosing
+     target.com (13c), the networkidle timeout limitation with real
+     before/after retry numbers (13d), the new page_load_timeout_ms param
+     (13e), and a corpus coverage honesty note (13f).
+
+     Two items surfaced while verifying 13b/13f against live manifest data
+     (per explicit instruction to cite current, re-derivable numbers rather
+     than unrecoverable historical ones) turned out broader than the
+     session's own framing assumed, and are flagged here rather than
+     quietly folded into design.md as settled:
+
+     1. Needs closing: the full pytest suite has not been re-run since the
+        page_load_timeout_ms addition to crawler.py/eval_runner.py. Docker/
+        Postgres wasn't running in that session, so only direct-import
+        signature checks were done (both new params confirmed present with
+        correct, unchanged defaults via inspect.signature). The crawl-only
+        retry path itself never touches the DB, but the DB-backed suite is
+        still unconfirmed against this change.
+     2. Needs a decision, not made here: only 3 of at least 10 corpus sites
+        showing the identical networkidle root-page-timeout signature have
+        been retried at a longer timeout (target.com, bbc.com, espn.com).
+        7 remain unretried: walmart.com, wayfair.com, imdb.com, nytimes.com,
+        stackoverflow.com, medium.com, zillow.com, weather.com,
+        forever21.com. Corpus-wide, only 16 of 30 sites currently have any
+        loaded page data at all (14 at zero — 4 legitimate bot-blocks, 10
+        networkidle timeouts). A future session needs to decide: broader
+        retry, a different wait strategy (networkidle has a demonstrated
+        ceiling — bbc.com didn't recover even at 2.5x timeout), or accept
+        and document this as a real EVALUATION.md limitation. Not decided
+        or actioned this session. -->

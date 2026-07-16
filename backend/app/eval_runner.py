@@ -23,6 +23,7 @@ Run from inside backend/app/ (matching cost_report.py's convention):
     cd backend/app
     python eval_runner.py
 """
+import argparse
 import asyncio
 import csv
 import json
@@ -123,6 +124,24 @@ def load_or_init_manifest(path: Path, corpus: list[dict]) -> dict:
     }
 
 
+def _reset_sites_for_recrawl(manifest: dict) -> None:
+    """Resets exactly the 3 crawl-stage fields (crawl_detect_status,
+    crawl_detect_failure_reason, pages) on every site, unconditionally, so
+    Pass 1a's `crawl_detect_status == "done"` skip no longer applies to
+    any of them. Deliberately touches nothing else — in particular, no
+    field ever holds Reviewer output at the site level, so this stays
+    correct even after Pass 1b has real reviewer_status/confidence_score
+    data on some violations: a forced re-crawl replaces `pages` (and thus
+    those specific violation entries) as an inherent, intended
+    consequence of "recrawl everything," not something this function
+    special-cases around by checking whether reviewed data happens to
+    exist yet."""
+    for site_entry in manifest["sites"].values():
+        site_entry["crawl_detect_status"] = "pending"
+        site_entry["crawl_detect_failure_reason"] = None
+        site_entry["pages"] = []
+
+
 def save_manifest(path: Path, manifest: dict) -> None:
     """Atomic write (tmp file + os.replace) so a crash mid-write can't
     corrupt the manifest a resume depends on."""
@@ -139,6 +158,14 @@ def _violation_entry(v: crawler.Violation) -> dict:
         "element_selector": v.element_selector,
         "html_snippet": v.html_snippet,
         "message": v.message,
+        # axe-derived ("confirmed" vs "needs_review" — see detector.py's
+        # REVIEW_ON_FAIL_RULE_IDS), not the Reviewer's own confidence_score
+        # below. Was silently dropped here before Phase 5 Pass 1a re-run
+        # (2026-07-15): crawler.Violation carries it (crawler.py imports
+        # detector.Violation directly), but this dict never copied it, so
+        # every persisted violation showed detection_confidence: null
+        # regardless of what detect_violations() actually returned.
+        "detection_confidence": v.detection_confidence,
         "reviewer_status": "pending",
         "confidence_score": None,
         "confirmed": None,
@@ -167,6 +194,9 @@ async def run_pass1(
     safety_margin_pct: float | None = None,
     max_pages: int = crawler.DEFAULT_MAX_PAGES,
     max_depth: int = crawler.DEFAULT_MAX_DEPTH,
+    page_load_timeout_ms: int | None = None,
+    review_enabled: bool = True,
+    force_recrawl: bool = False,
 ) -> dict:
     """Pass 1: crawl+detect every corpus site not yet done (free, runs to
     completion first), then run the Reviewer (only — not the full 4-node
@@ -176,7 +206,19 @@ async def run_pass1(
     crawling has no Groq cost and should never be gated behind review
     budget. Stops cleanly (no exception) and returns budget_stopped=True
     the moment the guard trips, with the manifest already saved reflecting
-    exactly what got done."""
+    exactly what got done.
+
+    review_enabled=False stops after Pass 1a: returns once every site has
+    been crawled, without entering the Pass 1b review loop at all (zero
+    reviewer_node calls, zero Groq spend). Used for crawl-only eval runs
+    where the goal is real violation counts, not yet Reviewer scoring.
+
+    force_recrawl=True resets every site back to "pending" (see
+    _reset_sites_for_recrawl) before Pass 1a runs, overriding the normal
+    resume behavior that skips sites already "done". For re-crawling a
+    corpus already fully done under an old detector.py/crawler.py, not for
+    everyday resumed runs — default stays False so a plain run's resume
+    semantics are unchanged."""
     _assert_llm_not_mocked()
 
     daily_cap = settings.EVAL_DAILY_CALL_CAP if daily_cap is None else daily_cap
@@ -194,6 +236,9 @@ async def run_pass1(
     if manifest["run_started_at"] is None:
         manifest["run_started_at"] = datetime.now(timezone.utc).isoformat()
     manifest["budget_stopped"] = False
+    if force_recrawl:
+        _reset_sites_for_recrawl(manifest)
+        save_manifest(manifest_path, manifest)
     snapshot_dir.mkdir(parents=True, exist_ok=True)
 
     sites_crawled = 0
@@ -209,7 +254,7 @@ async def run_pass1(
         try:
             pages = await crawler.crawl_site(
                 site_entry["url"], max_pages=max_pages, max_depth=max_depth,
-                snapshot_dir=snapshot_dir,
+                snapshot_dir=snapshot_dir, page_load_timeout_ms=page_load_timeout_ms,
             )
             site_entry["pages"] = [_page_entry(pg) for pg in pages]
             site_entry["crawl_detect_status"] = "done"
@@ -219,6 +264,15 @@ async def run_pass1(
             site_entry["crawl_detect_failure_reason"] = str(e)
         sites_crawled += 1
         save_manifest(manifest_path, manifest)
+
+    if not review_enabled:
+        manifest["budget_stopped"] = False
+        save_manifest(manifest_path, manifest)
+        return {
+            "sites_crawled": sites_crawled,
+            "violations_reviewed": violations_reviewed,
+            "budget_stopped": False,
+        }
 
     # Pass 1b: review every violation not yet reviewed, across all crawled
     # sites, budget-gated before each real call.
@@ -282,8 +336,25 @@ async def run_pass1(
 
 
 async def _main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--crawl-only", action="store_true",
+        help="Stop after Pass 1a (crawl+detect) — no Reviewer calls, no "
+             "Groq spend. Resume later with a plain run to pick up Pass 1b.",
+    )
+    parser.add_argument(
+        "--force-recrawl", action="store_true",
+        help="Reset every site to 'pending' (crawl_detect_status, "
+             "crawl_detect_failure_reason, pages) before Pass 1a runs, "
+             "forcing a full re-crawl even though the manifest shows every "
+             "site already done. Does not touch reviewer_status.",
+    )
+    args = parser.parse_args()
+
     async with async_session_factory() as db:
-        summary = await run_pass1(db)
+        summary = await run_pass1(
+            db, review_enabled=not args.crawl_only, force_recrawl=args.force_recrawl,
+        )
     print(json.dumps(summary, indent=2, default=str))
     await dispose_engine()
 
