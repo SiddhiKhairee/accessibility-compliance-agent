@@ -194,7 +194,7 @@ async def run_pass1(
     safety_margin_pct: float | None = None,
     max_pages: int = crawler.DEFAULT_MAX_PAGES,
     max_depth: int = crawler.DEFAULT_MAX_DEPTH,
-    page_load_timeout_ms: int = crawler.PAGE_LOAD_TIMEOUT_MS,
+    page_load_timeout_ms: int | None = None,
     review_enabled: bool = True,
     force_recrawl: bool = False,
 ) -> dict:

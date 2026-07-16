@@ -107,14 +107,22 @@ async def crawl_site(
     max_pages: int = DEFAULT_MAX_PAGES,
     max_depth: int = DEFAULT_MAX_DEPTH,
     snapshot_dir: Path = SNAPSHOT_DIR,
-    page_load_timeout_ms: int = PAGE_LOAD_TIMEOUT_MS,
+    page_load_timeout_ms: int | None = None,
 ) -> list[CrawledPage]:
     """Crawl up to `max_pages` same-domain pages, prioritizing critical-path URLs.
 
     `max_pages` bounds total page *attempts* (loaded + failed), not just
     successful loads — this keeps crawl runtime bounded even against a site
     that fails to load most of its pages.
+
+    `page_load_timeout_ms` defaults to None rather than PAGE_LOAD_TIMEOUT_MS
+    directly so the module constant is resolved fresh on every call, not
+    captured once at function-definition time — tests monkeypatch
+    `crawler.PAGE_LOAD_TIMEOUT_MS` to force fast timeouts, which a
+    def-time-bound default would silently stop honoring.
     """
+    if page_load_timeout_ms is None:
+        page_load_timeout_ms = PAGE_LOAD_TIMEOUT_MS
     root_domain = urlparse(start_url).netloc
     snapshot_dir.mkdir(parents=True, exist_ok=True)
 
