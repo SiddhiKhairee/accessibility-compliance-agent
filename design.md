@@ -1150,3 +1150,157 @@ component tests; hook+client tests; page tests; CI extension; regression-
 proof push + revert).
 
 Full narrative in `PHASE4_5_COMPLETION_REPORT.md`.
+
+## 13. Phase 5 — Pass 1a execution: design decisions, real-world validation, and known limitations
+
+Documents the real crawl-only Pass 1a run against the 30-site corpus
+(`eval/eval_corpus_30_sites.csv`) and everything it surfaced — a design
+decision that predates the run, a real-world validation of Phase 4.6, a
+new debugging gotcha, and two standing limitations. Same discipline as
+Section 12: real evidence, gaps stated explicitly, not glossed over.
+
+**13a. Pass 1a/1b split as a design decision.** Crawling (Pass 1a) runs to
+completion across the whole corpus regardless of budget; Reviewer scoring
+(Pass 1b) is budget-gated and can stop mid-corpus without finishing every
+site. Reasoning: crawling has zero Groq cost, while Reviewer calls are the
+real constrained resource — `EVAL_DAILY_CALL_CAP` defaults to 1000
+requests/day with a 0.9 safety margin (`config.py`; see Section 9's
+guardrails). If crawling and review were interleaved per-site instead, a
+violation-heavy site early in corpus order could exhaust the daily budget
+before later sites in the corpus were ever crawled at all — starving them
+of even the free stage. Splitting the two into sequential loops means a
+crawl-only run can always get real violation counts for the *entire*
+corpus first, independent of how much Reviewer budget is available or
+already spent.
+
+Mechanism: `eval_runner.run_pass1()` runs a full crawl loop over every
+corpus site not yet `crawl_detect_status: "done"`, then a separate review
+loop over every violation not yet reviewed, checking the daily-budget
+guard before each real Reviewer call. A `review_enabled: bool = True`
+parameter (`review_enabled=False` for a crawl-only run) returns cleanly
+right after the crawl loop, before the review loop starts at all — zero
+`reviewer_node` calls, zero Groq spend. Both loops checkpoint into the
+same resumable `progress_pass1.json` manifest (atomic writes: tmp file +
+`os.replace`), so a run that stops partway — crash, a hung site, an
+intentional crawl-only stop — resumes from exactly where it left off
+without re-crawling already-`done` sites or re-reviewing already-scored
+violations.
+
+**13b. Phase 4.6 bot-block handling — validated with real Pass 1a
+numbers.** Section 4b already documents the block-detection mechanism
+(`BLOCKED_STATUS_CODES`, `CHALLENGE_MARKERS`) and that it was unit tested.
+This adds real corpus evidence. Of the 9 sites flagged ahead of time as
+bot-protection-risk (booking.com, walmart.com, target.com, zillow.com,
+tripadvisor.com, etsy.com, wayfair.com, forever21.com, expedia.com), the
+current manifest shows 4 with an unambiguous, correctly-caught block
+signal: expedia.com (`blocked (status 429)`), etsy.com and tripadvisor.com
+(`blocked (status 403)`) — real HTTP-level blocks, `status="failed"` with
+an accurate `failure_reason`, never scanned as if the block response were
+real content. target.com and booking.com both loaded genuine, non-
+challenge content — correctly *not* flagged. Verified directly for
+target.com by inspecting the saved snapshot HTML: real page title, 111
+`data-test=` attributes, genuine product markup, no CAPTCHA/interstitial
+markers.
+
+**Stated plainly, not glossed over:** the remaining bot-risk sites
+(walmart.com, wayfair.com, zillow.com, forever21.com) currently show a
+plain `Page.goto: Timeout ... exceeded` rather than a clean block signal.
+Phase 4.6's detection only fires once a response or rendered HTML is
+actually reached — a site that blocks by simply stalling the connection
+indefinitely produces the exact same failure signature as the unrelated
+`networkidle` timeout limitation documented in 13d. Current instrumentation
+cannot tell these apart. This is a real, open gap in the bot-block
+detection's coverage, not a solved case being narrated as one.
+
+**13c. Methodology gotcha — naive `file://` snapshot reproduction silently
+breaks CSS.** New standing debugging note, same category as the datetime-
+timezone bug and the BackgroundTasks limitation (Section 4f): replaying a
+previously-saved snapshot locally via `file://` navigation, without
+disabling Chromium's file-origin CORS restrictions, gets a real axe-core
+execution but visibly *unstyled* content — a silent false negative for any
+rule that depends on actual rendered styling (`color-contrast` above all).
+
+Real reproduction sequence (investigating why target.com's Pass 1a crawl
+showed 0 violations): attempt 1 loaded a saved target.com snapshot via
+plain `file://` navigation with no special launch args. Chromium's
+file-origin restrictions blocked every cross-origin CSS request — ~226
+CORS/`net::ERR_FAILED` console errors — and axe-core reported 0 violations
+*and* 0 incomplete results against the effectively-unstyled page. Attempt
+2 relaunched Chromium with `--disable-web-security
+--allow-file-access-from-files` and reloaded the identical snapshot file —
+real CSS loaded this time, confirmed via `getComputedStyle(document.body)`
+matching target.com's actual brand styling (`font-family:
+"Helvetica for Target", ...`, `color: rgb(51, 51, 51)`, not browser
+defaults). With real styling applied, axe-core reported 1 real `incomplete`
+`color-contrast` result (`impact: "serious"`, 2 nodes) — completely
+invisible in attempt 1. This is the finding that fed the `color-contrast`
+`REVIEW_ON_FAIL_RULE_IDS` addition documented in Section 2 (Phase 2.6 Part
+1/2) — see that section for the fix itself, not repeated here.
+
+**Correct procedure going forward:** always relaunch Chromium with
+`--disable-web-security --allow-file-access-from-files` when replaying a
+saved snapshot via `file://`, and verify styling actually applied with a
+computed-style spot-check before trusting a "0 violations" result from a
+local reproduction — a clean-looking zero can mean "genuinely no
+violations" or "the page never got its CSS," and only the second one is
+silent.
+
+**13d. Standing limitation — `networkidle` page loading fails on
+continuously-polling pages, and a longer timeout doesn't reliably fix it.**
+Section 4b documents choosing `networkidle` over `load`/`domcontentloaded`
+to make sure JS-rendered content is present before detection runs. The
+real corpus run surfaced its cost: pages with continuous background network
+activity — live score/content updates, ad refresh, analytics beacons — may
+never go idle at all, regardless of timeout length, and time out on the
+very first (root) page before the crawler ever discovers any further links
+to queue.
+
+Real before/after numbers from a targeted retry (10000ms -> 25000ms,
+3 sites only — target.com, bbc.com, espn.com):
+- target.com: 1/15 -> 8/15 pages loaded, 79 real violations recovered —
+  the timeout value was genuinely the cause here, meaningfully improved.
+- espn.com: 1/15 -> 4/15 pages loaded, 442 real violations recovered — but
+  11 of 15 pages still exceeded even the 25s timeout. Partial, not
+  resolved.
+- bbc.com: 1/15 -> 0/15 — no recovery at all. The root page appears to
+  never reach `networkidle`, most likely continuous live-content/ad
+  polling that never lets the connection count drop to zero. A bigger
+  timeout number did not help.
+
+**This is broader than the 3 retried sites.** Of the 30 corpus sites, 14
+currently have zero loaded pages. 4 of those are the legitimate,
+correctly-handled bot-blocks from 13b. The other **10** — bbc.com,
+walmart.com, wayfair.com, imdb.com, nytimes.com, stackoverflow.com,
+medium.com, zillow.com, weather.com, forever21.com — show this identical
+root-page `networkidle` timeout signature. Only 3 of these 10+ sites have
+been retried at a longer timeout so far (this session, scoped
+deliberately); the other 7 remain unretried and undiagnosed. Fixing this
+properly likely needs a different wait strategy entirely (e.g. `load` plus
+an explicit content-ready check, or a capped hybrid fallback) rather than
+a bigger timeout number — `bbc.com`'s result at 2.5x the original timeout
+is direct evidence that timeout tuning alone has a ceiling. Not attempted;
+stated here as a real, currently-unresolved limitation.
+
+**13e. New `page_load_timeout_ms` opt-in parameter.** `crawler.crawl_site()`
+and `eval_runner.run_pass1()` both gained a `page_load_timeout_ms`
+parameter, defaulting to the existing `crawler.PAGE_LOAD_TIMEOUT_MS`
+(10000ms) — behavior is unchanged for every existing caller and every
+future run that doesn't explicitly pass a different value. Purpose:
+targeted recovery retries against specific already-crawled sites (as used
+for the 3-site retry in 13d) without touching the timeout used for the
+other 27+ sites or any future full-corpus run. Raising the *default*
+timeout for all sites is a separate decision this addition deliberately
+does not make.
+
+**13f. Corpus coverage honesty note.** All 30 corpus sites show
+`crawl_detect_status: "done"` — but "done" means "a crawl attempt
+completed and was recorded," not "usable page data was obtained." Real
+current numbers: 240 page-attempts recorded across the corpus, 178 loaded
+(74% of attempts) — but that 178 is concentrated in only **16 of the 30
+sites**; the other 14 sites currently contribute zero page-level violation
+data (4 legitimate bot-blocks per 13b, 10 unresolved `networkidle` timeouts
+per 13d). 3,122 total violations are recorded corpus-wide, and every one
+of them is still `reviewer_status: "pending"` — Pass 1b has not run. "30
+sites" should not be read as "30 sites' worth of uniform data" —
+EVALUATION.md's methodology section should cite this note rather than
+re-derive or re-explain it.
