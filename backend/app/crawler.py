@@ -107,6 +107,7 @@ async def crawl_site(
     max_pages: int = DEFAULT_MAX_PAGES,
     max_depth: int = DEFAULT_MAX_DEPTH,
     snapshot_dir: Path = SNAPSHOT_DIR,
+    page_load_timeout_ms: int = PAGE_LOAD_TIMEOUT_MS,
 ) -> list[CrawledPage]:
     """Crawl up to `max_pages` same-domain pages, prioritizing critical-path URLs.
 
@@ -141,7 +142,7 @@ async def crawl_site(
                 # fully-rendered DOM. Slower than "load"/"domcontentloaded" —
                 # Step 4 adds a faster fallback strategy for pages that never
                 # go idle.
-                response = await page.goto(url, wait_until="networkidle", timeout=PAGE_LOAD_TIMEOUT_MS)
+                response = await page.goto(url, wait_until="networkidle", timeout=page_load_timeout_ms)
 
                 if response is not None and response.status in BLOCKED_STATUS_CODES:
                     results.append(CrawledPage(
