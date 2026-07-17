@@ -122,7 +122,9 @@ _reset_at_monotonic: dict[str, float] = {}
 
 
 class LlmCallError(Exception):
-    pass
+    def __init__(self, message: str, error_type: str | None = None) -> None:
+        super().__init__(message)
+        self.error_type = error_type
 
 
 def _get_http_client() -> httpx.AsyncClient:
@@ -407,13 +409,14 @@ async def _call_real(
         result = schema.model_validate(parsed)
     except Exception as e:
         latency_ms = int((time.monotonic() - start) * 1000)
+        error_type = _classify_error(e)
         await _write_log(
             agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
             model_used=resolved_model, cache_hit=False, is_mock=False, confidence_score=None,
-            error_type=_classify_error(e),
+            error_type=error_type,
             error=f"{type(e).__name__}: {e}\n--- raw response ---\n{raw_content}"[:ERROR_FIELD_MAX_CHARS],
         )
-        raise LlmCallError(f"{agent_name.value} call failed: {e}") from e
+        raise LlmCallError(f"{agent_name.value} call failed: {e}", error_type=error_type) from e
 
     await _write_log(
         agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,

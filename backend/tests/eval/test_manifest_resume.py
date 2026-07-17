@@ -10,6 +10,7 @@ import json
 
 import crawler
 import eval_runner
+import llm_client
 import pytest
 from agents.reviewer.schema import ReviewerOutput
 from db import async_session_factory
@@ -195,6 +196,56 @@ async def test_run_pass1_resumes_only_pending_violations(tmp_path, monkeypatch):
         manifest = json.load(f)
     violations = manifest["sites"]["1"]["pages"][0]["violations"]
     assert all(v["reviewer_status"] == "done" for v in violations)
+
+
+async def test_run_pass1_records_error_type_from_wrapped_llm_call_error(tmp_path, monkeypatch):
+    """Regression guard for the manifest error_type mislabeling bug: a
+    reviewer_node failure wrapped in llm_client.LlmCallError(error_type=...)
+    (as _call_real() now raises it) must land in the manifest as that same
+    error_type, not fall through to "unknown" by classifying the wrapper
+    instead of the original exception."""
+    monkeypatch.setenv("LLM_MOCK", "false")
+    corpus_path = _write_corpus_csv(tmp_path / "corpus.csv", FAKE_CORPUS[:1])
+    manifest_path = tmp_path / "manifest.json"
+
+    seeded = eval_runner.load_or_init_manifest(manifest_path, FAKE_CORPUS[:1])
+    seeded["sites"]["1"]["crawl_detect_status"] = "done"
+    seeded["sites"]["1"]["pages"] = [{
+        "url": "http://site-a.test/", "load_status": "loaded", "load_failure_reason": None,
+        "snapshot_path": None,
+        "violations": [
+            {"wcag_rule": "color-contrast", "element_selector": "p.b", "html_snippet": "<p class='b'>",
+             "message": "low contrast", "reviewer_status": "pending", "confidence_score": None,
+             "confirmed": None, "failure_reason": None, "error_type": None},
+        ],
+    }]
+    eval_runner.save_manifest(manifest_path, seeded)
+
+    def _fail_if_called(*args, **kwargs):
+        raise AssertionError("crawl_site should not be called for an already-done site")
+    monkeypatch.setattr(crawler, "crawl_site", _fail_if_called)
+
+    async def _fake_under_budget(db, model=None, now=None):
+        return 0
+    monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_under_budget)
+
+    async def _fake_reviewer_node(state):
+        raise llm_client.LlmCallError("simulated 429", error_type="rate_limited")
+    monkeypatch.setattr(eval_runner, "reviewer_node", _fake_reviewer_node)
+
+    async with async_session_factory() as db:
+        result = await eval_runner.run_pass1(
+            db, corpus_path=corpus_path, manifest_path=manifest_path,
+            snapshot_dir=tmp_path / "snapshots",
+        )
+
+    assert result["violations_reviewed"] == 1
+
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = json.load(f)
+    saved_violation = manifest["sites"]["1"]["pages"][0]["violations"][0]
+    assert saved_violation["reviewer_status"] == "failed"
+    assert saved_violation["error_type"] == "rate_limited"
 
 
 async def test_run_pass1_crawls_all_sites_before_reviewing_any(tmp_path, monkeypatch):

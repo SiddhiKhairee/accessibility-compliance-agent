@@ -349,7 +349,7 @@ async def run_pass1(
                 except Exception as e:
                     v_entry["reviewer_status"] = "failed"
                     v_entry["failure_reason"] = str(e)
-                    v_entry["error_type"] = llm_client._classify_error(e)
+                    v_entry["error_type"] = getattr(e, "error_type", None) or llm_client._classify_error(e)
 
                 violations_reviewed += 1
                 save_manifest(manifest_path, manifest)
