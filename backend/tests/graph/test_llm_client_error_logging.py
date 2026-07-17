@@ -69,8 +69,13 @@ async def test_error_logging_rate_limited(test_engine, monkeypatch):
 
     monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
 
-    with pytest.raises(llm_client.LlmCallError):
+    with pytest.raises(llm_client.LlmCallError) as exc_info:
         await llm_client._call_real(AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput)
+
+    # error_type must survive onto the raised exception itself, not just the
+    # DB log row -- eval_runner.py's except block reads it off the exception
+    # to classify manifest failures without re-deriving from the wrapper.
+    assert exc_info.value.error_type == "rate_limited"
 
     row = await _latest_log_row(test_engine)
     assert row.is_mock is False

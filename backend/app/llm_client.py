@@ -97,6 +97,16 @@ REQUEST_TIMEOUT_S = 30
 # enough to actually cover a longer Developer response, causing residual
 # 429s. 1500 clears the observed max with real margin for variance.
 TOKEN_SAFETY_MARGIN = 1500
+# Closes a gap TOKEN_SAFETY_MARGIN alone doesn't: right after a per-minute
+# window resets, several same-page calls can each individually clear the
+# token-safety-margin check before any of their own cost is reflected in
+# the next one, until the window's real budget is actually exhausted mid-
+# burst (see eval/PHASE5_PASS1B_SESSION1_REPORT.md — 674/1365 real calls
+# failed this way, concentrated on color-contrast's dense per-page bursts).
+# A minimum floor between calls caps how many can stack up in that gap.
+# Starting value, not live-tuned yet (TOKEN_SAFETY_MARGIN itself was
+# initially 1000 and only raised to 1500 after real observed failures).
+MIN_CALL_INTERVAL_S = 0.5
 # Generous relative to the ~400-600 total tokens seen in real benchmark
 # calls (see plan Context) — qwen3's hidden reasoning tokens still consume
 # this budget even though reasoning_format="hidden" keeps them out of the
@@ -119,10 +129,19 @@ _http_client: httpx.AsyncClient | None = None
 _rate_limit_lock = asyncio.Lock()
 _remaining_tokens: dict[str, int] = {}
 _reset_at_monotonic: dict[str, float] = {}
+_last_call_at_monotonic: dict[str, float] = {}
+
+# Module-local aliases so tests can fake time/sleep without monkeypatching
+# the real global time/asyncio modules (see backend/tests/graph/
+# test_llm_client_pacing.py).
+_monotonic = time.monotonic
+_sleep = asyncio.sleep
 
 
 class LlmCallError(Exception):
-    pass
+    def __init__(self, message: str, error_type: str | None = None) -> None:
+        super().__init__(message)
+        self.error_type = error_type
 
 
 def _get_http_client() -> httpx.AsyncClient:
@@ -159,7 +178,7 @@ def _update_rate_limit_state(model: str, response: httpx.Response) -> None:
         except ValueError:
             pass
     if reset is not None:
-        _reset_at_monotonic[model] = time.monotonic() + _parse_reset_duration(reset)
+        _reset_at_monotonic[model] = _monotonic() + _parse_reset_duration(reset)
 
 
 async def _wait_for_rate_limit_if_needed(model: str) -> None:
@@ -173,13 +192,27 @@ async def _wait_for_rate_limit_if_needed(model: str) -> None:
         return
     if remaining >= TOKEN_SAFETY_MARGIN:
         return
-    wait_s = reset_at - time.monotonic()
+    wait_s = reset_at - _monotonic()
     if wait_s > 0:
         logger.info(
             "pacing: model=%s only %d tokens remaining (< %d safety margin), sleeping %.2fs for Groq's rate-limit window to reset",
             model, remaining, TOKEN_SAFETY_MARGIN, wait_s,
         )
-        await asyncio.sleep(wait_s)
+        await _sleep(wait_s)
+
+
+async def _wait_for_min_interval_if_needed(model: str) -> None:
+    """Floor delay between any two consecutive real calls to the same
+    model, regardless of reported remaining budget — layers on top of
+    _wait_for_rate_limit_if_needed to prevent same-page bursts from
+    stacking up faster than Groq's per-model counter can be trusted (see
+    MIN_CALL_INTERVAL_S)."""
+    last_call_at = _last_call_at_monotonic.get(model)
+    if last_call_at is None:
+        return
+    remaining = MIN_CALL_INTERVAL_S - (_monotonic() - last_call_at)
+    if remaining > 0:
+        await _sleep(remaining)
 
 
 async def _make_paced_request(model: str, payload: dict, headers: dict) -> tuple[httpx.Response, int]:
@@ -193,11 +226,13 @@ async def _make_paced_request(model: str, payload: dict, headers: dict) -> tuple
     local concurrency could otherwise attempt."""
     async with _rate_limit_lock:
         await _wait_for_rate_limit_if_needed(model)
+        await _wait_for_min_interval_if_needed(model)
         start = time.monotonic()
         client = _get_http_client()
         response = await client.post(GROQ_URL, json=payload, headers=headers, timeout=REQUEST_TIMEOUT_S)
         latency_ms = int((time.monotonic() - start) * 1000)
         _update_rate_limit_state(model, response)
+        _last_call_at_monotonic[model] = _monotonic()
         return response, latency_ms
 
 
@@ -407,13 +442,14 @@ async def _call_real(
         result = schema.model_validate(parsed)
     except Exception as e:
         latency_ms = int((time.monotonic() - start) * 1000)
+        error_type = _classify_error(e)
         await _write_log(
             agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
             model_used=resolved_model, cache_hit=False, is_mock=False, confidence_score=None,
-            error_type=_classify_error(e),
+            error_type=error_type,
             error=f"{type(e).__name__}: {e}\n--- raw response ---\n{raw_content}"[:ERROR_FIELD_MAX_CHARS],
         )
-        raise LlmCallError(f"{agent_name.value} call failed: {e}") from e
+        raise LlmCallError(f"{agent_name.value} call failed: {e}", error_type=error_type) from e
 
     await _write_log(
         agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
