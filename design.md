@@ -793,6 +793,23 @@ the 1,000 margin. Closes the loop this section opened: the residual
 failures at 1,000 genuinely were a margin-sizing problem, not some other
 unresolved issue.
 
+**Phase 5 update: a fixed floor delay was added on top, not a
+contradiction of "Adaptive, not fixed-delay" above but a gap it left
+uncovered at larger scale.** The 43-violation validation above was never
+stress-tested against hours of sustained, dense, same-rule load — Phase 5
+Pass 1b Session 1 was (see Section 14), and hit a different failure mode
+than margin-sizing: right after each per-minute window resets, several
+same-page calls can each individually clear the flat `TOKEN_SAFETY_MARGIN`
+check before any of their own token cost is reflected in the next one,
+until that window's real budget is exhausted mid-burst — repeatable once
+per window for as long as a dense stretch of the corpus lasts. Added
+`MIN_CALL_INTERVAL_S = 0.5` (a per-model floor between real call
+dispatches, regardless of reported remaining budget) — full reasoning,
+the decision process, and real numbers in Section 14. Layers on top of
+the mechanism above (still runs first, unchanged); the floor delay only
+adds a per-model minimum gap between dispatches. `llm_client.py` only —
+no signature or call-site changes anywhere else.
+
 ## 9. Phase 5 guardrails (decided in Phase 2 planning, enforced when Phase 5 starts)
 
 1. **Hard-refuse, not a warning:** the Phase 5 evaluation runner must
@@ -1304,3 +1321,182 @@ of them is still `reviewer_status: "pending"` — Pass 1b has not run. "30
 sites" should not be read as "30 sites' worth of uniform data" —
 EVALUATION.md's methodology section should cite this note rather than
 re-derive or re-explain it.
+
+**(Superseded — Pass 1b has since run.** See Section 14 for real numbers;
+this note is left as-written rather than silently edited, matching this
+document's own practice of not rewriting history in place.)
+
+## 14. Phase 5 — Pass 1b Session 1: real Reviewer-scoring run, two bugs found and fixed, and where the eval pipeline stands now
+
+Documents the first real Pass 1b run (Reviewer-only confidence scoring via
+real Groq calls, budget-gated) against the 30-site corpus, everything it
+surfaced, and the two bugs it led to fixing. Full session narrative in
+`eval/PHASE5_PASS1B_SESSION1_REPORT.md`; this section is the durable
+design-level record — real evidence, gaps stated explicitly, same
+discipline as Sections 12/13.
+
+**14a. Real run results.** Out of 3,122 total violations across the
+30-site corpus (Section 13f): **1,075 reviewed** (`reviewer_status:
+"done"` — 761 `confirmed: true`, 314 `confirmed: false`; `confidence_score`
+distribution min 0.30, p25 0.60, median 0.75, p75 0.95, max 1.00, mean
+0.758), **674 failed** (all rate-limited, see 14c), **1,373 still
+pending**. Real, non-cached Groq call accounting for the session: 685
+succeeded, 680 failed with `429 Too Many Requests`, 390 were cache hits
+(not counted against budget) — 1,365 real call attempts total, roughly a
+**50% real-call failure rate** session-wide. The run stopped cleanly at a
+budget-gated **900/1000** real calls for the day (Section 9's guardrail
+working as designed, not a failure).
+
+**14b. OneDrive file-lock crash — retry-with-backoff fix.** This
+project's working directory lives inside OneDrive-synced `Desktop`
+(`C:\Users\siddh\OneDrive\Desktop\accessibility-compliance-agent`). Twice
+during this session, a real Reviewer run crashed with `PermissionError:
+[WinError 5] Access is denied` inside `save_manifest()`'s `os.replace()` —
+OneDrive's sync client (or its filter driver / Windows Search indexing /
+AV real-time scanning; not narrowed down further) transiently locked
+`progress_pass1.json.tmp` right as the atomic rename tried to run. Pausing
+OneDrive sync did **not** eliminate it — the identical crash recurred
+after pausing, proving the lock source isn't OneDrive's sync process
+alone. Both times, manual recovery confirmed zero data loss (the `.tmp`
+file was a clean one-record superset of the committed manifest).
+
+Fix: `save_manifest()` (`backend/app/eval_runner.py`) now retries
+`os.replace()` up to 5 times, 0.5s apart, re-raising only if every attempt
+fails. Verified working, not just theoretically fixed: the next real run
+hit the identical transient lock once, logged it as a `WARNING` (`attempt
+1/5`), and recovered automatically with zero crash. Merged via PR #28.
+Longer-term option (not done): move the repo, or at least `eval/`, outside
+any OneDrive-synced path — discussed with the user but not actioned yet,
+since the retry already absorbs the problem in practice.
+
+**14c. Bug — manifest `error_type` mislabeled `"unknown"` for wrapped
+Reviewer failures.** All 674 real failures above were 429s — confirmed via
+each entry's `failure_reason` string — but the manifest recorded every one
+of them as `error_type: "unknown"`, not `"rate_limited"`. Root cause:
+`llm_client._call_real()` correctly classifies the *original* exception
+(`_classify_error(e)`) before wrapping it as `raise LlmCallError(...) from
+e` — that classification is what lands correctly in the DB's
+`llm_call_logs.error_type` column, confirmed accurate throughout. But
+`eval_runner.py`'s except block called `_classify_error()` a second time,
+on the already-wrapped `LlmCallError` — whose `isinstance` checks
+(`httpx.TimeoutException`, `httpx.HTTPStatusError`, `json.JSONDecodeError`,
+`ValidationError`) never match a `LlmCallError`, so it always fell through
+to `"unknown"`. Ground-truth DB data was never affected — only the
+manifest's per-violation copy, which is what `eval_report.py`'s planned
+per-rule failure-rate calculation reads. Left uncorrected, that report
+would have shown a misleading ~95%-color-contrast "unknown failure"
+cluster instead of correctly attributing it to rate-limiting.
+
+Fix: `LlmCallError` gained an explicit `error_type: str | None = None`
+field, populated by `_call_real()` with the same value it already computes
+for the DB log (computed once, reused, not re-derived) —
+`raise LlmCallError(msg, error_type=error_type) from e`. `eval_runner.py`
+now reads `getattr(e, "error_type", None) or llm_client._classify_error(e)`
+— uses the carried-through classification when present, falls back to the
+original (unchanged) behavior otherwise, so the one other `LlmCallError`
+raise site (`_call_mock`'s config-error case, which never had a
+meaningful `error_type` anyway) is unaffected. No backfill needed for the
+674 already-mislabeled entries: they're `reviewer_status: "failed"`, not
+`"done"`, so `run_pass1()`'s skip condition (only skips `"done"` entries)
+means they're naturally re-attempted — and now correctly classified — on
+the next Pass 1b resume. Merged via PR #30 (commit `33ba048`).
+
+**14d. Gap — reactive rate-limit pacing wasn't enough at Pass 1b's scale;
+added a fixed floor delay.** Full root-cause analysis and the two-option
+comparison live in this section rather than repeating Section 8b's
+existing content; see 8b's own new addendum for the one-paragraph pointer
+back here. Session failure concentration: 642 of 674 failures were
+`color-contrast` (27 `image-alt`, 5 `link-name`), and almost all landed on
+one UTC day (2026-07-17: 226 succeeded / 674 failed, a 75% failure rate,
+vs. 2026-07-16: 459 succeeded / 6 failed, 1.3%).
+
+Root cause, more precisely than "the header is stale": `_call_real()`'s
+calls are fully serialized process-wide (one `asyncio.Lock` wraps
+pace-check + HTTP call + state update), so within one process there's no
+true race — the reactive check is exactly as accurate as Groq's last
+response header. The actual gap is that the check
+(`remaining >= TOKEN_SAFETY_MARGIN`) is flat and time-independent: right
+after a per-minute window resets, `remaining` reads near the full 6,000-
+token budget, and several same-page calls (color-contrast is both the
+most frequent rule per page and has larger `html_snippet` payloads) can
+each individually clear that flat floor before any of their own token
+cost is reflected in the next check — until the window's real budget is
+actually exhausted mid-burst, producing a 429, whose response is the
+first thing to reveal the true low remaining. This can repeat once per
+window for as long as a dense stretch of the corpus lasts, which is why a
+mechanism already validated at 0% failure on a 43-violation scan (Section
+8b) still produced 674 failures over Pass 1b's multi-hour run: that
+validation never ran long/dense enough to hit this per-window tail-burst
+pattern.
+
+Two options were compared before implementing either (full comparison
+document preserved as the planning record for this decision):
+- **Fixed minimum delay between consecutive real calls** — contained
+  entirely to `llm_client.py`, layers on top of the existing reactive
+  sleep (doesn't replace it), no signature or call-site changes anywhere.
+  Directly caps how many calls can stack up in the post-reset gap.
+  Doesn't address a single call whose own token cost alone exceeds the
+  margin (already covered separately by `TOKEN_SAFETY_MARGIN`).
+- **Proactive batch-pacing for same-page/same-model calls** — potentially
+  more precise (especially if paired with per-call size estimation), but
+  requires threading a new parameter through `call_llm()` → `_call_real()`
+  → `_make_paced_request()` and into all 3 real-LLM node functions
+  (`graph.py`), and — the real blocker — the production scan path
+  (`main.py`'s `run_scan`) already flattens every page's violations into
+  one list before its LLM-driving loop, so page-scoped batching would
+  need that loop restructured, not just an additive helper. Meaningfully
+  higher regression risk for a path both eval and production share.
+
+Decided: **fixed minimum delay**, for containment and low regression risk.
+Also confirmed this is sufficient for the *next* Groq-cost-affecting
+change already on the roadmap — Pass 2 (14e) — since `eval_sampling.py`'s
+stratified sampler spreads a Pass 2 sample across many different
+`wcag_rule`/confidence-bucket strata by design (round-robin across strata,
+not concentrated on one rule), and PLAN.md's own example run size
+(`--sample-size 40`, ~15-20 distinct pages) is roughly two orders of
+magnitude smaller than Pass 1b's 3,122-violation corpus. Pass 2's real
+risk factor is that Developer's calls run bigger (observed up to 1,362
+tokens vs. Reviewer's 400-980) — but that's exactly the scenario
+`TOKEN_SAFETY_MARGIN=1500` was already tuned and live-validated against
+(0/129 failures, Section 8b), and Pass 2's smaller/spread-out shape looks
+far more like that validated case than like Pass 1b's color-contrast
+crunch.
+
+Implementation: `MIN_CALL_INTERVAL_S = 0.5` (a starting value, not
+live-tuned yet — the same position `TOKEN_SAFETY_MARGIN` started from
+before being raised 1000→1500 on real observed data), a per-model
+`_last_call_at_monotonic` dict alongside the existing
+`_remaining_tokens`/`_reset_at_monotonic`, and a new
+`_wait_for_min_interval_if_needed()` called right after the existing
+`_wait_for_rate_limit_if_needed()` inside `_make_paced_request()`. Also
+introduced `_monotonic`/`_sleep` module-local aliases (`= time.monotonic`/
+`= asyncio.sleep`) purely for testability — no prior test exercised
+`_make_paced_request()`'s internals at all (every existing test
+monkeypatches it away wholesale), so a fake-clock test seam didn't exist
+before this. 4 new tests in `backend/tests/graph/test_llm_client_pacing.py`
+cover: first call for a fresh model never floor-delays, a back-to-back
+second call is floor-delayed by exactly `MIN_CALL_INTERVAL_S`, enough real
+elapsed time skips the extra delay, and per-model scoping holds (mirrors
+the existing per-model keying of the reactive state). Full suite: 116
+passed (112 baseline + 4 new), 0 real Groq calls involved anywhere in
+verification. Merged via PR #30 (commits `7d54c35`, `35c4d88` — the
+second a one-line ruff fix for an unused import CI caught on the first).
+
+**14e. Not yet built — Pass 2.** `eval_sampling.py` (stratified sampler,
+`wcag_rule` × confidence-bucket strata → `sample_pass2.csv` +
+`sample_manual_labeling.csv`) has existed since Phase 5 Step 0 scaffolding
+and is unchanged this session. What doesn't exist yet is a `run_pass2()`
+equivalent to `eval_runner.run_pass1()` — something that actually drives
+the sampled violations through Impact→Developer→Verifier (Reviewer is
+already scored from Pass 1b, so Pass 2 shouldn't re-run it) and
+checkpoints into `eval/progress_pass2.json` (currently an empty schema
+shell). This is real, unstarted work, not an oversight in this
+documentation pass — noted here so the next session doesn't have to
+rediscover it.
+
+**14f. Current corpus review state, as of this session's close.** 1,075
+done, 674 to be naturally retried (now correctly classified going
+forward, no backfill needed per 14c), 1,373 still pending. Next Pass 1b
+resume session's budget resets at the next UTC midnight after Session 1's
+stop; the two bugs above are fixed and merged to `main` before any further
+real API spend, per explicit instruction this session.

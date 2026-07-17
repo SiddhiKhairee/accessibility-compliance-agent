@@ -18,7 +18,20 @@ and requires human approval before opening a real GitHub PR.
   risk alongside Docker/Postgres/Playwright. Genuinely free (no card,
   verified against Groq's own docs), but is a third-party API — page
   HTML/violation content leaves the machine. Full reasoning logged in
-  `C:\Users\siddh\.claude\plans\delegated-sniffing-lollipop.md`.
+  `C:\Users\siddh\.claude\plans\delegated-sniffing-lollipop.md`. Real-call
+  rate-limit pacing lives in `llm_client.py` — an adaptive/reactive sleep
+  plus a fixed per-model minimum delay layered on top (design.md Sections
+  8b and 14d; the fixed delay was added after Phase 5 Pass 1b Session 1
+  showed the reactive-only version wasn't enough at sustained scale).
+- Evaluation pipeline (Phase 5): `eval_runner.py` runs Pass 1a (crawl +
+  detect, free) then Pass 1b (Reviewer-only confidence scoring, real Groq
+  calls, budget-gated) against `eval/eval_corpus_30_sites.csv`.
+  `eval_sampling.py` draws a stratified sample of Pass 1b's results for
+  Pass 2 (Impact→Developer→Verifier fix-quality spot-check — sampler
+  exists, the run orchestrator doesn't yet). `eval_report.py` computes the
+  real metrics. See PLAN.md's Phase 5 section and design.md Sections
+  13/14 for current real status — don't assume any of these have finished
+  a full corpus run without checking.
 - Backend: FastAPI + BackgroundTasks (non-blocking scan endpoint)
 - DB: PostgreSQL — schema is fixed, see `docs/schema.md` (do not add
   orgs/users/multi-tenancy — no real concurrent users to justify it)
@@ -51,6 +64,11 @@ and requires human approval before opening a real GitHub PR.
   rather than crashing the whole scan. Authenticated pages are out of v1 scope.
 - Any real number that ends up in EVALUATION.md or a resume bullet must be
   traceable to actual logged data — never invent or round-up metrics.
+- Real (non-mock) Groq calls spend a shared, finite daily budget
+  (`EVAL_DAILY_CALL_CAP`, see design.md Section 9). Never trigger a real
+  eval run (Pass 1b, Pass 2) or a real production scan as a side effect of
+  unrelated work — confirm with the user first if spending real API budget
+  isn't the explicit task at hand.
 
 ## Known/intentional limitations (keep documented in design.md, don't silently fix)
 - FastAPI BackgroundTasks is in-process: doesn't survive server restart, no
@@ -61,6 +79,17 @@ and requires human approval before opening a real GitHub PR.
 - Every agent node's prompt + output schema lives in `agents/<name>/`.
 - DB schema changes go through a migration, never hand-edited in prod.
 - Commit messages: `phase-N: <what>` while working through PLAN.md phases.
+- Never add a `Co-Authored-By: Claude` trailer to commits in this repo. This
+  is a portfolio/job-search project — the trailer previously caused "Claude"
+  to show up in the GitHub Contributors graph, which read as a risk for a
+  recruiter reviewing the repo, and had to be amended + force-pushed out.
+- Every commit goes through a feature branch + PR, never a direct commit
+  onto local/remote `main`: branch → commit → push → `gh pr create` → wait
+  for CI (`test`/`frontend`) green → let the user merge. `main` has real
+  branch protection (required status checks, force-push/deletion blocked),
+  and this repo has been caught out twice by a fix landing directly on local
+  `main` by oversight. Branch creation is an assumed first step for any
+  commit here, not something to ask permission for separately.
 
 ## Workflow
 - Follow PLAN.md phase order strictly — Phase 1's detection engine must be

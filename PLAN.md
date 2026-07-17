@@ -231,9 +231,28 @@ for real once frontend work in Phase 4 actually starts.
             challenge-page/no-link-extraction.)*
 
 ## Phase 5 — Evaluation & Metrics
-- [x] **Step 0 — Eval scaffolding + guardrails** (this is infrastructure,
-      not a real run — no site in `eval/eval_corpus_30_sites.csv` has
-      actually been scanned yet):
+
+Three sequential stages against the 30-site corpus
+(`eval/eval_corpus_30_sites.csv`), not one monolithic run:
+- **Pass 1a** — crawl + detect, free (zero Groq calls), runs to completion
+  across the whole corpus regardless of budget. `eval_runner.run_pass1()`
+  with `review_enabled=False`. **Done** (see design.md Section 13 for real
+  numbers/known coverage limitations — 16/30 sites have usable page data,
+  14 don't, per bot-blocks or an unresolved `networkidle` timeout gap).
+- **Pass 1b** — Reviewer-only confidence scoring, real Groq calls,
+  budget-gated, can stop mid-corpus. `eval_runner.run_pass1()` with
+  `review_enabled=True` (the default). **In progress** — Session 1 real
+  numbers and two bugs found/fixed are in design.md Section 14.
+- **Pass 2** — a stratified sample of Pass 1b's reviewed violations
+  (`eval_sampling.py`, `wcag_rule` × confidence-bucket strata) run through
+  Impact→Developer→Verifier (Reviewer is already scored, not re-run) for
+  fix-quality spot-checking. **Not started** — the sampler exists and
+  produces `sample_pass2.csv`, but no `run_pass2()` orchestrator exists yet
+  to actually drive the graph against that sample (design.md Section 14e).
+
+- [x] **Step 0 — Eval scaffolding + guardrails** (infrastructure only at
+      the time this step closed — no site had been scanned yet; Pass
+      1a/1b have both since run for real, see below):
       - [x] `backend/app/eval_runner.py` — resumable Pass 1 orchestrator
             (crawl+detect, free, then Reviewer-only confidence scoring,
             budget-gated). Checkpoints every site/violation to
@@ -266,20 +285,60 @@ for real once frontend work in Phase 4 actually starts.
             counting, manifest init/resume/skip/budget-stop, stratified
             sampling), no real Groq calls or live crawling — `crawler.
             crawl_site`/`reviewer_node` monkeypatched. Full suite:
-            105/105 passing.
-- [ ] Run pipeline across 30-50 real public sites
+            105/105 passing at the time this step closed (116/116 now,
+            after Pass 1b Session 1's fixes below added 11 more).
+- [ ] **Run pipeline across 30-50 real public sites** — split into the
+      three passes above:
+      - [x] Pass 1a — all 30 corpus sites `crawl_detect_status: "done"`;
+            3,122 total violations recorded (design.md Section 13f).
+      - [ ] Pass 1b — Session 1 (2026-07-16→17): 1,075/3,122 reviewed (761
+            confirmed, 314 not), 674 failed (all rate-limited — see the bug
+            below), 1,373 still pending. Stopped cleanly at the daily
+            budget guard (900/1000 real calls). Two real bugs found and
+            fixed this session, both merged to `main` before any further
+            real API spend (design.md Section 14 has full detail; both
+            were caught and fixed without any real Groq calls used for
+            verification):
+            1. **OneDrive file-lock crash** in `save_manifest()`'s
+               `os.replace()` (this repo's working directory is inside a
+               OneDrive-synced folder) — fixed with retry-with-backoff (PR
+               #28).
+            2. **Manifest `error_type` mislabeled `"unknown"`** for every
+               rate-limited failure — `eval_runner.py` was classifying the
+               wrapped `LlmCallError`, not the original exception (DB data
+               was never affected, only the manifest's copy). Fixed by
+               carrying the already-computed classification through onto
+               the exception itself (PR #30).
+            3. Also found in the same session: the existing reactive
+               rate-limit pacing wasn't enough at Pass 1b's scale/density
+               (642/674 failures concentrated on `color-contrast`'s dense
+               per-page bursts). Added a fixed minimum delay between
+               consecutive real calls, layered on top of the existing
+               adaptive sleep (PR #30) — chosen over a more complex
+               proactive batch-pacing alternative after comparing both;
+               full tradeoff writeup in design.md Section 14d.
+            Next resume session needed to clear the remaining 1,373
+            pending (674 of which are re-attempts, now correctly
+            classified if they fail again).
+      - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
+            orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
 - [ ] Spot-check sample of "verified" fixes → false verification rate
 - [ ] Confidence calibration: high vs low Reviewer confidence_score vs actual outcome
-- [ ] **Guardrail (decided Phase 2, see design.md Section 9):** eval runner
+- [x] **Guardrail (decided Phase 2, see design.md Section 9):** eval runner
       must hard-refuse to start if `LLM_MOCK=true`. Keep the persistent
       cache enabled (don't disable it for eval) but filter calibration
       calculations to `cache_hit=false` rows only, to avoid pseudo-
-      replication biasing the numbers.
-- [ ] **Guardrail (decided Phase 2):** track/report `llm_call_logs.error`/
+      replication biasing the numbers. (Enforced since Step 0; calibration
+      calculations themselves not yet computed — no EVALUATION.md numbers
+      exist yet, see below.)
+- [x] **Guardrail (decided Phase 2):** track/report `llm_call_logs.error`/
       `error_type` failure rate per rule type — a rule with a
       disproportionately high reasoning-failure rate would otherwise be
-      silently under-represented in the eval sample.
+      silently under-represented in the eval sample. (The manifest-side
+      version of this had a real bug, fixed this session — see the Pass 1b
+      entry above and design.md Section 14c. `llm_call_logs.error_type`
+      itself, the DB ground truth, was correct throughout.)
 - [ ] Track cumulative `llm_call_logs` usage against Groq's real measured
       daily cap (see design.md Section 7 — 6,000 tokens/minute measured
       live, tighter than the RPM figure originally planned around)
@@ -1126,3 +1185,123 @@ for real once frontend work in Phase 4 actually starts.
         ceiling — bbc.com didn't recover even at 2.5x timeout), or accept
         and document this as a real EVALUATION.md limitation. Not decided
         or actioned this session. -->
+<!-- 2026-07-16 to 2026-07-17: Phase 5 Pass 1b Session 1 — first real
+     Reviewer-scoring run against the 30-site corpus, real Groq spend.
+     Pre-run: full suite 111 passed, real Groq daily cap confirmed live
+     (1000 req/day, 6000 tokens/min, matching EVAL_DAILY_CALL_CAP's
+     existing default — no override needed).
+
+     Crashed twice with PermissionError: [WinError 5] Access is denied
+     inside save_manifest()'s os.replace() — this repo's working directory
+     is inside OneDrive-synced Desktop, and OneDrive's sync client (or its
+     filter driver/Search indexing/AV; not narrowed further) transiently
+     locked progress_pass1.json.tmp mid-rename. Pausing OneDrive sync did
+     NOT eliminate it — identical crash recurred after pausing. Both times
+     recovered manually with zero data loss (the .tmp file was a clean
+     one-record superset of the committed manifest). Fixed with
+     retry-with-backoff around os.replace() (up to 5 attempts, 0.5s apart)
+     — verified working on the next run, not just theoretically: hit the
+     same lock once, logged as a WARNING, recovered automatically.
+
+     Session ended at a clean budget-gated stop, 900/1000 real calls for
+     the day. Real numbers: 1,075/3,122 violations reviewed (761
+     confirmed, 314 not), 674 failed, 1,373 pending. Real Groq call
+     accounting: 685 succeeded, 680 failed with 429, 390 cache hits, 1,365
+     real call attempts total — roughly a 50% real-call failure rate
+     session-wide, heavily concentrated on one day (2026-07-16: 459
+     succeeded/6 failed, 1.3%; 2026-07-17: 226 succeeded/674 failed, 75%)
+     and one rule (642/674 failures were color-contrast).
+
+     A second bug found but deliberately not fixed this session (per
+     instruction to stop making code changes for the day): all 674
+     failures were recorded in the manifest as error_type: "unknown"
+     instead of "rate_limited" — eval_runner.py was classifying the
+     wrapped LlmCallError, not the original exception. DB ground truth
+     (llm_call_logs.error_type) was correct throughout; only the
+     manifest's copy was wrong, which matters because eval_report.py's
+     planned per-rule failure-rate calculation reads the manifest, not the
+     DB. Full narrative in eval/PHASE5_PASS1B_SESSION1_REPORT.md (new this
+     session). Committed + pushed + merged via PR #28
+     (phase-5-pass1b-session1) — the retry-with-backoff fix, the real
+     progress_pass1.json manifest, and the session report. -->
+<!-- 2026-07-17: Phase 5 Pass 1b bug-fix session — both issues flagged at
+     the end of Session 1 fixed and merged before any further real Groq
+     spend, per explicit instruction ("fix bugs before we call anything on
+     the API today"). Used Plan Mode for both, per CLAUDE.md workflow.
+
+     Fix 1 — manifest error_type mislabeling: LlmCallError
+     (llm_client.py) gained an explicit error_type field, populated by
+     _call_real() with the same classification it already computes for
+     the DB log (computed once, reused). eval_runner.py's except block now
+     reads getattr(e, "error_type", None) or the original
+     _classify_error(e) fallback, so behavior for the one other
+     LlmCallError raise site (_call_mock's config-error case) and every
+     other exception type is unchanged. New test in
+     test_llm_client_error_logging.py asserts the classification survives
+     onto the raised exception; new regression test in
+     test_manifest_resume.py (monkeypatches reviewer_node to raise a
+     pre-classified LlmCallError, matching that file's existing "isolate
+     the one seam" pattern) proves the manifest now records
+     "rate_limited", not "unknown". No backfill for the 674 already-
+     mislabeled entries: they're reviewer_status "failed", not "done", so
+     they're naturally re-attempted (and now correctly classified) on the
+     next Pass 1b resume. Full suite: 112 passed (111 baseline + 1 net
+     new). Committed as 33ba048.
+
+     Fix 2 — rate-limit pacing gap: before implementing, wrote a decision
+     doc comparing two options (fixed minimum delay between consecutive
+     real calls, vs. proactive batch-pacing for same-page calls) with
+     tradeoffs, root-cause analysis, estimated impact, and test plans for
+     each — user reviewed and picked fixed minimum delay. Root cause,
+     refined during discussion: not a true race (calls are fully
+     serialized via the existing asyncio.Lock) but a flat,
+     time-independent TOKEN_SAFETY_MARGIN check that doesn't account for
+     same-page bursts right after a per-minute window resets — several
+     calls can each individually clear the margin before any of their own
+     cost is reflected in the next check, until the window's real budget
+     is exhausted mid-burst. Confirmed (before implementing) that this
+     choice also covers the upcoming Pass 2 workload — eval_sampling.py's
+     stratified sampler spreads a ~40-violation sample across many
+     rules/pages rather than concentrating on one, unlike Pass 1b's
+     color-contrast crunch.
+
+     Implementation: MIN_CALL_INTERVAL_S=0.5 constant, a per-model
+     _last_call_at_monotonic dict, and _wait_for_min_interval_if_needed()
+     called right after the existing reactive check inside
+     _make_paced_request() — layers on top, doesn't replace it.
+     llm_client.py only, no signature/call-site changes elsewhere.
+     Introduced _monotonic/_sleep module-local aliases purely for
+     testability (no prior test exercised _make_paced_request()'s
+     internals — every existing test monkeypatched it away wholesale). 4
+     new tests in new file test_llm_client_pacing.py, mocking the
+     HTTP/clock seam one level lower than any prior llm_client test. Full
+     suite: 116 passed (112 + 4 new). Committed as 7d54c35, plus 35c4d88
+     fixing a ruff-caught unused import CI found on the first push (real
+     CI failure, not hypothetical — caught, diagnosed, fixed same
+     session). Both fixes merged together via PR #30
+     (phase-5-pass1b-error-classification-fix). design.md Sections 8b and
+     14 carry the full technical record; this entry is the terser
+     historical one.
+
+     Zero real Groq calls made anywhere in either fix's verification —
+     both bugs were caught, fixed, and tested entirely against mocked
+     seams, honoring the session's "no API calls until bugs are fixed"
+     constraint throughout. -->
+<!-- 2026-07-17: CLAUDE.md updated with two workflow conventions that were
+     previously memory-only (auto-memory is keyed to the project's working
+     directory path, so they wouldn't survive a planned future move of
+     this folder out of OneDrive without manual reattachment; CLAUDE.md
+     travels with the repo automatically regardless of path): never add a
+     Co-Authored-By: Claude trailer to commits in this repo (portfolio/
+     job-search project — previously caused an unwanted Contributors-graph
+     entry, had to be amended + force-pushed out), and every commit goes
+     through a feature branch + PR + CI green + user-merge, never straight
+     onto local/remote main (this repo has been caught out by a direct-
+     to-main commit twice before). A third memory item (dev machine
+     hardware specs, relevant to local-Ollama model choice) was
+     deliberately left out of CLAUDE.md rather than folded in too — it's
+     personal machine info in an otherwise-public portfolio repo file, and
+     is already stale now that the project moved from local Ollama to
+     Groq's API. Exported as a portable snapshot to
+     CLAUDE_MEMORY_NOTES.md (untracked, repo root) instead, for manual
+     reattachment after the OneDrive move if still relevant then. -->
