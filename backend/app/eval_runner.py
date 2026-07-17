@@ -29,6 +29,7 @@ import csv
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -142,14 +143,41 @@ def _reset_sites_for_recrawl(manifest: dict) -> None:
         site_entry["pages"] = []
 
 
+# Live Pass 1b runs (2026-07-16, this repo's eval/ lives under a
+# OneDrive-synced path) hit sporadic `PermissionError: [WinError 5]` on
+# os.replace() — observed even with OneDrive sync paused, so some other
+# transient Windows-side lock (indexer, AV scan, or OneDrive's filter
+# driver persisting past "pause") is still in play, not something this
+# process can prevent. Retrying briefly absorbs it without changing the
+# atomic-write semantics: os.replace() is still all-or-nothing, this just
+# gives a transient holder a moment to release the handle.
+SAVE_MANIFEST_MAX_RETRIES = 5
+SAVE_MANIFEST_RETRY_BACKOFF_S = 0.5
+
+
 def save_manifest(path: Path, manifest: dict) -> None:
     """Atomic write (tmp file + os.replace) so a crash mid-write can't
-    corrupt the manifest a resume depends on."""
+    corrupt the manifest a resume depends on. Retries os.replace() a few
+    times on PermissionError before giving up, to absorb transient
+    Windows-side file locks (see SAVE_MANIFEST_MAX_RETRIES above)."""
     manifest["last_updated_at"] = datetime.now(timezone.utc).isoformat()
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
-    os.replace(tmp_path, path)
+
+    for attempt in range(1, SAVE_MANIFEST_MAX_RETRIES + 1):
+        try:
+            os.replace(tmp_path, path)
+            return
+        except PermissionError:
+            if attempt == SAVE_MANIFEST_MAX_RETRIES:
+                raise
+            logger.warning(
+                "save_manifest: os.replace() denied (attempt %d/%d), "
+                "retrying in %.1fs — transient file lock, not a data issue",
+                attempt, SAVE_MANIFEST_MAX_RETRIES, SAVE_MANIFEST_RETRY_BACKOFF_S,
+            )
+            time.sleep(SAVE_MANIFEST_RETRY_BACKOFF_S)
 
 
 def _violation_entry(v: crawler.Violation) -> dict:
