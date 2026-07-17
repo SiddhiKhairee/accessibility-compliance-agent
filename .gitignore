@@ -59,3 +59,4 @@ Thumbs.db
 
 # --- Claude Code local state (keep CLAUDE.md and PLAN.md, ignore local session cache if any) ---
 .claude/local/
+CLAUDE_MEMORY_NOTES.md
