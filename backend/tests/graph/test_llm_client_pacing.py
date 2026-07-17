@@ -12,7 +12,6 @@ clock so elapsed-time math is deterministic and instant (no real waiting).
 import uuid
 
 import httpx
-import pytest
 
 import llm_client
 from agents.reviewer.schema import ReviewerOutput
