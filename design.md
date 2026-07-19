@@ -1539,3 +1539,84 @@ numbers as if they came from one consistent model. No re-review of the
 1,075 already-done violations was undertaken (would cost real budget for
 a documentation-only concern, not a data-corruption one) — an explicit,
 discussed tradeoff, not an oversight.
+
+**14h. Pass 1b resume under qwen3.6-27b (2026-07-19): a real per-account
+daily *token* cap, much smaller than assumed, discovered mid-run — not
+yet guarded against in code.** After 14g's model swap merged, resumed
+Pass 1b for real. Manifest moved from 1,075/674/1,373 (done/failed/
+pending) to **1,195/798/1,129** — 244 real violations attempted, 120
+succeeded, 124 failed — before the run was stopped for diagnosis, not
+because it finished or hit the existing budget guard.
+
+Two failure signatures appeared together, both real:
+- **HTTP 429**, escalating in frequency as the session went on (matches
+  Session 1's shape superficially, but a different mechanism — see below).
+- **HTTP 400** (`http_error`), ~21 of the 124 real failures. Our own
+  logging couldn't show the response body (`raw_content` in `llm_client.py`
+  is only populated *after* `response.raise_for_status()` succeeds, so an
+  `HTTPStatusError` always logs an empty "raw response" — a real,
+  pre-existing gap, not introduced this session, left unfixed here since
+  root-causing didn't require it).
+
+Root cause, found by replaying a real failing violation directly against
+Groq's API (bypassing the app) several times: `qwen/qwen3.6-27b` burned
+**1,448 hidden reasoning tokens** answering one trivial Reviewer
+yes/no-plus-confidence judgment in a single successful test call — compare
+qwen3-32b's observed 400-980 tokens *total* per call (Section 8b).
+Repeating the same request shortly after returned a real, explicit 429
+body (not the generic reactive-pacing kind this client already handles):
+
+```
+Rate limit reached for model `qwen/qwen3.6-27b` ... on tokens per day
+(TPD): Limit 200000, Used 199931, Requested 2225. Please try again in
+15m31.392s.
+```
+
+This is a **per-day token cap** (200,000 TPD on this account, this
+model), not the per-minute cap `llm_client.py`'s existing reactive/fixed
+pacing already tracks (`_remaining_tokens`/`_reset_at_monotonic`,
+Sections 8b/14d) — those only ever read minute-scoped rate-limit headers.
+Nothing in the codebase currently tracks a *daily token total* — Phase
+5's only daily guard, `EVAL_DAILY_CALL_CAP`/`count_real_calls_today`
+(design.md Section 9), counts real *requests*, not tokens. At
+qwen3.6-27b's observed ~1,200-1,700 tokens/call, 200,000 TPD divides out
+to roughly 150-200 real calls/day — nowhere near the ~900 (1000 ×
+0.9 safety margin) the request-count guard assumes, so that guard
+provides no real protection against this model's actual binding
+constraint. The 15-minute reset window on the 429 body suggests a
+rolling/sliding TPD window, not a fixed UTC-midnight reset like the
+request-count guard assumes — a further reason the existing guard's
+"resets at UTC midnight" logic (`_start_of_day_utc`) doesn't transfer
+cleanly to a token-based version without its own design thought.
+
+Working theory for the 400s (not yet proven as rigorously as the 429
+root cause, since reproducing a truncation-triggered 400 on demand
+would cost more real budget than was justified once the bigger TPD
+problem was already found): `MAX_TOKENS=2048` (`llm_client.py`) was
+never re-tuned for this model. If a call's hidden reasoning alone runs
+close to or past 2048 tokens — plausible given the 1,448-token single
+data point above, and qwen3.6-27b's reasoning length looked
+content-dependent, not fixed — generation gets cut off before the
+visible JSON closes, and Groq's non-strict `json_object` mode hard-rejects
+the truncated result with a 400. This exact failure mode (zero
+recoverable content on a 400) was already documented as a rare,
+2-data-point observation under the old model (2026-07-06 session log
+entry); qwen3.6-27b's much heavier reasoning plausibly makes it common
+rather than rare, but this session did not isolate MAX_TOKENS as the
+confirmed sole cause.
+
+**Deliberately not fixed this session** (explicit user decision, given
+the token budget for this model was already essentially exhausted for
+the day regardless of any code fix): a real token-based daily budget
+guard (mirroring `count_real_calls_today`/`should_stop_for_budget` but
+summing `LlmCallLog.tokens_used` instead of counting rows, and accounting
+for a rolling rather than fixed-midnight window), and/or re-tuning
+`MAX_TOKENS` for this model's verbosity. Both are real, scoped follow-up
+work for the next Pass 1b resume session — starting another real run
+under the current code would very likely repeat both failure modes
+immediately, not just risk them.
+
+Manifest committed as-is (1,195/798/1,129) — the 120 real successes are
+legitimate qwen3.6-27b-scored data, not discarded; the 124 failures are
+correctly classified (`http_error`/`rate_limited`) and will be naturally
+retried on the next resume, same as Session 1's precedent.

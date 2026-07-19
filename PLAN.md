@@ -320,6 +320,33 @@ Three sequential stages against the 30-site corpus
             Next resume session needed to clear the remaining 1,373
             pending (674 of which are re-attempts, now correctly
             classified if they fail again).
+      - [ ] Pass 1b — Session 2 (2026-07-19): resumed, then stopped
+            mid-run for diagnosis, not completion or the request-count
+            budget guard. Manifest moved to **1,195/3,122 reviewed, 798
+            failed, 1,129 pending** (244 real attempts: 120 succeeded, 124
+            failed). Found `qwen/qwen3-32b` (Session 1's model) had been
+            removed from Groq's catalog entirely — real calls 404'd
+            (`model_not_found`), not rate-limited. Switched to
+            `qwen/qwen3.6-27b` (PR #33), live-verified before switching
+            (accepts the same request shape, correct DB logging). Resumed
+            under the new model, then found a second, bigger problem:
+            qwen3.6-27b's hidden reasoning is far more verbose (~1,400+
+            tokens for one trivial judgment vs. the old model's 400-980
+            total/call) and this account has a real **per-day token cap
+            of 200,000** for this model — a constraint nothing in the
+            codebase currently tracks (the existing guard counts
+            requests/day, not tokens/day). That cap, not a pacing gap,
+            is the real explanation for this session's 429s; a working
+            theory (not fully proven) also blames some of the session's
+            400s on `MAX_TOKENS=2048` truncating this model's longer
+            reasoning before valid JSON closes. Full technical account:
+            design.md Section 14h. **Deliberately left unfixed this
+            session** (explicit decision, budget was exhausted for the
+            day regardless) — a token-based daily budget guard and/or a
+            re-tuned `MAX_TOKENS` are real scoped work for the next
+            resume session, not optional polish; starting another run
+            under the current code would likely repeat both failures
+            immediately.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
@@ -1305,3 +1332,65 @@ Three sequential stages against the 30-site corpus
      Groq's API. Exported as a portable snapshot to
      CLAUDE_MEMORY_NOTES.md (untracked, repo root) instead, for manual
      reattachment after the OneDrive move if still relevant then. -->
+<!-- 2026-07-19: Phase 5 Pass 1b Session 2 — resumed, hit a dead model,
+     switched models, then hit a second real problem bigger than the
+     first, stopped for diagnosis rather than pushing through.
+
+     Pre-flight was clean (LLM_MOCK unset, 0 real calls made yet today,
+     manifest matched Session 1's committed end state, dev Postgres
+     healthy). The very first real call of the resume run came back
+     HTTP 404 (`model_not_found`), not a 429 — confirmed live via direct
+     curl (bypassing the app) that Groq had removed `qwen/qwen3-32b`
+     from their catalog entirely since Session 1. Stopped the run after
+     26 real (all-failed) attempts once the pattern was unambiguous — no
+     manifest corruption, just 4 legitimate cache-hit successes mixed in.
+
+     Root-caused via Groq's live `/models` endpoint and picked
+     `qwen/qwen3.6-27b` as the same-family replacement. Before touching
+     any code, live-verified it accepts this client's exact request
+     shape (`reasoning_format: "hidden"` + json_object mode → HTTP 200,
+     clean content) and pulled its real rate-limit headers rather than
+     assuming parity (1000 req/day, same as before; 8000 tokens/min, up
+     from 6000). Updated `MODEL_NAME` (`llm_client.py`), CLAUDE.md,
+     design.md Section 14g. Full suite: 116 passed, ruff clean, plus a
+     live `reviewer_node()` round-trip confirmed correct DB logging
+     before committing. Merged via PR #33.
+
+     Resumed Pass 1b for real under the new model. Manifest moved from
+     1,075/674/1,373 (done/failed/pending) to 1,195/798/1,129 — 244 real
+     attempts, 120 succeeded, 124 failed. 429s climbed through the
+     session in a way that superficially resembled Session 1's
+     color-contrast burst pattern, but querying `llm_call_logs` directly
+     (rather than trusting the filtered log stream) showed something
+     different: a real Groq error body citing a **200,000 tokens-per-day
+     cap** for this model, already at 199,931/200,000 used. A live
+     replay test found qwen3.6-27b burns ~1,400+ hidden reasoning tokens
+     on a single trivial Reviewer judgment — several times qwen3-32b's
+     400-980 tokens/call — meaning this model's real daily budget is
+     ~150-200 calls, not the ~900 the existing request-count guard
+     assumes. Nothing in the codebase currently tracks tokens/day, only
+     requests/day (`EVAL_DAILY_CALL_CAP`/`count_real_calls_today`), so
+     this constraint went completely unguarded. A working theory (not
+     fully proven, root-causing the bigger problem took priority over
+     spending more real budget confirming it) attributes some of the
+     session's 400 "Bad Request" failures to the same cause:
+     `MAX_TOKENS=2048`, never re-tuned for this model, truncating longer
+     reasoning traces before valid JSON closes.
+
+     Stopped the run (via TaskStop, not letting it exhaust naturally) as
+     soon as the real mechanism was clear. Explicit user decision:
+     document findings and stop here rather than build a token-based
+     budget guard or re-tune MAX_TOKENS this session — the token budget
+     was already exhausted for the day regardless of any code fix, so
+     there was nothing further real spend could accomplish today. Full
+     technical account: design.md Section 14h. Manifest
+     (1,195/798/1,129, legitimate qwen3.6-27b-scored data) committed as
+     real progress, not discarded.
+
+     Next Pass 1b resume session has two real prerequisites, not just
+     "wait and retry": (1) a token-based daily budget guard (mirroring
+     the existing request-count one, but summing `tokens_used` and
+     accounting for what looks like a rolling reset window, not a fixed
+     UTC-midnight one), and (2) deciding whether `MAX_TOKENS` needs
+     raising for this model. Starting another run under the current code
+     unchanged would very likely repeat both failure modes immediately. -->
