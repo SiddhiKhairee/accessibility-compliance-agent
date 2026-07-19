@@ -1500,3 +1500,42 @@ forward, no backfill needed per 14c), 1,373 still pending. Next Pass 1b
 resume session's budget resets at the next UTC midnight after Session 1's
 stop; the two bugs above are fixed and merged to `main` before any further
 real API spend, per explicit instruction this session.
+
+**14g. MODEL_NAME changed mid-Pass-1b (2026-07-19): `qwen/qwen3-32b` →
+`qwen/qwen3.6-27b`, Groq removed the old model entirely.** Discovered live,
+not from docs: the first real call of the Pass 1b resume session returned
+HTTP 404 (`{"error":{"code":"model_not_found", "message":"The model
+\`qwen/qwen3-32b\` does not exist or you do not have access to it."}}`),
+not a 429 — every subsequent real call in that batch 404'd identically, so
+this was never a rate-limit/pacing problem despite surfacing during a
+resume session shaped like one. Run stopped after 26 real (all-failed)
+attempts once the pattern was clear (manifest ended at 1,079 done / 670
+failed / 1,373 pending — the +4/-4 came from legitimate cache hits on
+retried entries, not from the 404s, so no corrupted data).
+
+Root cause confirmed via a direct `curl` against `api.groq.com` (bypassing
+the app entirely) — `qwen/qwen3-32b` is absent from a live `GET
+/openai/v1/models` call; `qwen/qwen3.6-27b` is present and appears to be
+Groq's same-family replacement. Before switching, verified live (not
+assumed) that the new model accepts this client's exact request shape:
+`reasoning_format: "hidden"` + `response_format: {"type": "json_object"}`
+→ HTTP 200, clean hidden-reasoning JSON content (no leaked `<think>`
+tags). Also pulled real rate-limit headers rather than assuming parity
+with the old model: `x-ratelimit-limit-requests: 1000` (same as
+qwen3-32b — `EVAL_DAILY_CALL_CAP=1000` needs no change) but
+`x-ratelimit-limit-tokens: 8000` per minute (up from qwen3-32b's measured
+6,000 in Section 7/8b — `TOKEN_SAFETY_MARGIN=1500` stays safe, arguably
+more conservative than necessary now, not re-tuned this session since
+"safe but slightly conservative" isn't a real problem).
+
+Consequence for the eval corpus: violations reviewed during Pass 1b
+Session 1 (the 1,075 in 14f) were scored under `qwen/qwen3-32b`;
+everything reviewed from this point forward runs under
+`qwen/qwen3.6-27b`. This is a real two-model-version split in the
+corpus's Reviewer confidence scores, not a hidden inconsistency — flagged
+here and in `llm_client.py`'s `MODEL_NAME` comment so `EVALUATION.md`
+carries an explicit caveat rather than presenting Pass 1b's confidence
+numbers as if they came from one consistent model. No re-review of the
+1,075 already-done violations was undertaken (would cost real budget for
+a documentation-only concern, not a data-corruption one) — an explicit,
+discussed tradeoff, not an oversight.

@@ -11,7 +11,7 @@ and requires human approval before opening a real GitHub PR.
 - Agent orchestration: LangGraph — exactly 4 nodes: Reviewer, Impact,
   Developer, Verifier. Do not add a 5th node without an explicit, distinct
   responsibility — node-count bloat is the failure mode to avoid here.
-- LLM: `qwen/qwen3-32b` via Groq's free-tier API (`reasoning_format:
+- LLM: `qwen/qwen3.6-27b` via Groq's free-tier API (`reasoning_format:
   "hidden"`, `response_format: {"type": "json_object"}`). Changed from the
   original local-via-Ollama plan in Phase 2 planning: this machine has only
   ~2.2GB RAM free of 16GB, making a local 7B+ model a real swap-thrashing
@@ -23,6 +23,11 @@ and requires human approval before opening a real GitHub PR.
   plus a fixed per-model minimum delay layered on top (design.md Sections
   8b and 14d; the fixed delay was added after Phase 5 Pass 1b Session 1
   showed the reactive-only version wasn't enough at sustained scale).
+  Switched from `qwen/qwen3-32b` on 2026-07-19 after Groq removed it from
+  their catalog entirely (a real call returned HTTP 404 `model_not_found`
+  mid-Pass-1b-resume, not a rate-limit issue) — see `llm_client.py`'s
+  `MODEL_NAME` comment and design.md Section 14g for the live verification
+  and the resulting two-model-version caveat on the Phase 5 eval corpus.
 - Evaluation pipeline (Phase 5): `eval_runner.py` runs Pass 1a (crawl +
   detect, free) then Pass 1b (Reviewer-only confidence scoring, real Groq
   calls, budget-gated) against `eval/eval_corpus_30_sites.csv`.
