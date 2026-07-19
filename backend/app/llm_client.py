@@ -76,16 +76,33 @@ from models import AgentName, LlmCallLog, LlmResponseCache
 
 logger = logging.getLogger("accessibility_agent.llm_client")
 
-MODEL_NAME = "qwen/qwen3-32b"
+MODEL_NAME = "qwen/qwen3.6-27b"
+# Changed from qwen/qwen3-32b on 2026-07-19: Groq removed qwen3-32b from
+# their catalog entirely (confirmed live — a real call returned HTTP 404
+# `model_not_found`, not a rate limit or transient error, while resuming
+# Phase 5 Pass 1b). qwen3.6-27b is Groq's replacement in the same family;
+# verified live before switching that it accepts the identical request
+# shape this client sends (reasoning_format="hidden" + json_object mode →
+# HTTP 200, clean hidden-reasoning JSON content) and pulled its real
+# rate-limit headers rather than assuming parity: 1000 req/day (same as
+# qwen3-32b — EVAL_DAILY_CALL_CAP unchanged) but 8000 tokens/min (up from
+# qwen3-32b's measured 6000 — TOKEN_SAFETY_MARGIN=1500 stays safe, if
+# anything more conservative than it needs to be now). Consequence for
+# Phase 5: violations reviewed before this change (Pass 1b Session 1, see
+# design.md Section 14) were scored under qwen3-32b; everything reviewed
+# after run under qwen3.6-27b — an explicit two-model-version caveat, not
+# a silent inconsistency (see design.md Section 14g).
+#
 # Phase 3 cost optimization: Impact's ambiguous-case LLM fallback (the
 # critical-path URL heuristic already skips the LLM entirely for the
 # clear-cut cases) is a coarser judgment than Developer's fix-generation, so
 # it's routed to a smaller/cheaper model instead of MODEL_NAME. Verified
 # live against Groq's real API (not just their docs) on 2026-07-09: returns
 # HTTP 200 with its own independent rate-limit budget (14400 req/6000
-# tokens, vs. qwen3-32b's separate 1000 req/6000 tokens) — confirming both
-# that the model name is currently valid and that Groq tracks rate limits
-# per-model, not per-account (see the per-model _remaining_tokens/
+# tokens, vs. qwen3-32b's separate 1000 req/6000 tokens at the time —
+# figures for MODEL_NAME itself are now qwen3.6-27b's, above) — confirming
+# both that the model name is currently valid and that Groq tracks rate
+# limits per-model, not per-account (see the per-model _remaining_tokens/
 # _reset_at_monotonic dicts below).
 IMPACT_FALLBACK_MODEL_NAME = "llama-3.1-8b-instant"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
