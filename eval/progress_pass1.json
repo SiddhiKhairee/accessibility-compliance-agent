@@ -13,7 +13,7 @@
           "url": "https://www.target.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8ab14fd2ab081fda.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8ab14fd2ab081fda.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -105,7 +105,7 @@
           "url": "https://www.target.com/cart?prehydrateClick=true",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\6f11d726a2fb57bf.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\6f11d726a2fb57bf.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -137,7 +137,7 @@
           "url": "https://www.target.com/help/contact-us",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c76f16efb4ef0dd9.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c76f16efb4ef0dd9.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -181,7 +181,7 @@
           "url": "https://www.target.com/c/on-to-college/-/N-5q0g0",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\42b7daf717c1c83a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\42b7daf717c1c83a.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -299,7 +299,7 @@
           "url": "https://www.target.com/gift-registry/create-college-registry",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e41d782a84a7a038.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e41d782a84a7a038.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -362,7 +362,7 @@
           "url": "https://www.target.com/c/school-supplies-office/-/N-my2p6",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8fb6a925e402c6fb.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8fb6a925e402c6fb.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -473,7 +473,7 @@
           "url": "https://www.target.com/circlecard",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\a636f3432508df7e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\a636f3432508df7e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -1042,7 +1042,7 @@
           "url": "https://www.target.com/c/clearance/-/N-5q0ga",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2fd9a4b72e2825f7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2fd9a4b72e2825f7.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -1082,7 +1082,7 @@
           "url": "https://www.loc.gov",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\64eaed812a3296ff.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\64eaed812a3296ff.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -1440,7 +1440,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\4ae4840b8bb3d7cd.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\4ae4840b8bb3d7cd.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -1481,7 +1481,7 @@
           "url": "https://www.loc.gov/research-centers/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f74d5d37f6b29761.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f74d5d37f6b29761.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -1705,7 +1705,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/research-at-the-library/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8c903daae5b0d45d.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8c903daae5b0d45d.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -1790,7 +1790,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/research-at-the-library/get-your-library-card/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9d4c31070ec74fbf.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9d4c31070ec74fbf.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -1820,7 +1820,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/research-anywhere-anytime/tutorials/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\bd843580b6ca6807.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\bd843580b6ca6807.html",
           "violations": [
             {
               "wcag_rule": "image-alt",
@@ -2169,7 +2169,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/research-at-the-library/hours-for-research/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\bee65de856132f57.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\bee65de856132f57.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2199,7 +2199,7 @@
           "url": "https://www.loc.gov/research-centers/use-the-library/research-at-the-library/user-policies/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\40e7b48bf2153bd5.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\40e7b48bf2153bd5.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2237,56 +2237,56 @@
           "url": "https://www.gov.uk",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\419e23a2c0c9567d.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\419e23a2c0c9567d.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/research-and-statistics",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\47a9f3496b233396.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\47a9f3496b233396.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/guidance-and-regulation",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e7da603de2ee0b58.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e7da603de2ee0b58.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/contact",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d4a01d2a86c08f72.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d4a01d2a86c08f72.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/transparency-and-freedom-of-information-releases",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8bdf1c54e4e30dcd.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8bdf1c54e4e30dcd.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/news-and-communications",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\50c56c4e70dd1177.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\50c56c4e70dd1177.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\53177fad806b7c0e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\53177fad806b7c0e.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/contact/govuk",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9158899d97219e8e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9158899d97219e8e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2305,7 +2305,7 @@
           "url": "https://www.gov.uk/student-finance-register-login",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b91549a55502ff5d.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b91549a55502ff5d.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2324,21 +2324,21 @@
           "url": "https://www.gov.uk/search/policy-papers-and-consultations",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\ee740231d342aa74.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\ee740231d342aa74.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/log-in-register-hmrc-online-services",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\84ec3ab9e6a99f55.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\84ec3ab9e6a99f55.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/government/publications/social-media-restriction-pilots-qualitative-research-with-13-to-17-year-olds-in-the-uk",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2454e3ce15994cc5.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2454e3ce15994cc5.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2357,21 +2357,21 @@
           "url": "https://www.gov.uk/search/research-and-statistics?page=2",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\062893a198d9602a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\062893a198d9602a.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/research-and-statistics/email-signup?content_store_document_type=all_research_and_statistics",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d18c9e9e13f9f308.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d18c9e9e13f9f308.html",
           "violations": []
         },
         {
           "url": "https://www.gov.uk/search/research-and-statistics.atom?content_store_document_type=all_research_and_statistics",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e6d4f1870dff27fd.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e6d4f1870dff27fd.html",
           "violations": [
             {
               "wcag_rule": "html-has-lang",
@@ -2428,7 +2428,7 @@
           "url": "https://www.ada.gov",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\33209f3ba3e4bab1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\33209f3ba3e4bab1.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2480,7 +2480,7 @@
           "url": "https://www.ada.gov/cases/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\bb8de80962ee5722.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\bb8de80962ee5722.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -2730,7 +2730,7 @@
           "url": "https://www.ada.gov/infoline/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\48d9bf3714f09dfd.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\48d9bf3714f09dfd.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -2782,14 +2782,14 @@
           "url": "https://www.ada.gov/law-and-regs/regulations/title-ii-2010-regulations/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7d0b4fb12c50d0c6.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7d0b4fb12c50d0c6.html",
           "violations": []
         },
         {
           "url": "https://www.ada.gov/topics/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7a97ab47ada9dac6.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7a97ab47ada9dac6.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -2852,7 +2852,7 @@
           "url": "https://www.ada.gov/law-and-regs/design-standards/1991-design-standards/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3f1c7e1d70e566e4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3f1c7e1d70e566e4.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3014,7 +3014,7 @@
           "url": "https://www.ada.gov/topics/service-animals/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b0c01f18f666ad9e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b0c01f18f666ad9e.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3132,7 +3132,7 @@
           "url": "https://www.ada.gov/help/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e14caa0d67023b18.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e14caa0d67023b18.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3382,7 +3382,7 @@
           "url": "https://www.ada.gov/law-and-regs/regulations/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\67f87c974aa7ab13.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\67f87c974aa7ab13.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3478,21 +3478,21 @@
           "url": "https://www.ada.gov/law-and-regs/design-standards/2010-stds/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\19c7ec6e0fe1ce90.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\19c7ec6e0fe1ce90.html",
           "violations": []
         },
         {
           "url": "https://www.ada.gov/law-and-regs/regulations/title-iii-regulations/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\176e3e76942b7f3d.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\176e3e76942b7f3d.html",
           "violations": []
         },
         {
           "url": "https://www.ada.gov/resources/service-animals-2010-requirements/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8c07cbefd4faffd8.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8c07cbefd4faffd8.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3544,7 +3544,7 @@
           "url": "https://www.ada.gov/topics/service-animals",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\85fbee09e02b7fb2.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\85fbee09e02b7fb2.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3662,7 +3662,7 @@
           "url": "https://www.ada.gov/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\0805b30175ce5079.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\0805b30175ce5079.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -3714,7 +3714,7 @@
           "url": "https://www.ada.gov/topics/parking/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\998a38f0e29f4d6c.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\998a38f0e29f4d6c.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -3800,7 +3800,7 @@
           "url": "https://www.mit.edu",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\0af04050be93c6ef.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\0af04050be93c6ef.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -4006,7 +4006,7 @@
           "url": "https://www.mit.edu/search/?redirect-origin=legacy&tab=directory",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\35e61b2466026474.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\35e61b2466026474.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -4135,7 +4135,7 @@
           "url": "https://www.mit.edu/contact",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e1db0f784c8f9655.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e1db0f784c8f9655.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -4462,7 +4462,7 @@
           "url": "https://www.mit.edu/research",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\10f3b7cba18d4484.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\10f3b7cba18d4484.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -4657,7 +4657,7 @@
           "url": "https://www.mit.edu/search",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e9c4cf6d2029ed7a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e9c4cf6d2029ed7a.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -4764,7 +4764,7 @@
           "url": "https://www.mit.edu/contact/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\bf216de6e4395eea.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\bf216de6e4395eea.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -5091,7 +5091,7 @@
           "url": "https://www.mit.edu/research/research-alliances/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\aa10b5700cc25895.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\aa10b5700cc25895.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -5198,7 +5198,7 @@
           "url": "https://www.mit.edu/research/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3875cd3ced1b53d4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3875cd3ced1b53d4.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -5393,7 +5393,7 @@
           "url": "https://www.mit.edu/research/centers-labs-programs/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2abf80a0e131af05.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2abf80a0e131af05.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -5500,7 +5500,7 @@
           "url": "https://www.mit.edu/search/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\19af084a7bd3b8ad.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\19af084a7bd3b8ad.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -5607,7 +5607,7 @@
           "url": "https://www.mit.edu/education",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\529c5aefb205946b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\529c5aefb205946b.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -6348,7 +6348,7 @@
           "url": "https://www.mit.edu/response-government-activity",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\765f964bd01ec139.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\765f964bd01ec139.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -6983,7 +6983,7 @@
           "url": "https://www.mit.edu/alumni",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9fb67a0b2ef92824.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9fb67a0b2ef92824.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -7343,7 +7343,7 @@
           "url": "https://www.mit.edu/admissions-aid",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\dd636b2de5d534a8.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\dd636b2de5d534a8.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -7667,7 +7667,7 @@
           "url": "https://github.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\996e1f714b08e971.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\996e1f714b08e971.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8001,7 +8001,7 @@
           "url": "https://github.com/login",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f6cf006fbdea0d5a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f6cf006fbdea0d5a.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8034,7 +8034,7 @@
           "url": "https://github.com/solutions",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7d54e814dc4fc020.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7d54e814dc4fc020.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8075,7 +8075,7 @@
           "url": "https://github.com/enterprise/contact?ref_cta=Contact+sales&ref_loc=footer&ref_page=%2Fsolutions_overview&locale=en-US",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\5872dd0c15227201.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\5872dd0c15227201.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8182,7 +8182,7 @@
           "url": "https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fsolutions",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\35a1f21b38884b57.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\35a1f21b38884b57.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8201,7 +8201,7 @@
           "url": "https://github.com/enterprise/contact?ref_cta=Contact+sales&ref_loc=hero&ref_page=%2Fsolutions_overview&locale=en-US",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\020b1c3e6cffd056.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\020b1c3e6cffd056.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8315,7 +8315,7 @@
           "url": "https://github.com/mcp",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9bd216a1ce736031.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9bd216a1ce736031.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8693,7 +8693,7 @@
           "url": "https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fmcp",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\89192abd2d15cd8b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\89192abd2d15cd8b.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8712,7 +8712,7 @@
           "url": "https://github.com/pricing",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\962f4f84f09bdaad.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\962f4f84f09bdaad.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8786,7 +8786,7 @@
           "url": "https://github.com/enterprise/contact/data-residency",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1d100fdfbb079c41.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1d100fdfbb079c41.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8861,7 +8861,7 @@
           "url": "https://www.usa.gov",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2deeb928596d41c8.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2deeb928596d41c8.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8880,7 +8880,7 @@
           "url": "https://www.usa.gov/scams-and-fraud",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1ec4bb77e82b7660.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1ec4bb77e82b7660.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -8899,7 +8899,7 @@
           "url": "https://www.usa.gov/website-analytics/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d3dea5ecde145638.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d3dea5ecde145638.html",
           "violations": [
             {
               "wcag_rule": "listitem",
@@ -9908,7 +9908,7 @@
           "url": "https://www.usa.gov/search-error",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\5ff5892b0ebb6e8f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\5ff5892b0ebb6e8f.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -9927,7 +9927,7 @@
           "url": "https://www.usa.gov/blog",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2f74a8e4de30e2c5.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2f74a8e4de30e2c5.html",
           "violations": [
             {
               "wcag_rule": "list",
@@ -9957,7 +9957,7 @@
           "url": "https://www.usa.gov/branches-of-government",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c72d249e2cf32906.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c72d249e2cf32906.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10174,7 +10174,7 @@
           "url": "https://www.usa.gov/disability-services",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9eb852ca47fb2df2.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9eb852ca47fb2df2.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10193,7 +10193,7 @@
           "url": "https://www.usa.gov/complaints",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d488c6a3ae710df7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d488c6a3ae710df7.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10212,7 +10212,7 @@
           "url": "https://www.usa.gov/about",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\bc9b1e9e3a552127.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\bc9b1e9e3a552127.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10231,7 +10231,7 @@
           "url": "https://www.usa.gov/contact-us",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\82f8db8e8e216731.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\82f8db8e8e216731.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10250,7 +10250,7 @@
           "url": "https://www.usa.gov/small-business",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\4f0a7a7298d0f9fc.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\4f0a7a7298d0f9fc.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10269,7 +10269,7 @@
           "url": "https://www.usa.gov/immigration-and-citizenship",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\fa167c2e84eb65d7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\fa167c2e84eb65d7.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10288,7 +10288,7 @@
           "url": "https://www.usa.gov/taxes",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\62855ebe62d5f494.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\62855ebe62d5f494.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10307,7 +10307,7 @@
           "url": "https://www.usa.gov/life-events",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\a9596cf9f7390726.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\a9596cf9f7390726.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10326,7 +10326,7 @@
           "url": "https://www.usa.gov/benefit-finder",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\2ea5ab641590d956.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\2ea5ab641590d956.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10368,21 +10368,21 @@
           "url": "https://www.w3.org",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\189ebddd8bb0589f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\189ebddd8bb0589f.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/contact/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8fc07e916236b8b4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8fc07e916236b8b4.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/help/search/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9d7e4371fbdf6aa4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9d7e4371fbdf6aa4.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10401,21 +10401,21 @@
           "url": "https://www.w3.org/ja/contact/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e0ef41676e52267b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e0ef41676e52267b.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/zh-hans/contact/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\52d3c77779e492c4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\52d3c77779e492c4.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/zh-hans/help/search/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\cdfc38737393ea11.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\cdfc38737393ea11.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10434,7 +10434,7 @@
           "url": "https://www.w3.org/ja/help/search/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\ba20a237e0f304d3.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\ba20a237e0f304d3.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10453,7 +10453,7 @@
           "url": "https://www.w3.org/International/i18n-drafts/nav/about",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\4e1bac2f7c3a23eb.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\4e1bac2f7c3a23eb.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10725,28 +10725,28 @@
           "url": "https://www.w3.org/about/positive-work-environment/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\87fda1fc355eda82.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\87fda1fc355eda82.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/about/diversity/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b0acc46dcf7541f9.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b0acc46dcf7541f9.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/developers/tools/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b2f3ceed5ebf98d3.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b2f3ceed5ebf98d3.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/policies/code-of-conduct/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e6f5a3f54d703763.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e6f5a3f54d703763.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10787,21 +10787,21 @@
           "url": "https://www.w3.org/help/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\460329529a05e219.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\460329529a05e219.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/membership/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\88f1b36af4791341.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\88f1b36af4791341.html",
           "violations": []
         },
         {
           "url": "https://www.w3.org/events/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\4b0609c156641cbb.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\4b0609c156641cbb.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -10839,7 +10839,7 @@
           "url": "https://www.espn.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7b5eed3c463d33ec.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7b5eed3c463d33ec.html",
           "violations": [
             {
               "wcag_rule": "aria-input-field-name",
@@ -12639,7 +12639,7 @@
           "url": "https://www.espn.com/little-league-world-series/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3eaa792608712b9c.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3eaa792608712b9c.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -14410,7 +14410,7 @@
           "url": "https://www.espn.com/nba/team/_/name/ny/new-york-knicks",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d1f1a4c16915eaf3.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d1f1a4c16915eaf3.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -15109,7 +15109,7 @@
           "url": "https://www.espn.com/nba-summer-league/standings",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\828bb298a9728e79.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\828bb298a9728e79.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -16335,7 +16335,7 @@
           "url": "https://www.harvard.edu",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c4c057992f5fe313.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c4c057992f5fe313.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -17003,21 +17003,21 @@
           "url": "https://www.harvard.edu/contact-harvard",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d99c46f345f5031b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d99c46f345f5031b.html",
           "violations": []
         },
         {
           "url": "https://www.harvard.edu/contact-harvard/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8c69e66c21d3e807.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8c69e66c21d3e807.html",
           "violations": []
         },
         {
           "url": "https://www.harvard.edu/media-relations/contact",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\a682de55d85d399e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\a682de55d85d399e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -17080,7 +17080,7 @@
           "url": "https://www.harvard.edu/in-focus/book-recommendations/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b282b94e18e0f667.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b282b94e18e0f667.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -17770,7 +17770,7 @@
           "url": "https://www.harvard.edu/in-focus/poetry/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c589a3f2f6e686c7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c589a3f2f6e686c7.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -18207,7 +18207,7 @@
           "url": "https://www.harvard.edu/visit/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\6d05065c6dc8d52f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\6d05065c6dc8d52f.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -18721,7 +18721,7 @@
           "url": "https://www.harvard.edu/campus/libraries/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c5cd74bd31e2ce61.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c5cd74bd31e2ce61.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -19125,7 +19125,7 @@
           "url": "https://www.harvard.edu/in-focus/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\989a91f50f8b7b9b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\989a91f50f8b7b9b.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -20816,7 +20816,7 @@
           "url": "https://www.harvard.edu/in-focus/student-research/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c7068f68651ed68e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c7068f68651ed68e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -21495,7 +21495,7 @@
           "url": "https://www.harvard.edu/in-focus/research-powers-progress/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\46a6da6670bd5f58.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\46a6da6670bd5f58.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -22691,7 +22691,7 @@
           "url": "https://www.harvard.edu/in-focus/research-in-2023/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c77a8f4afc1bfff1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c77a8f4afc1bfff1.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -23051,7 +23051,7 @@
           "url": "https://www.harvard.edu/about/university-professorships/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f38c9a640866ef20.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f38c9a640866ef20.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -23114,14 +23114,14 @@
           "url": "https://www.harvard.edu/copyright-issue/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\a55ea81b201a1ee4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\a55ea81b201a1ee4.html",
           "violations": []
         },
         {
           "url": "https://www.harvard.edu/privacy-statement/",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7386670e909b60db.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7386670e909b60db.html",
           "violations": []
         }
       ]
@@ -23136,7 +23136,7 @@
           "url": "https://www.booking.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b40c9993a211a729.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b40c9993a211a729.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -23201,7 +23201,7 @@
           "url": "https://www.booking.com/content/contact-us.html",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\0dc44ba5aacf1457.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\0dc44ba5aacf1457.html",
           "violations": [
             {
               "wcag_rule": "listitem",
@@ -24524,7 +24524,7 @@
           "url": "https://www.cnn.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\4b808887a2ed01a1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\4b808887a2ed01a1.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24572,7 +24572,7 @@
           "url": "https://www.cnn.com/2026/07/14/weather/canada-wildfire-smoke-northeast-midwest-air-quality",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\d82608f81be3451d.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\d82608f81be3451d.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24613,7 +24613,7 @@
           "url": "https://www.cnn.com/travel/stay",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f5eab358ac5b57f2.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f5eab358ac5b57f2.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24654,7 +24654,7 @@
           "url": "https://www.cnn.com/politics/president-donald-trump-47",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f8f36cfa9901fb2c.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f8f36cfa9901fb2c.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24695,7 +24695,7 @@
           "url": "https://www.cnn.com/about",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\72613ed5506f200f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\72613ed5506f200f.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24725,7 +24725,7 @@
           "url": "https://www.cnn.com/2026/07/14/politics/trump-toll-strait-of-hormuz",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\026121f8bfb654bf.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\026121f8bfb654bf.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24766,7 +24766,7 @@
           "url": "https://www.cnn.com/world/americas",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7487ebc34cf2c46a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7487ebc34cf2c46a.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24807,7 +24807,7 @@
           "url": "https://www.cnn.com/2026/07/06/world/video/venezuela-earthquakes-families-search-intldsk-digivid",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\5af9f8e2aef145aa.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\5af9f8e2aef145aa.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -24855,7 +24855,7 @@
           "url": "https://www.cnn.com/ad-choices",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\6b7ffb8c328a9ba0.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\6b7ffb8c328a9ba0.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -24907,7 +24907,7 @@
           "url": "https://www.cnn.com/markets/premarkets",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\98b10aa4941a38f8.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\98b10aa4941a38f8.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -24951,7 +24951,7 @@
           "url": "https://www.cnn.com/entertainment/movies",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\71d4d20f3c017898.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\71d4d20f3c017898.html",
           "violations": [
             {
               "wcag_rule": "bypass",
@@ -25000,7 +25000,7 @@
           "url": "https://en.wikipedia.org",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\efcb5e7c26d69553.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\efcb5e7c26d69553.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -25162,7 +25162,7 @@
           "url": "https://en.wikipedia.org/wiki/Allergic_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\25491dae763010b1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\25491dae763010b1.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -26391,7 +26391,7 @@
           "url": "https://en.wikipedia.org/wiki/Wikipedia:Contact_us",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\21b3f436d6e2ba77.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\21b3f436d6e2ba77.html",
           "violations": [
             {
               "wcag_rule": "image-alt",
@@ -26938,7 +26938,7 @@
           "url": "https://en.wikipedia.org/wiki/Special:Search",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b6c13f2e0d185986.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b6c13f2e0d185986.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -27078,7 +27078,7 @@
           "url": "https://en.wikipedia.org/wiki/Talk:Allergic_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3b0583f21235fb15.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3b0583f21235fb15.html",
           "violations": [
             {
               "wcag_rule": "link-name",
@@ -27823,7 +27823,7 @@
           "url": "https://en.wikipedia.org/wiki/Special:WhatLinksHere/Allergic_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\8b2ca68f2427c4e4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\8b2ca68f2427c4e4.html",
           "violations": [
             {
               "wcag_rule": "aria-input-field-name",
@@ -28018,7 +28018,7 @@
           "url": "https://en.wikipedia.org/wiki/Nickel_allergy_(nickel_allergic_contact_dermatitis)",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9d91ac7a1a727521.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9d91ac7a1a727521.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -29764,7 +29764,7 @@
           "url": "https://en.wikipedia.org/wiki/Protein_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b57410b1e9102726.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b57410b1e9102726.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -30564,7 +30564,7 @@
           "url": "https://en.wikipedia.org/wiki/Category:Contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\351f1a8ed772587e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\351f1a8ed772587e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -30726,7 +30726,7 @@
           "url": "https://en.wikipedia.org/wiki/Special:RecentChangesLinked/Allergic_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b7febc8657fccc75.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b7febc8657fccc75.html",
           "violations": [
             {
               "wcag_rule": "aria-input-field-name",
@@ -30910,7 +30910,7 @@
           "url": "https://en.wikipedia.org/wiki/Contact_stomatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c94434d6c1a0802a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c94434d6c1a0802a.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -31347,7 +31347,7 @@
           "url": "https://en.wikipedia.org/wiki/Irritant_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1aedc12edfbb4681.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1aedc12edfbb4681.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -32004,7 +32004,7 @@
           "url": "https://en.wikipedia.org/wiki/Contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\a077fe021b125fc7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\a077fe021b125fc7.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -34201,7 +34201,7 @@
           "url": "https://en.wikipedia.org/wiki/Allergic_contact_dermatitis?action=edit",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\6a125773fded48ac.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\6a125773fded48ac.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -34253,7 +34253,7 @@
           "url": "https://en.wikipedia.org/wiki/Urushiol-induced_contact_dermatitis",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c648d33873be743f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c648d33873be743f.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35611,7 +35611,7 @@
           "url": "https://www.nih.gov",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1d0103e80a9f1595.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1d0103e80a9f1595.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35641,7 +35641,7 @@
           "url": "https://www.nih.gov/health-information/nih-clinical-research-trials-you",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c6d1a9e602992af1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c6d1a9e602992af1.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35671,7 +35671,7 @@
           "url": "https://www.nih.gov/about-nih/contact-us",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\ef6f496908c62d28.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\ef6f496908c62d28.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35767,7 +35767,7 @@
           "url": "https://www.nih.gov/research-training/research-resources",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\fd11d67e7f796ee4.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\fd11d67e7f796ee4.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35808,7 +35808,7 @@
           "url": "https://www.nih.gov/research-training/medical-research-initiatives",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\792021c177d05881.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\792021c177d05881.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35849,7 +35849,7 @@
           "url": "https://www.nih.gov/research-training/training-opportunities",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\aef06060d5d4e51e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\aef06060d5d4e51e.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35890,7 +35890,7 @@
           "url": "https://www.nih.gov/news-events/news-releases/nihs-all-us-research-program-now-largest-integrated-genomics-health-database-world",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\fd7724257757d8b9.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\fd7724257757d8b9.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -35920,7 +35920,7 @@
           "url": "https://www.nih.gov/research-training",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7c9e35189b99b707.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7c9e35189b99b707.html",
           "violations": [
             {
               "wcag_rule": "image-alt",
@@ -36016,7 +36016,7 @@
           "url": "https://www.nih.gov/research-training/library-resources",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\986825bd3b290f9b.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\986825bd3b290f9b.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -36057,14 +36057,14 @@
           "url": "https://www.nih.gov/research-training/accelerating-medicines-partnership-amp",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\70b70e014f929126.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\70b70e014f929126.html",
           "violations": []
         },
         {
           "url": "https://www.nih.gov/research-training/safety-regulation-guidance",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\b9aefe742b59f886.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\b9aefe742b59f886.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -36105,7 +36105,7 @@
           "url": "https://www.nih.gov/about-nih/impact-nih-research",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\773f9b4cc1cf3759.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\773f9b4cc1cf3759.html",
           "violations": [
             {
               "wcag_rule": "image-alt",
@@ -36278,7 +36278,7 @@
           "url": "https://www.nih.gov/research-training/lasker-clinical-research-scholars",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\e0562576bd2ce735.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\e0562576bd2ce735.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -36308,7 +36308,7 @@
           "url": "https://www.nih.gov/research-training/research-nih-labs-clinics",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3edbfc7f2ab6c22f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3edbfc7f2ab6c22f.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -36349,7 +36349,7 @@
           "url": "https://www.nih.gov/about-nih/what-we-do/impact-nih-research",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9b57b11bfbb46dd3.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9b57b11bfbb46dd3.html",
           "violations": [
             {
               "wcag_rule": "image-alt",
@@ -36530,7 +36530,7 @@
           "url": "https://www.reddit.com",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1feab94079cde19e.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1feab94079cde19e.html",
           "violations": [
             {
               "wcag_rule": "html-has-lang",
@@ -36609,7 +36609,7 @@
           "url": "https://www.irs.gov",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c5b4a167c15efa9c.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c5b4a167c15efa9c.html",
           "violations": [
             {
               "wcag_rule": "color-contrast",
@@ -36826,98 +36826,98 @@
           "url": "https://www.irs.gov/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\214795a3cc55ab96.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\214795a3cc55ab96.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/tax-exempt-bonds/contacts",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\08944ae8e15546dd.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\08944ae8e15546dd.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/charities-non-profits/search-for-tax-exempt-organizations",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\f9ccc21767c3789f.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\f9ccc21767c3789f.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/help/contact-my-local-office-internationally",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\0d1a54be630fc3ed.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\0d1a54be630fc3ed.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/businesses/telephone-assistance-contacts-for-business-customers",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\3de4d90fec2af565.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\3de4d90fec2af565.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/help/contact-your-local-irs-office",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\7995245a1f5764bf.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\7995245a1f5764bf.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/charities-non-profits/contact-irs-exempt-organizations",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\68b9030513d9d8ed.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\68b9030513d9d8ed.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/government-entities/indian-tribal-governments/contacts-for-indian-tribal-governments",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\52b96045463712c8.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\52b96045463712c8.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/zh-hant/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1c7c216660d722a7.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1c7c216660d722a7.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/ht/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\15773c5b3720d123.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\15773c5b3720d123.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/es/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\1f2be1c211545a5a.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\1f2be1c211545a5a.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/zh-hans/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\c9be601737d1be43.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\c9be601737d1be43.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/ru/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\6ee9d51760003e63.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\6ee9d51760003e63.html",
           "violations": []
         },
         {
           "url": "https://www.irs.gov/vi/tax-professionals/contact-the-return-preparer-program",
           "load_status": "loaded",
           "load_failure_reason": null,
-          "snapshot_path": "C:\\Users\\siddh\\OneDrive\\Desktop\\accessibility-compliance-agent\\eval\\labeled_raw\\9375975f1865fcf1.html",
+          "snapshot_path": "C:\\accessibility-compliance-agent\\eval\\labeled_raw\\9375975f1865fcf1.html",
           "violations": []
         }
       ]
