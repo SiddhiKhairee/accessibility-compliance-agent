@@ -130,6 +130,22 @@ MIN_CALL_INTERVAL_S = 0.5
 # visible `content`, so too tight a limit risks truncating the actual
 # JSON answer after the hidden reasoning eats most of it.
 MAX_TOKENS = 2048
+# qwen3.6-27b-specific override (see MODEL_NAME's changelog comment and
+# design.md Section 14h): a single real test call burned 1,448 hidden
+# reasoning tokens on one trivial Reviewer judgment — 71% of MAX_TOKENS
+# gone before the visible JSON answer even starts. A harder case plausibly
+# exceeds MAX_TOKENS entirely, and Groq's non-strict json_object mode
+# hard-rejects a truncated response with an unrecoverable 400 (zero usable
+# content, tokens already spent server-side) — strictly worse than letting
+# the call run longer, since raising this ceiling costs nothing unless the
+# model actually uses the room (Groq stops generating once its own answer
+# is done, regardless of the requested cap). 6000 is a starting estimate
+# pending live data, not yet live-tuned — same epistemic status
+# TOKEN_SAFETY_MARGIN had before real observed failures raised it from
+# 1000 to 1500. IMPACT_FALLBACK_MODEL_NAME doesn't get this override: its
+# historical worst case (1,362 tokens total) is comfortably under the base
+# MAX_TOKENS, so it has no demonstrated need for the extra headroom.
+REASONING_MODEL_MAX_TOKENS = 6000
 # Text column, no real storage cost — err toward keeping the debugging-
 # critical raw response rather than truncating it away (see plan: a fully
 # wrong response could itself run close to MAX_TOKENS worth of characters).
@@ -405,6 +421,7 @@ async def _call_real(
     model: str | None = None,
 ) -> BaseModel:
     resolved_model = model or MODEL_NAME
+    max_tokens = REASONING_MODEL_MAX_TOKENS if resolved_model == MODEL_NAME else MAX_TOKENS
     cache_key = None
     if agent_name in _CACHEABLE_AGENTS and html_snippet is not None:
         cache_key = _cache_key(agent_name, wcag_rule, html_snippet)
@@ -431,7 +448,7 @@ async def _call_real(
     payload = {
         "model": resolved_model,
         "temperature": 0.2,
-        "max_tokens": MAX_TOKENS,
+        "max_tokens": max_tokens,
         "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},

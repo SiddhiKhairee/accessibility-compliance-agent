@@ -39,11 +39,11 @@ def test_assert_llm_not_mocked_passes_when_unmocked(monkeypatch):
 
 
 async def _insert_call_log(
-    *, model_used: str, is_mock: bool, cache_hit: bool, created_at: datetime,
+    *, model_used: str, is_mock: bool, cache_hit: bool, created_at: datetime, tokens_used: int = 50,
 ) -> None:
     async with async_session_factory() as db:
         db.add(LlmCallLog(
-            agent_name=AgentName.Reviewer, latency_ms=100, tokens_used=50,
+            agent_name=AgentName.Reviewer, latency_ms=100, tokens_used=tokens_used,
             model_used=model_used, cache_hit=cache_hit, is_mock=is_mock,
             confidence_score=0.9, created_at=created_at,
         ))
@@ -81,3 +81,41 @@ async def test_count_real_calls_today_defaults_to_reviewer_model_and_real_now():
         count = await eval_runner.count_real_calls_today(db)
     assert isinstance(count, int)
     assert count >= 0
+
+
+async def test_sum_tokens_used_today_sums_only_real_uncached_todays_tokens_for_model():
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
+    today_9am = now.replace(hour=9)
+    yesterday = now - timedelta(days=1)
+
+    async with async_session_factory() as db:
+        before = await eval_runner.sum_tokens_used_today(db, model=model, now=now)
+    assert before == 0  # coalesce(sum(...), 0) on an empty result, not None
+
+    # Distinct tokens_used values on the two "should count" rows so the
+    # assertion proves summation, not a count-shaped coincidence.
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=1000)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=2000)
+    # Should NOT count (non-zero tokens_used so a bug that summed
+    # everything would visibly fail):
+    await _insert_call_log(model_used=model, is_mock=True, cache_hit=False, created_at=today_9am, tokens_used=500)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=True, created_at=today_9am, tokens_used=500)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=yesterday, tokens_used=500)
+    await _insert_call_log(
+        model_used=f"{model}-other", is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=500,
+    )
+
+    async with async_session_factory() as db:
+        after = await eval_runner.sum_tokens_used_today(db, model=model, now=now)
+    assert after == 3000
+
+
+async def test_sum_tokens_used_today_defaults_to_reviewer_model_and_real_now():
+    # Sanity check the default `model` param resolves to llm_client.MODEL_NAME
+    # and `now=None` doesn't raise (uses the real clock) — not asserting an
+    # exact total against the shared table, just that it runs cleanly.
+    async with async_session_factory() as db:
+        tokens = await eval_runner.sum_tokens_used_today(db)
+    assert isinstance(tokens, int)
+    assert tokens >= 0

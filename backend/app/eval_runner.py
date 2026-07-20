@@ -90,10 +90,34 @@ async def count_real_calls_today(
     return result.scalar_one()
 
 
+async def sum_tokens_used_today(
+    db: AsyncSession, model: str = llm_client.MODEL_NAME, now: datetime | None = None,
+) -> int:
+    """Real (is_mock=False, cache_hit=False) tokens_used summed across
+    calls to `model` since UTC midnight — same filter shape as
+    count_real_calls_today, but a token total rather than a row count,
+    since Groq's real per-account cap on this model is a *daily token*
+    total (TPD), confirmed live via a real 429 body (design.md Section
+    14h), not a request count. func.sum over zero matching rows is SQL
+    NULL, not 0 — func.coalesce keeps a no-calls-yet-today result an int
+    0, matching count_real_calls_today's zero-rows behavior."""
+    since = _start_of_day_utc(now or datetime.now(timezone.utc))
+    result = await db.execute(
+        select(func.coalesce(func.sum(LlmCallLog.tokens_used), 0)).select_from(LlmCallLog).where(
+            LlmCallLog.is_mock.is_(False),
+            LlmCallLog.cache_hit.is_(False),
+            LlmCallLog.model_used == model,
+            LlmCallLog.created_at >= since,
+        )
+    )
+    return result.scalar_one()
+
+
 def should_stop_for_budget(current_count: int, daily_cap: int, safety_margin_pct: float) -> bool:
     """Pure function: stop once current_count reaches the safety-margined
     threshold, not the literal cap — leaves headroom for other concurrent
-    Groq usage on the same account/model."""
+    Groq usage on the same account/model. Unit-agnostic — used for both
+    the request-count guard and the token-count guard."""
     return current_count >= daily_cap * safety_margin_pct
 
 
@@ -112,6 +136,7 @@ def load_or_init_manifest(path: Path, corpus: list[dict]) -> dict:
         "run_started_at": None,
         "last_updated_at": None,
         "budget_stopped": False,
+        "budget_stopped_reason": None,
         "sites": {
             row["site_id"]: {
                 "url": row["url"],
@@ -219,6 +244,7 @@ async def run_pass1(
     manifest_path: Path = PROGRESS_PASS1_PATH,
     snapshot_dir: Path = SNAPSHOT_DIR,
     daily_cap: int | None = None,
+    token_daily_cap: int | None = None,
     safety_margin_pct: float | None = None,
     max_pages: int = crawler.DEFAULT_MAX_PAGES,
     max_depth: int = crawler.DEFAULT_MAX_DEPTH,
@@ -228,13 +254,22 @@ async def run_pass1(
 ) -> dict:
     """Pass 1: crawl+detect every corpus site not yet done (free, runs to
     completion first), then run the Reviewer (only — not the full 4-node
-    graph) on every violation not yet reviewed, checking the daily-budget
-    guard before each real call. Split into two sequential loops so a
-    violation-heavy site can't block later sites from being crawled —
+    graph) on every violation not yet reviewed, checking both daily-budget
+    guards (real-call count and real-token total) before each real call,
+    stopping for whichever trips first. Split into two sequential loops so
+    a violation-heavy site can't block later sites from being crawled —
     crawling has no Groq cost and should never be gated behind review
     budget. Stops cleanly (no exception) and returns budget_stopped=True
-    the moment the guard trips, with the manifest already saved reflecting
+    (with budget_stopped_reason set to "call_count" or "token_count") the
+    moment either guard trips, with the manifest already saved reflecting
     exactly what got done.
+
+    Both guards approximate Groq's actual daily reset as a fixed UTC
+    midnight boundary (_start_of_day_utc) rather than the rolling
+    ~15-minute-scale window a real 429 body suggested for the token cap
+    specifically (design.md Section 14h) — conservative (can only stop a
+    run earlier than the true rolling window would strictly require, never
+    later), a known and accepted limitation, not unmodeled behavior.
 
     review_enabled=False stops after Pass 1a: returns once every site has
     been crawled, without entering the Pass 1b review loop at all (zero
@@ -250,13 +285,14 @@ async def run_pass1(
     _assert_llm_not_mocked()
 
     daily_cap = settings.EVAL_DAILY_CALL_CAP if daily_cap is None else daily_cap
+    token_daily_cap = settings.EVAL_DAILY_TOKEN_CAP if token_daily_cap is None else token_daily_cap
     safety_margin_pct = (
         settings.EVAL_DAILY_CAP_SAFETY_MARGIN_PCT if safety_margin_pct is None else safety_margin_pct
     )
     logger.info(
-        "eval_runner Pass 1: daily_cap=%s safety_margin_pct=%s — confirm this matches "
-        "console.groq.com/settings/limits for your account before a real run",
-        daily_cap, safety_margin_pct,
+        "eval_runner Pass 1: daily_cap=%s token_daily_cap=%s safety_margin_pct=%s — confirm these "
+        "match console.groq.com/settings/limits for your account before a real run",
+        daily_cap, token_daily_cap, safety_margin_pct,
     )
 
     corpus = load_corpus(corpus_path)
@@ -264,6 +300,7 @@ async def run_pass1(
     if manifest["run_started_at"] is None:
         manifest["run_started_at"] = datetime.now(timezone.utc).isoformat()
     manifest["budget_stopped"] = False
+    manifest["budget_stopped_reason"] = None
     if force_recrawl:
         _reset_sites_for_recrawl(manifest)
         save_manifest(manifest_path, manifest)
@@ -295,11 +332,13 @@ async def run_pass1(
 
     if not review_enabled:
         manifest["budget_stopped"] = False
+        manifest["budget_stopped_reason"] = None
         save_manifest(manifest_path, manifest)
         return {
             "sites_crawled": sites_crawled,
             "violations_reviewed": violations_reviewed,
             "budget_stopped": False,
+            "budget_stopped_reason": None,
         }
 
     # Pass 1b: review every violation not yet reviewed, across all crawled
@@ -315,18 +354,24 @@ async def run_pass1(
                     continue
 
                 count = await count_real_calls_today(db)
-                if should_stop_for_budget(count, daily_cap, safety_margin_pct):
+                tokens = await sum_tokens_used_today(db)
+                token_over = should_stop_for_budget(tokens, token_daily_cap, safety_margin_pct)
+                count_over = should_stop_for_budget(count, daily_cap, safety_margin_pct)
+                if token_over or count_over:
+                    reason = "token_count" if token_over else "call_count"
                     logger.warning(
-                        "eval_runner Pass 1: stopped at %s/%s (safety margin %s%%), "
-                        "resume by re-running eval_runner.py",
-                        count, daily_cap, safety_margin_pct * 100,
+                        "eval_runner Pass 1: stopped for %s budget — calls %s/%s, tokens %s/%s "
+                        "(safety margin %s%%), resume by re-running eval_runner.py",
+                        reason, count, daily_cap, tokens, token_daily_cap, safety_margin_pct * 100,
                     )
                     manifest["budget_stopped"] = True
+                    manifest["budget_stopped_reason"] = reason
                     save_manifest(manifest_path, manifest)
                     return {
                         "sites_crawled": sites_crawled,
                         "violations_reviewed": violations_reviewed,
                         "budget_stopped": True,
+                        "budget_stopped_reason": reason,
                     }
 
                 try:
@@ -355,11 +400,13 @@ async def run_pass1(
                 save_manifest(manifest_path, manifest)
 
     manifest["budget_stopped"] = False
+    manifest["budget_stopped_reason"] = None
     save_manifest(manifest_path, manifest)
     return {
         "sites_crawled": sites_crawled,
         "violations_reviewed": violations_reviewed,
         "budget_stopped": False,
+        "budget_stopped_reason": None,
     }
 
 

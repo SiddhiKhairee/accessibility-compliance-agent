@@ -1620,3 +1620,26 @@ Manifest committed as-is (1,195/798/1,129) — the 120 real successes are
 legitimate qwen3.6-27b-scored data, not discarded; the 124 failures are
 correctly classified (`http_error`/`rate_limited`) and will be naturally
 retried on the next resume, same as Session 1's precedent.
+
+**14i. Both Session 2 follow-ups landed.** `sum_tokens_used_today()`
+(`eval_runner.py`) mirrors `count_real_calls_today()` — same filter shape,
+`func.coalesce(func.sum(...), 0)` instead of `func.count()` — and a new
+`EVAL_DAILY_TOKEN_CAP` setting (`config.py`, default `200_000`, the
+literal confirmed TPD limit from the 429 body above) is checked alongside
+the existing request-count guard on every Pass 1b iteration, whichever
+trips first. Both still approximate Groq's reset as fixed UTC midnight
+rather than modeling the rolling ~15-minute window the 429 body suggested
+for the token cap specifically — accepted as a conservative approximation
+(stops a run only earlier than strictly necessary, never later), not
+solved here. The manifest gained a parallel `budget_stopped_reason:
+"call_count" | "token_count" | None` field (additive — `budget_stopped`
+itself is unchanged) so a stopped run's cause is visible without re-deriving
+it from logs. Separately, `llm_client.py` gained
+`REASONING_MODEL_MAX_TOKENS = 6000` (vs. the base `MAX_TOKENS = 2048`),
+applied only when `resolved_model == MODEL_NAME` — a starting estimate
+sized against the single 1,448-token observation above, not yet live-tuned
+against a real harder-reasoning case. Full suite green (119 passed), ruff
+clean. Live verification that 6000 is actually sufficient, and that the
+token guard behaves correctly against real (not faked) Groq token usage at
+scale, is still real, unstarted work for the next Pass 1b resume — this
+session's tests cover the guard logic itself, not a live re-run.
