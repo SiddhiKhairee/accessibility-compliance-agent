@@ -33,6 +33,18 @@ class Settings(BaseSettings):
     # own response headers; this tracks a daily total via llm_call_logs.
     EVAL_DAILY_CALL_CAP: int = 1000
     EVAL_DAILY_CAP_SAFETY_MARGIN_PCT: float = 0.9
+    # Phase 5 follow-up (design.md Section 14h, 2026-07-19): a per-account,
+    # per-model *daily token* cap confirmed live via a real 429 body
+    # ("Rate limit reached ... on tokens per day (TPD): Limit 200000") for
+    # qwen/qwen3.6-27b — distinct from EVAL_DAILY_CALL_CAP (request count)
+    # and from llm_client.py's existing per-minute token pacing
+    # (TOKEN_SAFETY_MARGIN). Unlike EVAL_DAILY_CALL_CAP's default, 200,000
+    # is the literal confirmed limit as of that date, not a guess — still
+    # reconfirm at console.groq.com/settings/limits if MODEL_NAME changes
+    # again. Reuses EVAL_DAILY_CAP_SAFETY_MARGIN_PCT rather than a second
+    # margin setting: the margin's purpose (headroom for concurrent
+    # account usage) applies the same regardless of which unit is measured.
+    EVAL_DAILY_TOKEN_CAP: int = 200_000
 
 
 settings = Settings()
