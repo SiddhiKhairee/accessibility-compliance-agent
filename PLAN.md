@@ -347,6 +347,27 @@ Three sequential stages against the 30-site corpus
             resume session, not optional polish; starting another run
             under the current code would likely repeat both failures
             immediately.
+      - [ ] Pass 1b — Session 3 (2026-07-21): resumed under the token-guard
+            + `MAX_TOKENS=6000` fix from Session 2 (PR #35) — first live
+            test of both. Manifest moved to **1,316/3,122 reviewed, 848
+            failed, 958 pending** (969 Reviewer invocations: 900 real Groq
+            calls + 69 free cache hits; of the real calls, 52 succeeded,
+            833 were 429'd, 15 were 400s). Ran clean to a guard stop, no
+            crash, no diagnosis-only stop. Two real findings:
+            1. The request-count guard (`EVAL_DAILY_CALL_CAP`), not the new
+               token guard, is what actually stopped the run — 900/1000
+               calls vs. only 93,813/200,000 tokens (46.9%). Confirms
+               Section 14h's prediction: most real calls are 429 rejections
+               that still count as a "real call" toward the 1000/day cap,
+               so the call-count guard binds well before the token guard
+               does at this success rate.
+            2. `MAX_TOKENS=6000` looks like a real improvement, not fully
+               proven: only 15/900 real calls (1.7%) came back 400, down
+               from Session 2's ~21/124 (~17%) under `MAX_TOKENS=2048`.
+               Not a controlled comparison (different day, different
+               violations), so directional evidence, not a confirmed fix.
+            Full numbers and the cache-hit reconciliation: design.md
+            Section 14j.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate

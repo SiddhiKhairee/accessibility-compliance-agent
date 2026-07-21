@@ -1643,3 +1643,62 @@ clean. Live verification that 6000 is actually sufficient, and that the
 token guard behaves correctly against real (not faked) Groq token usage at
 scale, is still real, unstarted work for the next Pass 1b resume — this
 session's tests cover the guard logic itself, not a live re-run.
+
+**14j. Pass 1b Session 3 (2026-07-21): live verification of the token guard
++ `MAX_TOKENS=6000`, run to a clean guard stop.** Resumed
+`eval_runner.py` for real. Manifest moved from **1,195/798/1,129**
+(done/failed/pending) to **1,316/848/958**, confirmed against both the
+manifest diff (keyed per site/page/rule/selector, not just the raw
+before/after counts) and `llm_call_logs` for the same UTC day:
+
+| | count |
+|---|---|
+| Reviewer invocations (`agent_name='Reviewer'`, today) | 969 |
+| — real Groq calls (`cache_hit=false, is_mock=false`) | 900 |
+| — cache hits (`cache_hit=true`) | 69 |
+| Real calls: 200 OK | 52 |
+| Real calls: 429 | 833 |
+| Real calls: 400 | 15 |
+| Real tokens used today (`sum(tokens_used)`, real calls only) | 93,813 |
+
+The 969/900/69 split matters because it's what reconciles an
+otherwise-contradictory number: the manifest shows 121 violations newly
+`done` this session, but only 52 real calls returned 200 — the other 69
+newly-`done` violations were free cache hits (identical violation pattern
+already scored earlier), not new Groq spend. Cross-checked with
+`count(confidence_score) = 52` among today's real rows, which matches the
+200-OK count exactly — every successful real call logged a
+`confidence_score` and no failed call did, confirming the CLAUDE.md
+per-call logging rule held under this session's real load. Separately, 171
+violations went `pending → failed` (first-time attempts this session, all
+of which failed) and a net 677 of the prior 798 `failed` stayed `failed`
+after retry (798 − 121 retried-to-success = 677; 677 + 171 = 848, the new
+failed total) — arithmetic that ties out cleanly, so no violation was
+silently dropped from the manifest.
+
+Two real findings, not yet fully proven either way:
+
+1. **The request-count guard is now the actual binding constraint, not the
+   token guard** — the run stopped at 900/1000 real calls while token usage
+   was only 93,813/200,000 (46.9%), a comfortable margin. This matches
+   Section 14h's prediction: at this model's real ~5.8% real-call success
+   rate (52/900), most calls are 429 rejections that still count as a "real
+   call" toward `EVAL_DAILY_CALL_CAP`, so the call-count guard trips long
+   before the token guard would. `EVAL_DAILY_CALL_CAP=1000` was sized
+   against the older model's better success rate and may now be
+   effectively the tighter of the two guards for qwen3.6-27b — not changed
+   this session (no evidence yet on whether raising it is safe, and doing
+   so wasn't the explicit task), just flagged as a real, not hypothetical,
+   asymmetry between the two caps.
+2. **`MAX_TOKENS=6000` looks like an improvement over the old `2048`, but
+   this is directional evidence, not a controlled comparison** — 15/900
+   real calls (1.7%) came back 400 this session, vs. Session 2's ~21/124
+   (~17%) under `MAX_TOKENS=2048`. Different day, different violations, no
+   isolation of `MAX_TOKENS` as the only variable — consistent with the
+   truncation theory in Section 14h but not a rigorous confirmation of it.
+
+Manifest committed as-is (1,316/848/958). No code changes this session —
+this was a live-verification run of Session 2's guard + retune, not a bug
+fix. Next resume session picks up the remaining 958 pending plus whatever
+of the 848 failed are worth retrying, same resumable precedent as
+Sessions 1 and 2.
