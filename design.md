@@ -1702,3 +1702,59 @@ this was a live-verification run of Session 2's guard + retune, not a bug
 fix. Next resume session picks up the remaining 958 pending plus whatever
 of the 848 failed are worth retrying, same resumable precedent as
 Sessions 1 and 2.
+
+**14k. Pass 1b Session 4 (2026-07-22): a local Docker outage (zero real
+spend, easy), then a real-call success rate that collapsed to 0.56% (not
+yet diagnosed).** First attempt crashed immediately —
+`ConnectionRefusedError` on `localhost:5433` inside `count_real_calls_today`,
+the very first DB query of the loop, before a single Groq call fired
+(traceback starts at log line 2). `docker ps` confirmed the cause: Docker
+Desktop itself wasn't running (`open //./pipe/dockerDesktopLinuxEngine: The
+system cannot find the file specified`), taking the Postgres container down
+with it — no relation to Groq, the guard, or anything code-side. Restarted
+Docker Desktop, confirmed `accessibility_agent_postgres` healthy, re-ran.
+
+The re-run completed cleanly (stopped at the call-count guard, no crash),
+but the real numbers are a genuine regression from Session 3, one day
+earlier, same model/account:
+
+| | Session 3 (07-21) | Session 4 (07-22) |
+|---|---|---|
+| Real Groq calls | 900 | 900 |
+| — 200 OK | 52 (5.8%) | **5 (0.56%)** |
+| — 429 | 833 | 893 |
+| — 400 | 15 | 2 |
+| Cache hits | 69 | 32 |
+| Real tokens used | 93,813 (46.9% of TPD cap) | 10,195 (5.1% of TPD cap) |
+| Reactive pacing sleeps triggered | (not tallied) | 5, ~55s each |
+
+Manifest moved **1,316/848/958 → 1,353/895/874** (done/failed/pending),
+confirmed via the same keyed per-violation diff used in 14j: 1 violation
+went `pending → done` directly (first-try success), 36 went
+`failed → done` (retry success — these plus the 1 direct success account
+for all 37 non-cache newly-`done` entries, i.e. exactly the 5 real
+successes... the discrepancy (37 vs 5) is the 32 cache hits, same
+reconciliation pattern as Session 3), 83 went `pending → failed` (first
+attempt, failed), and the remaining failed count carries forward
+(848 − 36 + 83 = 895, ties out).
+
+**Real finding, deliberately left undiagnosed this session rather than
+guessed at:** the 429 rate is far higher than the client's own pacing
+logic anticipated. `_wait_for_min_interval_if_needed`'s reactive
+token-budget check (Section 8b/14d — sleeps when a model's *remaining
+tokens this minute*, per Groq's own response headers, drops under
+`TOKEN_SAFETY_MARGIN`) only judged a sleep necessary **5 times** across the
+whole run, yet 893 of 900 real calls came back 429. If the binding
+constraint were the per-minute *token* budget this logic already tracks,
+a 429 rate this high should have driven far more than 5 reactive sleeps.
+The gap points at a rate dimension `llm_client.py` doesn't measure at
+all — plausibly a requests-per-minute (RPM) cap, distinct from the TPM
+pacing (Section 8b) and the TPD daily cap (Section 14h/14i) already
+handled — but this session did not confirm that against a real 429 body
+(the pre-existing gap noted in 14h, `raw_content` only populating on
+success, still applies) or rule out a transient Groq-side condition
+specific to this run's time window. Not fixed or guarded against this
+session; flagged as real, scoped follow-up before assuming future resumes
+will behave like Session 3 rather than Session 4.
+
+Manifest committed as-is (1,353/895/874). No code changes this session.

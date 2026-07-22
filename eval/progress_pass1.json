@@ -1,6 +1,6 @@
 {
   "run_started_at": "2026-07-14T20:38:18.661306+00:00",
-  "last_updated_at": "2026-07-21T22:22:12.579574+00:00",
+  "last_updated_at": "2026-07-22T04:17:03.600501+00:00",
   "budget_stopped": true,
   "sites": {
     "1": {
@@ -14574,11 +14574,11 @@
               "html_snippet": "<span role=\"link\" aria-label=\"LSS in Taboola advertising section\" class=\"branding-inner inline-branding\">LSS</span>",
               "message": "Element has insufficient color contrast of 2.84 (foreground color: #999999, background color: #ffffff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14730,11 +14730,11 @@
               "html_snippet": "<div class=\"ScoreCell__TeamName ScoreCell__TeamName--abbrev db\">NY</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14766,11 +14766,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14778,11 +14778,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14790,11 +14790,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14802,11 +14802,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14814,11 +14814,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14826,11 +14826,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14838,11 +14838,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14850,11 +14850,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14862,11 +14862,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14874,11 +14874,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14886,11 +14886,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14898,11 +14898,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14910,11 +14910,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14922,11 +14922,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -14934,11 +14934,11 @@
               "html_snippet": "<span class=\"Schedule__Result is--win clr-positive fl tc nowrap db\">W</span>",
               "message": "Element content is too short to determine if it is actual text content",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15054,11 +15054,11 @@
               "html_snippet": "<div class=\"Media__Duration\">1:13</div>",
               "message": "Element's background color could not be determined because element contains an image node",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15081,8 +15081,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -15261,11 +15261,11 @@
               "html_snippet": "<span class=\"stat-cell\">.667</span>",
               "message": "Element has insufficient color contrast of 4.49 (foreground color: #6c6d6f, background color: #e6f0fa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15285,11 +15285,11 @@
               "html_snippet": "<span class=\"stat-cell\">.667</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15561,11 +15561,11 @@
               "html_snippet": "<span class=\"stat-cell\">.333</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15573,11 +15573,11 @@
               "html_snippet": "<span class=\"stat-cell\">.333</span>",
               "message": "Element has insufficient color contrast of 4.49 (foreground color: #6c6d6f, background color: #e6f0fa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15585,11 +15585,11 @@
               "html_snippet": "<span class=\"stat-cell\">.250</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15597,11 +15597,11 @@
               "html_snippet": "<span class=\"stat-cell\">.250</span>",
               "message": "Element has insufficient color contrast of 4.49 (foreground color: #6c6d6f, background color: #e6f0fa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15609,11 +15609,11 @@
               "html_snippet": "<span class=\"stat-cell\">.250</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15621,11 +15621,11 @@
               "html_snippet": "<span class=\"stat-cell\">.250</span>",
               "message": "Element has insufficient color contrast of 4.49 (foreground color: #6c6d6f, background color: #e6f0fa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15657,11 +15657,11 @@
               "html_snippet": "<span class=\"stat-cell\">.000</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15681,11 +15681,11 @@
               "html_snippet": "<span class=\"stat-cell clr-positive\">+14.7</span>",
               "message": "Element has insufficient color contrast of 3.72 (foreground color: #009944, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15717,11 +15717,11 @@
               "html_snippet": "<span class=\"stat-cell\">.333</span>",
               "message": "Element has insufficient color contrast of 4.49 (foreground color: #6c6d6f, background color: #e6f0fa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15741,11 +15741,11 @@
               "html_snippet": "<span class=\"stat-cell\">.000</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15789,11 +15789,11 @@
               "html_snippet": "<span class=\"stat-cell clr-positive\">+17.0</span>",
               "message": "Element has insufficient color contrast of 3.56 (foreground color: #009944, background color: #fafafa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 1.0,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15837,11 +15837,11 @@
               "html_snippet": "<span class=\"stat-cell clr-positive\">+3.0</span>",
               "message": "Element has insufficient color contrast of 3.56 (foreground color: #009944, background color: #fafafa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 1.0,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15861,11 +15861,11 @@
               "html_snippet": "<span class=\"stat-cell\">.333</span>",
               "message": "Element has insufficient color contrast of 4.29 (foreground color: #6c6d6f, background color: #e1ebf5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15897,11 +15897,11 @@
               "html_snippet": "<span role=\"link\" aria-label=\"LSS in Taboola advertising section\" class=\"branding-inner inline-branding\">LSS</span>",
               "message": "Element has insufficient color contrast of 2.84 (foreground color: #999999, background color: #ffffff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -15921,11 +15921,11 @@
               "html_snippet": "<span role=\"link\" aria-label=\"WebSearchable | Luxury Sedan in Taboola advertising section\" class=\"branding-inner inline-branding\">WebSearchable | Luxury Sedan</span>",
               "message": "Element has insufficient color contrast of 2.84 (foreground color: #999999, background color: #ffffff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
               "detection_confidence": "confirmed",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -16188,8 +16188,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+              "error_type": "http_error"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16233,11 +16233,11 @@
               "html_snippet": "<div class=\"ScoreCell__Time ScoreCell__Time--default clr-gray-01\">Postponed</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
               "detection_confidence": "needs_review",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             }
           ]
         },
@@ -16367,8 +16367,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16378,8 +16378,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16444,8 +16444,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16455,8 +16455,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16675,8 +16675,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16686,8 +16686,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16730,8 +16730,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16785,8 +16785,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16796,8 +16796,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16818,8 +16818,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16884,8 +16884,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16895,8 +16895,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -16917,8 +16917,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
@@ -25994,396 +25994,396 @@
               "element_selector": "#mwAfQ",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://doi.org/10.1021%2Fjf402400v\" class=\"external text\" id=\"mwAfQ\">10.1021/jf402400v</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAfg",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4284091\" class=\"external text\" id=\"mwAfg\">4284091</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAfs",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://pubmed.ncbi.nlm.nih.gov/23984718\" class=\"external text\" id=\"mwAfs\">23984718</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAgU",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://doi.org/10.1111%2Fpde.12639\" class=\"external text\" id=\"mwAgU\">10.1111/pde.12639</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAgg",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://pubmed.ncbi.nlm.nih.gov/26212605\" class=\"external text\" id=\"mwAgg\">26212605</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAgs",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://api.semanticscholar.org/CorpusID:23566200\" class=\"external text\" id=\"mwAgs\">23566200</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAhE",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.the-dermatologist.com/content/goblin\u2019s-copper-\u2014-time-nickel-directed-us-health-policy-here\" class=\"external text\" id=\"mwAhE\">\"Nickel-Directed US Health Policy\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAh0",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://doi.org/10.1097%2FDER.0000000000000411\" class=\"external text\" id=\"mwAh0\">10.1097/DER.0000000000000411</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAiA",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://pubmed.ncbi.nlm.nih.gov/30422883\" class=\"external text\" id=\"mwAiA\">30422883</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAiM",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://api.semanticscholar.org/CorpusID:53303401\" class=\"external text\" id=\"mwAiM\">53303401</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAi0",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://doi.org/10.1111%2Fj.1365-2133.1986.tb06646.x\" class=\"external text\" id=\"mwAi0\">10.1111/j.1365-2133.1986.tb06646.x</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAjA",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://pubmed.ncbi.nlm.nih.gov/3801307\" class=\"external text\" id=\"mwAjA\">3801307</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAjM",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://api.semanticscholar.org/CorpusID:21476276\" class=\"external text\" id=\"mwAjM\">21476276</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAjk",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3662044\" class=\"external text\" id=\"mwAjk\">\"Local advantage: skin DCs prime, skin memory T cells protect\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAj4",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://doi.org/10.1038%2Fni0509-451\" class=\"external text\" id=\"mwAj4\">10.1038/ni0509-451</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAkI",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3662044\" class=\"external text\" id=\"mwAkI\">3662044</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAkU",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://pubmed.ncbi.nlm.nih.gov/19381136\" class=\"external text\" id=\"mwAkU\">19381136</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAkw",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.mayoclinic.com/health/contact-dermatitis/DS00985/DSECTION=tests-and-diagnosis\" class=\"external text\" id=\"mwAkw\">\"Contact dermatitis\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAk4",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://web.archive.org/web/20100619134256/http://www.mayoclinic.com/health/contact-dermatitis/DS00985/DSECTION%3Dtests-and-diagnosis\" class=\"external text\" id=\"mwAk4\">Archived</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAlc",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.mayoclinic.com/health/contact-dermatitis/DS00985/DSECTION=tests-and-diagnosis\" class=\"external text\" id=\"mwAlc\">\"Tests and diagnosis\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAlk",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://web.archive.org/web/20100619134256/http://www.mayoclinic.com/health/contact-dermatitis/DS00985/DSECTION%3Dtests-and-diagnosis\" class=\"external text\" id=\"mwAlk\">Archived</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAmI",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.emedicinehealth.com/contact_dermatitis/page7_em.htm#Self-Care%20at%20Home\" class=\"external text\" id=\"mwAmI\">\"Self-Care at Home\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAmQ",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://web.archive.org/web/20100615060705/http://www.emedicinehealth.com/contact_dermatitis/page7_em.htm\" class=\"external text\" id=\"mwAmQ\">Archived</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAmw",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://www.uptodate.com/contents/poison-ivy-beyond-the-basics\" class=\"external text\" id=\"mwAmw\">\"Patient Education: Poison Ivy (Beyond the Basics)\"</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "li:nth-child(1) > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://icd.who.int/browse10/2019/en#/L23\" class=\"external text\">L23</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "li:nth-child(2) > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.icd9data.com/getICD9Code.ashx?icd9=691.8\" class=\"external text\">691.8</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "li:nth-child(3) > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://meshb.nlm.nih.gov/record/ui?ui=D017449\" class=\"external text\">D017449</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "li:nth-child(4) > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"http://www.diseasesdatabase.com/ddb29435.htm\" class=\"external text\">29435</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"Template:Dermatitis and eczema\"] > abbr[title=\"View this template\"]",
               "html_snippet": "<abbr title=\"View this template\">v</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAnU > .mw-collapsible.autocollapse.mw-made-collapsible > tbody > tr:nth-child(1) > .navbox-title[scope=\"col\"][colspan=\"2\"] > .navbar.plainlinks.navbar-mini > ul > .nv-talk > a[rel=\"mw:WikiLink\"] > abbr[title=\"Discuss this template\"]",
               "html_snippet": "<abbr title=\"Discuss this template\">t</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAnU > .mw-collapsible.autocollapse.mw-made-collapsible > tbody > tr:nth-child(1) > .navbox-title[scope=\"col\"][colspan=\"2\"] > .navbar.plainlinks.navbar-mini > ul > .nv-edit > a[rel=\"mw:WikiLink\"] > abbr[title=\"Edit this template\"]",
               "html_snippet": "<abbr title=\"Edit this template\">e</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAnc > .mw-collapsible.autocollapse.mw-made-collapsible > tbody > tr:nth-child(1) > .navbox-title[scope=\"col\"][colspan=\"2\"] > .navbar.plainlinks.navbar-mini > ul > .nv-view > a[rel=\"mw:WikiLink\"] > abbr[title=\"View this template\"]",
               "html_snippet": "<abbr title=\"View this template\">v</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAnc > .mw-collapsible.autocollapse.mw-made-collapsible > tbody > tr:nth-child(1) > .navbox-title[scope=\"col\"][colspan=\"2\"] > .navbar.plainlinks.navbar-mini > ul > .nv-talk > a[rel=\"mw:WikiLink\"] > abbr[title=\"Discuss this template\"]",
               "html_snippet": "<abbr title=\"Discuss this template\">t</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#mwAnc > .mw-collapsible.autocollapse.mw-made-collapsible > tbody > tr:nth-child(1) > .navbox-title[scope=\"col\"][colspan=\"2\"] > .navbar.plainlinks.navbar-mini > ul > .nv-edit > a[rel=\"mw:WikiLink\"] > abbr[title=\"Edit this template\"]",
               "html_snippet": "<abbr title=\"Edit this template\">e</abbr>",
               "message": "Element content is too short to determine if it is actual text content",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".rt-commentedText > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://aleph.nkp.cz/F/?func=find-c&amp;local_base=aut&amp;ccl_term=ica=ph928207&amp;CON_LNG=ENG\" class=\"external text\">Czech Republic</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".uid > .external.text[rel=\"mw:ExtLink nofollow\"]",
               "html_snippet": "<a rel=\"mw:ExtLink nofollow\" href=\"https://dbn.bn.org.pl/descriptor-details/9810613879405606\" class=\"external text\">Poland</a>",
               "message": "Element's background color could not be determined due to a background image",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             }
           ]
         },
@@ -26398,416 +26398,416 @@
               "element_selector": "img[width=\"220\"]",
               "html_snippet": "<img src=\"//upload.wikimedia.o...\" decoding=\"async\" width=\"220\" height=\"220\" class=\"mw-file-element\" srcset=\"//upload.wikimedia.o...\" data-file-width=\"1050\" data-file-height=\"1050\">",
               "message": "Element does not have an alt attribute; aria-label attribute does not exist or is empty; aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty; Element has no title attribute; Element's default semantics were not overridden with role=\"none\" or role=\"presentation\"",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "link-name",
               "element_selector": ".mw-file-description",
               "html_snippet": "<a href=\"/wiki/File:Contactus-wmcolors.svg\" class=\"mw-file-description\">",
               "message": "Element does not have text that is visible to screen readers; aria-label attribute does not exist or is empty; aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty; Element has no title attribute; Element is in tab order and does not have accessible text",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#searchInput",
               "html_snippet": "<input class=\"cdx-text-input__input mw-searchInput\" autocomplete=\"off\" type=\"search\" name=\"search\" placeholder=\"Search Wikipedia\" aria-label=\"Search Wikipedia\" autocapitalize=\"none\" spellcheck=\"false\" title=\"Search Wikipedia [alt-f]\" accesskey=\"f\" id=\"searchInput\">",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#searchform > .cdx-search-input__end-button",
               "html_snippet": "<button class=\"cdx-button cdx-search-input__end-button\">Search</button>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#pt-sitesupport-2 > a[data-mw-donate-attempt=\"top_link\"][data-mw-interface=\"\"] > span",
               "html_snippet": "<span>Donate</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#pt-createaccount-2 > a[data-mw-interface=\"\"] > span",
               "html_snippet": "<span>Create account</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#pt-login-2 > a[accesskey=\"o\"][data-mw-interface=\"\"] > span",
               "html_snippet": "<span>Log in</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#firstHeading > span[dir=\"ltr\"][lang=\"en\"] > .mw-page-title-namespace",
               "html_snippet": "<span class=\"mw-page-title-namespace\">Wikipedia</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#firstHeading > span[dir=\"ltr\"][lang=\"en\"] > .mw-page-title-main",
               "html_snippet": "<span class=\"mw-page-title-main\">Contact us</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#p-lang-btn-label > .vector-dropdown-label-text",
               "html_snippet": "<span class=\"vector-dropdown-label-text\">82 languages</span>",
               "message": "Element's background color could not be determined due to a pseudo element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"View the project page [alt-c]\"] > span",
               "html_snippet": "<span>Project page</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[rel=\"discussion\"] > span",
               "html_snippet": "<span>Talk</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#ca-view > a[href$=\"Wikipedia:Contact_us\"][data-mw-interface=\"\"] > span",
               "html_snippet": "<span>Read</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[accesskey=\"e\"] > span",
               "html_snippet": "<span>View source</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[accesskey=\"h\"] > span",
               "html_snippet": "<span>View history</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".vector-appearance-pinnable-header > .vector-pinnable-header-label",
               "html_snippet": "<div class=\"vector-pinnable-header-label\">Appearance</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".vector-appearance-pinnable-header > .vector-pinnable-header-unpin-button.vector-pinnable-header-toggle-button",
               "html_snippet": "<button class=\"vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button\" data-event-name=\"pinnable-header.vector-appearance.unpin\">hide</button>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-custom-font-size > .vector-menu-heading",
               "html_snippet": "<div class=\"vector-menu-heading\">Text</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-custom-font-size > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(1) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Small</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-custom-font-size > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(2) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Standard</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-custom-font-size > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(3) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Large</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-limited-width > .vector-menu-heading",
               "html_snippet": "<div class=\"vector-menu-heading\">Width</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-limited-width > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(1) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Standard</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-vector-feature-limited-width > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(2) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Wide</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-skin-theme > .vector-menu-heading",
               "html_snippet": "<div class=\"vector-menu-heading\">Color <span><span></span></span></div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-skin-theme > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(1) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Automatic</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-skin-theme > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(2) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Light</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#skin-client-prefs-skin-theme > .vector-menu-content > .vector-menu-content-list > .mw-list-item-js.mw-list-item > div > form > .cdx-radio:nth-child(3) > .cdx-label.cdx-radio__label > .cdx-label__label__text",
               "html_snippet": "<span class=\"cdx-label__label__text\">Dark</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "#siteSub",
               "html_snippet": "<div id=\"siteSub\" class=\"noprint\">From Wikipedia, the free encyclopedia</div>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".mw-selflink > .introto__tabs-title",
               "html_snippet": "<span class=\"introto__tabs-title\">Introduction</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".introto__tabs-main:nth-child(5) > p",
               "html_snippet": "<p><a href=\"/wiki/Wikipedia:Contact_us/Readers\" title=\"Wikipedia:Contact us/Readers\"><span class=\"introto__tabs-title\">Readers</span></a><br>\nHow to report a problem with an article, or find out more information.\n</p>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"Wikipedia:Contact us/Readers\"] > .introto__tabs-title",
               "html_snippet": "<span class=\"introto__tabs-title\">Readers</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".introto__tabs-main:nth-child(7) > p",
               "html_snippet": "<p><a href=\"/wiki/Wikipedia:Contact_us/Article_subjects\" title=\"Wikipedia:Contact us/Article subjects\"><span class=\"introto__tabs-title\">Article subjects</span></a><br>\nProblems with articles about you, your company, or somebody you represent.\n</p>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".introto__tabs-main:nth-child(7) > p > a > .introto__tabs-title",
               "html_snippet": "<span class=\"introto__tabs-title\">Article subjects</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".introto__tabs-main:nth-child(9) > p",
               "html_snippet": "<p><a href=\"/wiki/Wikipedia:Contact_us/Licensing\" title=\"Wikipedia:Contact us/Licensing\"><span class=\"introto__tabs-title\">Licensing</span></a><br>\nHow to copy Wikipedia's information, donate your own, or report unlicensed use of your information.\n</p>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"Wikipedia:Contact us/Licensing\"] > .introto__tabs-title",
               "html_snippet": "<span class=\"introto__tabs-title\">Licensing</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": ".introto__columns-right > p:nth-child(2)",
               "html_snippet": "<p>Thank you for your interest in contacting Wikipedia. Before proceeding, some important disclaimers:\n</p>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "ol > li:nth-child(1)",
               "html_snippet": "<li>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
-              "confidence_score": null,
-              "confirmed": null,
+              "reviewer_status": "done",
+              "confidence_score": 0.95,
+              "confirmed": true,
               "failure_reason": null,
               "error_type": null
             },
@@ -26816,110 +26816,110 @@
               "element_selector": "b",
               "html_snippet": "<b>Wikipedia has no central editorial board.</b>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"wmf:Home\"]",
               "html_snippet": "<a href=\"https://foundation.wikimedia.org/wiki/Home\" class=\"extiw\" title=\"wmf:Home\">Wikimedia Foundation</a>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "ol > li:nth-child(2)",
               "html_snippet": "<li>Generally, the agent who responds to an email request will not make edits on your behalf.</li>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "ol > li:nth-child(3)",
               "html_snippet": "<li>Disagreements with content will not be resolved via email. Use the <a href=\"/wiki/Wikipedia:Edit_Request_Wizard\" title=\"Wikipedia:Edit Request Wizard\">Edit Request Wizard</a> to propose specific changes to an article.</li>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"Wikipedia:Edit Request Wizard\"]",
               "html_snippet": "<a href=\"/wiki/Wikipedia:Edit_Request_Wizard\" title=\"Wikipedia:Edit Request Wizard\">Edit Request Wizard</a>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "ol > li:nth-child(4)",
               "html_snippet": "<li>Although Wikipedia was co-founded by <a href=\"/wiki/Jimmy_Wales\" title=\"Jimmy Wales\">Jimmy Wales</a>, he is not personally responsible for our content.</li>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[href$=\"Jimmy_Wales\"]",
               "html_snippet": "<a href=\"/wiki/Jimmy_Wales\" title=\"Jimmy Wales\">Jimmy Wales</a>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "ol > li:nth-child(5)",
               "html_snippet": "<li>If you have questions about the <i>concept</i> of Wikipedia rather than a specific problem, the <a href=\"/wiki/Wikipedia:About\" title=\"Wikipedia:About\">About Wikipedia</a> page may help.</li>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "i",
               "html_snippet": "<i>concept</i>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
               "element_selector": "a[title=\"Wikipedia:About\"]",
               "html_snippet": "<a href=\"/wiki/Wikipedia:About\" title=\"Wikipedia:About\">About Wikipedia</a>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "pending",
+              "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": null,
-              "error_type": null
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",

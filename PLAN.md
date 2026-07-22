@@ -368,6 +368,24 @@ Three sequential stages against the 30-site corpus
                violations), so directional evidence, not a confirmed fix.
             Full numbers and the cache-hit reconciliation: design.md
             Section 14j.
+      - [ ] Pass 1b — Session 4 (2026-07-22): resumed after a local
+            Docker Desktop outage (Postgres unreachable) crashed the very
+            first attempt at 0 real spend — restarted Docker, re-ran clean.
+            Manifest moved to **1,353/3,122 reviewed, 895 failed, 874
+            pending** (932 Reviewer invocations: 900 real Groq calls + 32
+            free cache hits; of the real calls, only **5 succeeded**, 893
+            were 429'd, 2 were 400s). Stopped cleanly at the call-count
+            guard again (900/1000), tokens barely touched (10,195/200,000,
+            5.1%). Real finding, not yet diagnosed: success rate collapsed
+            to 0.56% (5/900) vs. Session 3's 5.8% (52/900) on the same
+            model/account the day before, and the client's own reactive
+            per-minute pacing only judged it necessary to sleep 5 times the
+            whole run — meaning ~888 of the 893 429s hit without the
+            client's token-remaining tracking seeing them coming. Points at
+            a rate dimension (plausibly requests-per-minute) that nothing
+            in `llm_client.py` currently tracks, distinct from the TPM
+            pacing and the TPD daily cap already handled. Not root-caused
+            this session — full account: design.md Section 14k.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
