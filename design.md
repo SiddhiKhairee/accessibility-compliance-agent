@@ -1758,3 +1758,55 @@ session; flagged as real, scoped follow-up before assuming future resumes
 will behave like Session 3 rather than Session 4.
 
 Manifest committed as-is (1,353/895/874). No code changes this session.
+
+**14l. Pass 1b Session 5 (2026-07-24): 14k's RPM theory disproven with real
+data; the real gap was the reactive safety margin not scaling with
+`REASONING_MODEL_MAX_TOKENS`, fixed and live-verified.** Before guessing at
+an RPM guard, first made a small, cheap live-verification change: capture
+the real rate-limit headers and response body on any 4xx/5xx from Groq
+(previously `raw_content` — and therefore the logged `error` field — only
+got populated on the success path, so a 429 logged nothing more useful than
+the exception string). Verified against a real 8-call burst against
+`qwen/qwen3.6-27b` (fresh UTC day, 0/1000 calls used beforehand): 3 of the 8
+calls got 429s.
+
+Every 429's headers told a clear story:
+
+| | Fail 1 | Fail 2 | Fail 3 |
+|---|---|---|---|
+| `x-ratelimit-remaining-requests` | 999 | 998 | 997 |
+| `x-ratelimit-remaining-tokens` | 867 | 1045 | 1123 |
+| `x-ratelimit-limit-requests` (RPD) | 1000 | 1000 | 1000 |
+| `x-ratelimit-limit-tokens` (TPM) | 8000 | 8000 | 8000 |
+
+`remaining-requests` sat at 997-999 out of 1000 on every single 429 —
+essentially untouched. **This directly rules out 14k's RPM theory**: if a
+requests-per-minute cap were the binding constraint, that number would be
+near zero right before a 429, not at 99.7-99.9%. The real constraint is
+exactly what it always was assumed to be — tokens-per-minute — confirmed
+live via the response body (`"Rate limit reached for model
+qwen/qwen3.6-27b in organization ..."`, no RPM language).
+
+The actual gap: `_wait_for_rate_limit_if_needed`'s reactive check compared
+`remaining_tokens` against a flat `TOKEN_SAFETY_MARGIN` (1500) regardless of
+how large the *upcoming* call's own `max_tokens` request was. Every 429's
+`remaining-tokens` (867-1123) cleared that flat 1500 threshold comfortably —
+so the client judged "safe to fire" — while qwen3.6-27b calls request up to
+`REASONING_MODEL_MAX_TOKENS` (6000) per call, 4x the margin meant to cover
+them. Groq rejects the request outright once its 6000-token ceiling can't
+fit in what's left of the minute's 8000-token budget, independent of how
+many tokens the call would have actually used.
+
+**Fix**: `_wait_for_rate_limit_if_needed` now takes the resolved call's
+`max_tokens` and sleeps whenever `remaining < max_tokens +
+TOKEN_SAFETY_MARGIN`, not `remaining < TOKEN_SAFETY_MARGIN` alone —
+`_make_paced_request` reads `max_tokens` straight off the outgoing payload,
+so no new parameter threading through `_call_real` was needed. Covered by a
+new regression test
+(`test_reactive_sleep_scales_with_reasoning_model_max_tokens` in
+`test_llm_client_pacing.py`): remaining=3000 (clears the old flat 1500
+margin, but under 6000+1500) now correctly forces a sleep for a
+default-model call, where the pre-fix logic would have let it fire
+immediately into a 429. Full backend suite (121 tests) green after the
+change. Not yet re-verified against a real sustained Pass 1b resume — that
+remains the next real check before trusting this at full-corpus scale.

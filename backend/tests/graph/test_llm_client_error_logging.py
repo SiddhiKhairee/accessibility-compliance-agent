@@ -22,9 +22,13 @@ from agents.reviewer.schema import ReviewerOutput
 from models import AgentName
 
 
-def _make_groq_response(status_code: int, json_body: dict | None = None) -> httpx.Response:
+def _make_groq_response(
+    status_code: int, json_body: dict | None = None, headers: dict | None = None,
+) -> httpx.Response:
     request = httpx.Request("POST", llm_client.GROQ_URL)
-    return httpx.Response(status_code, json=json_body if json_body is not None else {}, request=request)
+    return httpx.Response(
+        status_code, json=json_body if json_body is not None else {}, headers=headers, request=request,
+    )
 
 
 async def _latest_log_row(engine):
@@ -81,6 +85,39 @@ async def test_error_logging_rate_limited(test_engine, monkeypatch):
     assert row.is_mock is False
     assert row.error_type == "rate_limited"
     assert row.error
+    await _assert_no_cache_row(test_engine, wcag_rule)
+
+
+async def test_error_logging_rate_limited_captures_rate_limit_headers(test_engine, monkeypatch):
+    # Design.md 14k: a real Session 4 run saw a 429 rate the token-budget
+    # pacing logic didn't anticipate, but raw_content stayed empty on the
+    # error path so there was nothing to inspect. This locks in that the
+    # real rate-limit headers/body now land in the logged error field.
+    wcag_rule = f"error-test-429-headers-{uuid.uuid4().hex[:12]}"
+
+    async def fake_request(model, payload, headers):
+        return _make_groq_response(
+            429,
+            json_body={"error": {"message": "Rate limit reached for requests per minute"}},
+            headers={
+                "x-ratelimit-remaining-requests": "0",
+                "x-ratelimit-reset-requests": "12s",
+                "x-ratelimit-remaining-tokens": "7500",
+                "x-ratelimit-reset-tokens": "3.84s",
+                "retry-after": "12",
+            },
+        ), 5
+
+    monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
+
+    with pytest.raises(llm_client.LlmCallError):
+        await llm_client._call_real(AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput)
+
+    row = await _latest_log_row(test_engine)
+    assert row.error_type == "rate_limited"
+    assert "x-ratelimit-remaining-requests" in row.error
+    assert "'x-ratelimit-remaining-requests': '0'" in row.error
+    assert "requests per minute" in row.error
     await _assert_no_cache_row(test_engine, wcag_rule)
 
 
