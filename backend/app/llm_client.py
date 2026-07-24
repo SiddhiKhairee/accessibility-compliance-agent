@@ -113,6 +113,10 @@ REQUEST_TIMEOUT_S = 30
 # with just enough reported "remaining" budget to look safe but not
 # enough to actually cover a longer Developer response, causing residual
 # 429s. 1500 clears the observed max with real margin for variance.
+# Used as extra headroom on top of the upcoming call's own requested
+# max_tokens (see _wait_for_rate_limit_if_needed), not as the entire
+# threshold -- a flat 1500 alone isn't enough margin for a model requesting
+# up to REASONING_MODEL_MAX_TOKENS=6000 per call (design.md Section 14l).
 TOKEN_SAFETY_MARGIN = 1500
 # Closes a gap TOKEN_SAFETY_MARGIN alone doesn't: right after a per-minute
 # window resets, several same-page calls can each individually clear the
@@ -214,22 +218,33 @@ def _update_rate_limit_state(model: str, response: httpx.Response) -> None:
         _reset_at_monotonic[model] = _monotonic() + _parse_reset_duration(reset)
 
 
-async def _wait_for_rate_limit_if_needed(model: str) -> None:
+async def _wait_for_rate_limit_if_needed(model: str, max_tokens: int) -> None:
     """Adaptive pacing: only sleeps when that model's real remaining token
-    budget is actually low. Runs calls back-to-back with zero delay
-    whenever there's genuine headroom (including the very first call for a
-    given model, when there's no prior observation yet)."""
+    budget can't safely cover the *upcoming* call's own requested
+    max_tokens. Runs calls back-to-back with zero delay whenever there's
+    genuine headroom (including the very first call for a given model,
+    when there's no prior observation yet).
+
+    Comparing remaining tokens against a flat TOKEN_SAFETY_MARGIN alone
+    (the pre-fix behavior) let calls fire whenever remaining cleared 1500 --
+    fine for a ~2048-max_tokens call, but qwen3.6-27b requests up to
+    REASONING_MODEL_MAX_TOKENS=6000. A real Pass 1b verification burst
+    (design.md Section 14l) got 429s with remaining-tokens in the
+    867-1123 range: comfortably above 1500, nowhere near enough to cover
+    a 6000-token request. The threshold now scales with the call actually
+    being made instead of a constant sized for a smaller model."""
     remaining = _remaining_tokens.get(model)
     reset_at = _reset_at_monotonic.get(model)
     if remaining is None or reset_at is None:
         return
-    if remaining >= TOKEN_SAFETY_MARGIN:
+    threshold = max_tokens + TOKEN_SAFETY_MARGIN
+    if remaining >= threshold:
         return
     wait_s = reset_at - _monotonic()
     if wait_s > 0:
         logger.info(
-            "pacing: model=%s only %d tokens remaining (< %d safety margin), sleeping %.2fs for Groq's rate-limit window to reset",
-            model, remaining, TOKEN_SAFETY_MARGIN, wait_s,
+            "pacing: model=%s only %d tokens remaining (< %d needed for a %d-token call + safety margin), sleeping %.2fs for Groq's rate-limit window to reset",
+            model, remaining, threshold, max_tokens, wait_s,
         )
         await _sleep(wait_s)
 
@@ -258,7 +273,7 @@ async def _make_paced_request(model: str, payload: dict, headers: dict) -> tuple
     Groq's own ceiling already caps achievable throughput well below what
     local concurrency could otherwise attempt."""
     async with _rate_limit_lock:
-        await _wait_for_rate_limit_if_needed(model)
+        await _wait_for_rate_limit_if_needed(model, payload["max_tokens"])
         await _wait_for_min_interval_if_needed(model)
         start = time.monotonic()
         client = _get_http_client()
@@ -477,6 +492,19 @@ async def _call_real(
     except Exception as e:
         latency_ms = int((time.monotonic() - start) * 1000)
         error_type = _classify_error(e)
+        if isinstance(e, httpx.HTTPStatusError) and not raw_content:
+            # raw_content only gets set on the success path above, so a 4xx/5xx
+            # otherwise logs nothing but the exception string. Session 4 (design.md
+            # 14k) hit a 429 rate collapse the existing token-budget pacing didn't
+            # anticipate (only 5 reactive sleeps across 900 calls) -- capturing the
+            # real rate-limit headers/body here is how we find out whether a
+            # requests-per-minute cap Groq isn't documented for this model is the
+            # actual binding constraint, instead of guessing.
+            rate_limit_headers = {
+                k: v for k, v in e.response.headers.items()
+                if k.lower().startswith("x-ratelimit") or k.lower() == "retry-after"
+            }
+            raw_content = f"status={e.response.status_code} rate_limit_headers={rate_limit_headers} body={e.response.text}"
         await _write_log(
             agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
             model_used=resolved_model, cache_hit=False, is_mock=False, confidence_score=None,

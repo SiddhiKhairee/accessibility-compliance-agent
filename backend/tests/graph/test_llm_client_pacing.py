@@ -44,8 +44,9 @@ def _healthy_response() -> httpx.Response:
         "choices": [{"message": {"content": '{"confirmed": true, "confidence_score": 0.9, "reasoning": "ok"}'}}],
         "usage": {"total_tokens": 10},
     }
-    # Well above TOKEN_SAFETY_MARGIN (1500) so the existing reactive sleep
-    # never fires -- isolates the new floor-delay behavior under test.
+    # Well above these tests' MAX_TOKENS (2048) + TOKEN_SAFETY_MARGIN (1500)
+    # threshold so the reactive sleep never fires -- isolates the floor-delay
+    # behavior under test.
     headers = {"x-ratelimit-remaining-tokens": "5900", "x-ratelimit-reset-tokens": "60s"}
     return httpx.Response(200, json=json_body, headers=headers, request=httpx.Request("POST", llm_client.GROQ_URL))
 
@@ -140,3 +141,47 @@ async def test_pacing_is_scoped_per_model(monkeypatch):
     )
 
     assert clock.sleeps == []
+
+
+async def test_reactive_sleep_scales_with_reasoning_model_max_tokens(monkeypatch):
+    """Regression for design.md Section 14l: a real Pass 1b verification
+    burst got 429s with remaining-tokens in the 867-1123 range -- comfortably
+    above the flat TOKEN_SAFETY_MARGIN (1500) the reactive check used to
+    compare against alone, but nowhere near enough to cover a
+    REASONING_MODEL_MAX_TOKENS (6000) request. The threshold must scale with
+    the call actually being made, not stay fixed at a constant sized for a
+    smaller model."""
+    clock = _FakeClock()
+    monkeypatch.setattr(llm_client, "_monotonic", clock.monotonic)
+    monkeypatch.setattr(llm_client, "_sleep", clock.sleep)
+
+    def _low_remaining_response() -> httpx.Response:
+        json_body = {
+            "choices": [{"message": {"content": '{"confirmed": true, "confidence_score": 0.9, "reasoning": "ok"}'}}],
+            "usage": {"total_tokens": 10},
+        }
+        # 3000 clears the old flat TOKEN_SAFETY_MARGIN (1500) but is well
+        # under REASONING_MODEL_MAX_TOKENS (6000) + TOKEN_SAFETY_MARGIN.
+        headers = {"x-ratelimit-remaining-tokens": "3000", "x-ratelimit-reset-tokens": "45s"}
+        return httpx.Response(200, json=json_body, headers=headers, request=httpx.Request("POST", llm_client.GROQ_URL))
+
+    monkeypatch.setattr(
+        llm_client, "_get_http_client",
+        lambda: _FakeHttpClient([_low_remaining_response(), _low_remaining_response()]),
+    )
+
+    # No model= override -> resolved_model is MODEL_NAME, so _call_real uses
+    # REASONING_MODEL_MAX_TOKENS (6000) as this call's max_tokens.
+    wcag_rule_1 = f"pacing-test-{uuid.uuid4().hex[:12]}"
+    await llm_client._call_real(
+        AgentName.Reviewer, wcag_rule_1, '<img src="x.jpg">', "sys", "user", ReviewerOutput,
+    )
+    wcag_rule_2 = f"pacing-test-{uuid.uuid4().hex[:12]}"
+    await llm_client._call_real(
+        AgentName.Reviewer, wcag_rule_2, '<img src="x.jpg">', "sys", "user", ReviewerOutput,
+    )
+
+    # remaining=3000 < 6000 + 1500 -> the second call must sleep for the
+    # reported reset duration (45s). Pre-fix, remaining=3000 >= the flat
+    # 1500 margin would have let it fire immediately instead.
+    assert clock.sleeps == [45.0]

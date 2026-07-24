@@ -386,6 +386,23 @@ Three sequential stages against the 30-site corpus
             in `llm_client.py` currently tracks, distinct from the TPM
             pacing and the TPD daily cap already handled. Not root-caused
             this session — full account: design.md Section 14k.
+      - [x] Pass 1b — Session 5 (2026-07-24): diagnosed and fixed Session
+            4's open finding, no eval resume this session. First captured
+            real rate-limit headers/body on 4xx/5xx responses (previously
+            only logged on success). An 8-call live-verification burst
+            (fresh UTC day, 0/1000 calls used) got 3 429s, and every one
+            showed `x-ratelimit-remaining-requests` at 997-999/1000 —
+            disproving 14k's RPM theory outright. The real gap:
+            `_wait_for_rate_limit_if_needed` compared remaining tokens
+            against a flat `TOKEN_SAFETY_MARGIN` (1500) regardless of the
+            upcoming call's own `max_tokens`, so it judged "safe" at
+            remaining=867-1123 even though qwen3.6-27b requests up to
+            `REASONING_MODEL_MAX_TOKENS` (6000) per call. Fixed: the
+            reactive check now sleeps when `remaining < max_tokens +
+            TOKEN_SAFETY_MARGIN`. Covered by a new regression test; full
+            backend suite (121 tests) green. Full account: design.md
+            Section 14l. Not yet re-verified at a real sustained Pass 1b
+            resume — that's the next real check.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
