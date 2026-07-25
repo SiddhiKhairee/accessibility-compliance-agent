@@ -30,7 +30,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import func, select
@@ -65,20 +65,32 @@ def _assert_llm_not_mocked() -> None:
         )
 
 
-def _start_of_day_utc(now: datetime) -> datetime:
-    return now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+def _rolling_24h_window_start(now: datetime) -> datetime:
+    """Groq's real per-account daily cap (TPD, and presumably RPD by the
+    same mechanism) is a rolling 24-hour window, not a fixed UTC-midnight
+    reset. Live-verified (design.md Section 14m): resuming seconds after a
+    UTC calendar-day rollover, this guard's old fixed-midnight boundary
+    (_start_of_day_utc) reported a fully fresh 0/200,000 token budget, but
+    Groq's real counter -- carrying forward the previous day's heavy real
+    usage, still well within the last 24 actual hours -- was already at
+    ~199,000/200,000. The guard fired 900 calls into an almost-exhausted
+    budget; 893 came back 429 (visible only once the 429 body/header
+    capture fix from design.md 14l let the real "tokens per day (TPD)"
+    error message surface). A rolling window instead of a calendar
+    boundary tracks what Groq is actually enforcing."""
+    return now.astimezone(timezone.utc) - timedelta(hours=24)
 
 
 async def count_real_calls_today(
     db: AsyncSession, model: str = llm_client.MODEL_NAME, now: datetime | None = None,
 ) -> int:
-    """Real (is_mock=False, cache_hit=False) calls to `model` since UTC
-    midnight. Filters by model, not agent_name, since Groq's RPD cap is
-    per-model-per-account — this also captures any concurrent production
-    Reviewer/Developer traffic on the same model, not just this eval run's
-    own calls. `now` is injectable so tests never depend on a real day
-    boundary."""
-    since = _start_of_day_utc(now or datetime.now(timezone.utc))
+    """Real (is_mock=False, cache_hit=False) calls to `model` in the
+    trailing 24 hours (see _rolling_24h_window_start). Filters by model,
+    not agent_name, since Groq's RPD cap is per-model-per-account — this
+    also captures any concurrent production Reviewer/Developer traffic on
+    the same model, not just this eval run's own calls. `now` is
+    injectable so tests never depend on the real clock."""
+    since = _rolling_24h_window_start(now or datetime.now(timezone.utc))
     result = await db.execute(
         select(func.count()).select_from(LlmCallLog).where(
             LlmCallLog.is_mock.is_(False),
@@ -94,14 +106,15 @@ async def sum_tokens_used_today(
     db: AsyncSession, model: str = llm_client.MODEL_NAME, now: datetime | None = None,
 ) -> int:
     """Real (is_mock=False, cache_hit=False) tokens_used summed across
-    calls to `model` since UTC midnight — same filter shape as
+    calls to `model` in the trailing 24 hours — same filter shape as
     count_real_calls_today, but a token total rather than a row count,
     since Groq's real per-account cap on this model is a *daily token*
-    total (TPD), confirmed live via a real 429 body (design.md Section
-    14h), not a request count. func.sum over zero matching rows is SQL
-    NULL, not 0 — func.coalesce keeps a no-calls-yet-today result an int
-    0, matching count_real_calls_today's zero-rows behavior."""
-    since = _start_of_day_utc(now or datetime.now(timezone.utc))
+    total (TPD) on a rolling 24h window, confirmed live via real 429
+    bodies (design.md Sections 14h and 14m), not a request count.
+    func.sum over zero matching rows is SQL NULL, not 0 — func.coalesce
+    keeps a no-calls-in-window result an int 0, matching
+    count_real_calls_today's zero-rows behavior."""
+    since = _rolling_24h_window_start(now or datetime.now(timezone.utc))
     result = await db.execute(
         select(func.coalesce(func.sum(LlmCallLog.tokens_used), 0)).select_from(LlmCallLog).where(
             LlmCallLog.is_mock.is_(False),
@@ -264,12 +277,14 @@ async def run_pass1(
     moment either guard trips, with the manifest already saved reflecting
     exactly what got done.
 
-    Both guards approximate Groq's actual daily reset as a fixed UTC
-    midnight boundary (_start_of_day_utc) rather than the rolling
-    ~15-minute-scale window a real 429 body suggested for the token cap
-    specifically (design.md Section 14h) — conservative (can only stop a
-    run earlier than the true rolling window would strictly require, never
-    later), a known and accepted limitation, not unmodeled behavior.
+    Both guards use a rolling 24-hour window (_rolling_24h_window_start),
+    matching Groq's own real per-account daily reset behavior rather than a
+    fixed UTC-midnight boundary. The fixed-midnight version of this guard
+    let a run start seconds after a UTC calendar-day rollover believing it
+    had a fully fresh daily budget, when Groq's real rolling-window counter
+    was still carrying forward the previous day's heavy usage — confirmed
+    live (design.md Section 14m) when that gap let 893/900 real calls in a
+    single resume fail on the account's actual TPD cap.
 
     review_enabled=False stops after Pass 1a: returns once every site has
     been crawled, without entering the Pass 1b review loop at all (zero

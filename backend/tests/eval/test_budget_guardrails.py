@@ -50,27 +50,44 @@ async def _insert_call_log(
         await db.commit()
 
 
-async def test_count_real_calls_today_counts_only_real_uncached_todays_calls_for_model():
+async def test_count_real_calls_today_counts_only_real_uncached_calls_in_rolling_24h_for_model():
     model = f"test-model-{uuid.uuid4().hex[:12]}"
     now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
-    today_9am = now.replace(hour=9)
-    yesterday = now - timedelta(days=1)
+    ten_hours_ago = now - timedelta(hours=10)
+    outside_window = now - timedelta(hours=25)
 
     async with async_session_factory() as db:
         before = await eval_runner.count_real_calls_today(db, model=model, now=now)
     assert before == 0  # uuid-suffixed model, guaranteed no pre-existing rows
 
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=ten_hours_ago)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=ten_hours_ago)
     # Should NOT count:
-    await _insert_call_log(model_used=model, is_mock=True, cache_hit=False, created_at=today_9am)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=True, created_at=today_9am)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=yesterday)
-    await _insert_call_log(model_used=f"{model}-other", is_mock=False, cache_hit=False, created_at=today_9am)
+    await _insert_call_log(model_used=model, is_mock=True, cache_hit=False, created_at=ten_hours_ago)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=True, created_at=ten_hours_ago)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=outside_window)
+    await _insert_call_log(model_used=f"{model}-other", is_mock=False, cache_hit=False, created_at=ten_hours_ago)
 
     async with async_session_factory() as db:
         after = await eval_runner.count_real_calls_today(db, model=model, now=now)
     assert after == 2
+
+
+async def test_count_real_calls_today_uses_rolling_window_not_calendar_day():
+    """Regression for design.md Section 14m: a call from a few hours before
+    UTC midnight (a different *calendar* day than `now`) must still count,
+    since it's well within the real rolling 24h window Groq actually
+    enforces. The pre-fix calendar-midnight boundary would have wrongly
+    excluded it, letting a resume think it had a fresh budget it didn't."""
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 0, 20, tzinfo=timezone.utc)  # 20 min into a new UTC day
+    previous_calendar_day_but_within_24h = now - timedelta(hours=2)  # 2026-06-14, ~5h before this window's cutoff
+
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=previous_calendar_day_but_within_24h)
+
+    async with async_session_factory() as db:
+        count = await eval_runner.count_real_calls_today(db, model=model, now=now)
+    assert count == 1
 
 
 async def test_count_real_calls_today_defaults_to_reviewer_model_and_real_now():
@@ -83,11 +100,11 @@ async def test_count_real_calls_today_defaults_to_reviewer_model_and_real_now():
     assert count >= 0
 
 
-async def test_sum_tokens_used_today_sums_only_real_uncached_todays_tokens_for_model():
+async def test_sum_tokens_used_today_sums_only_real_uncached_tokens_in_rolling_24h_for_model():
     model = f"test-model-{uuid.uuid4().hex[:12]}"
     now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
-    today_9am = now.replace(hour=9)
-    yesterday = now - timedelta(days=1)
+    ten_hours_ago = now - timedelta(hours=10)
+    outside_window = now - timedelta(hours=25)
 
     async with async_session_factory() as db:
         before = await eval_runner.sum_tokens_used_today(db, model=model, now=now)
@@ -95,20 +112,39 @@ async def test_sum_tokens_used_today_sums_only_real_uncached_todays_tokens_for_m
 
     # Distinct tokens_used values on the two "should count" rows so the
     # assertion proves summation, not a count-shaped coincidence.
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=1000)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=2000)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=ten_hours_ago, tokens_used=1000)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=ten_hours_ago, tokens_used=2000)
     # Should NOT count (non-zero tokens_used so a bug that summed
     # everything would visibly fail):
-    await _insert_call_log(model_used=model, is_mock=True, cache_hit=False, created_at=today_9am, tokens_used=500)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=True, created_at=today_9am, tokens_used=500)
-    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=yesterday, tokens_used=500)
+    await _insert_call_log(model_used=model, is_mock=True, cache_hit=False, created_at=ten_hours_ago, tokens_used=500)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=True, created_at=ten_hours_ago, tokens_used=500)
+    await _insert_call_log(model_used=model, is_mock=False, cache_hit=False, created_at=outside_window, tokens_used=500)
     await _insert_call_log(
-        model_used=f"{model}-other", is_mock=False, cache_hit=False, created_at=today_9am, tokens_used=500,
+        model_used=f"{model}-other", is_mock=False, cache_hit=False, created_at=ten_hours_ago, tokens_used=500,
     )
 
     async with async_session_factory() as db:
         after = await eval_runner.sum_tokens_used_today(db, model=model, now=now)
     assert after == 3000
+
+
+async def test_sum_tokens_used_today_uses_rolling_window_not_calendar_day():
+    """Regression for design.md Section 14m -- see the matching
+    count_real_calls_today test for the real-world scenario this locks in:
+    a fresh UTC calendar day must not report a fresh token budget if heavy
+    usage happened within the last real 24 hours."""
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 0, 20, tzinfo=timezone.utc)
+    previous_calendar_day_but_within_24h = now - timedelta(hours=2)
+
+    await _insert_call_log(
+        model_used=model, is_mock=False, cache_hit=False,
+        created_at=previous_calendar_day_but_within_24h, tokens_used=199000,
+    )
+
+    async with async_session_factory() as db:
+        tokens = await eval_runner.sum_tokens_used_today(db, model=model, now=now)
+    assert tokens == 199000
 
 
 async def test_sum_tokens_used_today_defaults_to_reviewer_model_and_real_now():

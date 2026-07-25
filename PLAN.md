@@ -386,23 +386,49 @@ Three sequential stages against the 30-site corpus
             in `llm_client.py` currently tracks, distinct from the TPM
             pacing and the TPD daily cap already handled. Not root-caused
             this session — full account: design.md Section 14k.
-      - [x] Pass 1b — Session 5 (2026-07-24): diagnosed and fixed Session
-            4's open finding, no eval resume this session. First captured
-            real rate-limit headers/body on 4xx/5xx responses (previously
-            only logged on success). An 8-call live-verification burst
-            (fresh UTC day, 0/1000 calls used) got 3 429s, and every one
-            showed `x-ratelimit-remaining-requests` at 997-999/1000 —
-            disproving 14k's RPM theory outright. The real gap:
+      - [x] Pass 1b — Session 5 (2026-07-24→25): diagnosed and fixed
+            Session 4's open finding, then found and fixed a second, larger
+            bug live-verification surfaced. Part 1: first captured real
+            rate-limit headers/body on 4xx/5xx responses (previously only
+            logged on success). An 8-call live-verification burst (fresh
+            UTC day, 0/1000 calls used) got 3 429s, and every one showed
+            `x-ratelimit-remaining-requests` at 997-999/1000 — disproving
+            14k's RPM theory outright. The real gap:
             `_wait_for_rate_limit_if_needed` compared remaining tokens
             against a flat `TOKEN_SAFETY_MARGIN` (1500) regardless of the
             upcoming call's own `max_tokens`, so it judged "safe" at
             remaining=867-1123 even though qwen3.6-27b requests up to
-            `REASONING_MODEL_MAX_TOKENS` (6000) per call. Fixed: the
-            reactive check now sleeps when `remaining < max_tokens +
-            TOKEN_SAFETY_MARGIN`. Covered by a new regression test; full
-            backend suite (121 tests) green. Full account: design.md
-            Section 14l. Not yet re-verified at a real sustained Pass 1b
-            resume — that's the next real check.
+            `REASONING_MODEL_MAX_TOKENS` (6000) per call. Fixed: sleeps now
+            when `remaining < max_tokens + TOKEN_SAFETY_MARGIN`. Verified
+            clean at small scale (19 real calls, 0 rate-limited) before
+            merging. Full account: design.md Section 14l.
+
+            Part 2: a full-budget resume to clear the real backlog crashed
+            on a local Docker Desktop outage (same category as Session 4,
+            zero relation to the fix; manifest intact, no data lost) and
+            needed a second targeted fix (`docker compose restart
+            postgres`) beyond the user's Docker Desktop restart, since
+            asyncpg's SSL preflight kept failing for several minutes after.
+            The relaunched resume then collapsed to 7/900 real successes —
+            at first glance a Session-4 repeat, but the 429 body (visible
+            now thanks to Part 1's capture fix) named the real cause:
+            Groq's TPD (tokens/day) cap is a **rolling 24-hour window**,
+            not a fixed UTC-midnight reset. Real UTC time crossed into
+            2026-07-25 mid-session, and `count_real_calls_today`/
+            `sum_tokens_used_today`'s fixed-midnight boundary reported a
+            fully fresh 200,000-token budget when Groq's real rolling
+            counter still had the previous real day's heavy usage counted
+            against it (~199,000/200,000 already used). This also
+            retroactively best-explains Session 4's original 0.56%
+            collapse (Session 4 resumed the day after Session 3's heavy
+            spend). Fixed: both guards now use a rolling 24h window
+            (`now - timedelta(hours=24)`) instead of calendar-day
+            boundaries. Two new regression tests lock in a call from a
+            different *calendar* day than `now` but within the real last
+            24h still counting. Full backend suite (123 tests) green. Full
+            account: design.md Section 14m. Not yet re-verified at a real
+            resume — needs the rolling window to age out enough for real
+            headroom to return first.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
