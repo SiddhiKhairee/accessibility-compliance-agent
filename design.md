@@ -1810,3 +1810,85 @@ default-model call, where the pre-fix logic would have let it fire
 immediately into a 429. Full backend suite (121 tests) green after the
 change. Not yet re-verified against a real sustained Pass 1b resume — that
 remains the next real check before trusting this at full-corpus scale.
+
+**14m. Pass 1b Session 5 (continued, 2026-07-24→25): the max_tokens-margin
+fix verified clean at small scale, then a real sustained resume exposed a
+second, larger bug — the daily-budget guard's fixed-UTC-midnight boundary
+doesn't match Groq's real rolling-window TPD reset.** Three real-call
+checkpoints this session, in order:
+
+1. A small resume (`daily_cap` override, ~20 violations) landed cleanly:
+   19 real calls, 0 rate-limited, only the pre-existing 400/DNS failure
+   modes — first sustained-beyond-a-single-burst confirmation that 14l's
+   fix holds.
+2. A full-budget resume (no override) was launched to clear the real
+   backlog. It made real progress (successful 200s with correct proactive
+   sleeps logged) but crashed on a `sqlalchemy.exc.InterfaceError:
+   ... the underlying connection is closed` a few minutes in — Docker
+   Desktop itself had gone down mid-run (`docker ps` returned "Docker
+   Desktop is unable to start"), taking Postgres with it. Same failure
+   category as Session 4: zero relation to Groq or the pacing fix. No data
+   lost — the manifest saves after every violation, so progress up to the
+   crash point was intact. Recovery needed two restarts, not one: the
+   user's Docker Desktop restart alone still failed connections with
+   `ConnectionError: unexpected connection_lost() call` inside asyncpg's
+   SSL preflight for several minutes (raw TCP connect succeeded, `docker
+   exec ... psql` succeeded, only the asyncpg/Windows-ProactorEventLoop
+   SSL handshake specifically kept failing) — resolved by `docker compose
+   restart postgres` to recycle just that container's network attachment.
+3. The relaunched full resume collapsed almost identically to Session 4:
+   7/900 real calls succeeded, 893 came back 429. This looked at first
+   like a Session-4 repeat, but the 429 body/header capture from 14l
+   (unavailable in Session 4) made the real cause immediately legible this
+   time:
+
+   > `Rate limit reached for model qwen/qwen3.6-27b ... on tokens per day
+   > (TPD): Limit 200000, Used 199073, Requested 6199. Please try again in
+   > 37m57.504s.`
+
+   `x-ratelimit-remaining-requests` stayed at 994-999/1000 throughout
+   (again ruling out RPM, consistent with 14l). The actual cause: real UTC
+   time crossed midnight into 2026-07-25 partway through this session (a
+   side effect of how long the session ran, not planned), and
+   `count_real_calls_today`/`sum_tokens_used_today` reset their own
+   accounting to 0 at that fixed boundary — reporting a fully fresh
+   200,000-token budget. But Groq's real TPD counter is a **rolling
+   24-hour window**, not a calendar-day reset: the heavy real spend from
+   earlier the same real day (this session's diagnostic bursts, the
+   small-resume verification, and the run that crashed on the Docker
+   outage) was still well within the last 24 actual hours and still
+   counted by Groq, leaving only a few hundred to low-thousands of tokens
+   of real headroom. The guard's fixed-midnight assumption (documented as
+   a known, deliberately-accepted limitation in the original `run_pass1`
+   docstring, reasoned to be "conservative — can only stop a run earlier,
+   never later") was disproven by this real data: it let a resume start
+   believing it had a full budget when it had almost none, spending most
+   of a 900-call daily allowance on guaranteed-to-fail requests.
+
+   This also retroactively explains Session 4's original 0.56%-success
+   collapse far better than 14k's disproven RPM guess or 14l's (real, but
+   narrower) max_tokens-margin bug: Session 4 resumed the day after
+   Session 3's heavy real spend, plausibly hitting the same rolling-window
+   TPD exhaustion — Session 4 simply couldn't see it, because the 429
+   body/header capture that makes this legible didn't exist until 14l.
+
+   **Fix**: replaced `_start_of_day_utc` (fixed UTC-midnight boundary)
+   with `_rolling_24h_window_start` (`now - timedelta(hours=24)`) in both
+   `count_real_calls_today` and `sum_tokens_used_today` — matching what
+   Groq actually enforces instead of a convenient calendar assumption.
+   Applied to both the token-count and call-count guards on the reasoning
+   that Groq likely uses the same rolling mechanism for both, even though
+   only TPD has a real 429 body confirming it directly (RPD has never
+   been approached closely enough to trigger one). Two new regression
+   tests lock in the exact scenario that broke: a call timestamped a few
+   hours before UTC midnight (a different *calendar* day than `now`, but
+   within the real last 24 hours) must still count against the budget —
+   the pre-fix calendar boundary would have wrongly excluded it. Existing
+   tests using an exactly-`now - 1 day` boundary were adjusted to an
+   unambiguous `now - 25h` "outside window" timestamp, since that value
+   sits exactly on the new rolling window's edge rather than safely
+   outside a calendar-day one. Full backend suite (123 tests) green.
+   Not yet re-verified against a real resume — that's the next real
+   check, once enough of the rolling window has aged out for real
+   headroom to return (Groq's own retry-after put that at ~30-40 minutes
+   out from when the collapse was diagnosed).
