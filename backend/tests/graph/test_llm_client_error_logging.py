@@ -34,7 +34,7 @@ def _make_groq_response(
 async def _latest_log_row(engine):
     async with engine.connect() as conn:
         result = await conn.execute(
-            text("SELECT is_mock, error, error_type FROM llm_call_logs ORDER BY id DESC LIMIT 1")
+            text("SELECT is_mock, error, error_type, retry_after_s FROM llm_call_logs ORDER BY id DESC LIMIT 1")
         )
         return result.fetchone()
 
@@ -93,7 +93,12 @@ async def test_error_logging_rate_limited_captures_rate_limit_headers(test_engin
     # pacing logic didn't anticipate, but raw_content stayed empty on the
     # error path so there was nothing to inspect. This locks in that the
     # real rate-limit headers/body now land in the logged error field.
+    # Uses an isolated fake model (Session 6 addition) since this 429 now
+    # also populates retry_after_s -- without isolation this would leave a
+    # cooldown row for the real MODEL_NAME in the shared test DB, which
+    # eval_runner tests reading the default model's cooldown could pick up.
     wcag_rule = f"error-test-429-headers-{uuid.uuid4().hex[:12]}"
+    fake_model = f"test-model-{uuid.uuid4().hex[:12]}"
 
     async def fake_request(model, payload, headers):
         return _make_groq_response(
@@ -111,13 +116,87 @@ async def test_error_logging_rate_limited_captures_rate_limit_headers(test_engin
     monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
 
     with pytest.raises(llm_client.LlmCallError):
-        await llm_client._call_real(AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput)
+        await llm_client._call_real(
+            AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput, model=fake_model,
+        )
 
     row = await _latest_log_row(test_engine)
     assert row.error_type == "rate_limited"
     assert "x-ratelimit-remaining-requests" in row.error
     assert "'x-ratelimit-remaining-requests': '0'" in row.error
     assert "requests per minute" in row.error
+    await _assert_no_cache_row(test_engine, wcag_rule)
+
+
+async def test_error_logging_rate_limited_captures_retry_after_seconds(test_engine, monkeypatch):
+    # Design.md 14n: retry-after was already captured into the diagnostic
+    # `error` text (14k), but never parsed into a queryable value, so a
+    # TPD-scale 429 (retry measured in minutes) was indistinguishable from
+    # a normal TPM blip to anything reading llm_call_logs programmatically.
+    # This locks in that it now lands in retry_after_s for eval_runner.py's
+    # get_cooldown_until() to read directly. Isolated fake model so this
+    # cooldown row can't be picked up by another test reading the real
+    # MODEL_NAME's cooldown state from the shared test DB.
+    wcag_rule = f"error-test-429-retryafter-{uuid.uuid4().hex[:12]}"
+    fake_model = f"test-model-{uuid.uuid4().hex[:12]}"
+
+    async def fake_request(model, payload, headers):
+        return _make_groq_response(
+            429,
+            json_body={"error": {"message": "Rate limit reached ... on tokens per day (TPD)"}},
+            headers={"retry-after": "886.032"},
+        ), 5
+
+    monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
+
+    with pytest.raises(llm_client.LlmCallError):
+        await llm_client._call_real(
+            AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput, model=fake_model,
+        )
+
+    row = await _latest_log_row(test_engine)
+    assert row.error_type == "rate_limited"
+    assert row.retry_after_s == pytest.approx(886.032)
+    await _assert_no_cache_row(test_engine, wcag_rule)
+
+
+async def test_error_logging_non_429_leaves_retry_after_seconds_null(test_engine, monkeypatch):
+    wcag_rule = f"error-test-500-retryafter-{uuid.uuid4().hex[:12]}"
+    fake_model = f"test-model-{uuid.uuid4().hex[:12]}"
+
+    async def fake_request(model, payload, headers):
+        return _make_groq_response(500), 5
+
+    monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
+
+    with pytest.raises(llm_client.LlmCallError):
+        await llm_client._call_real(
+            AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput, model=fake_model,
+        )
+
+    row = await _latest_log_row(test_engine)
+    assert row.error_type == "http_error"
+    assert row.retry_after_s is None
+    await _assert_no_cache_row(test_engine, wcag_rule)
+
+
+async def test_error_logging_timeout_leaves_retry_after_seconds_null(test_engine, monkeypatch):
+    wcag_rule = f"error-test-timeout-retryafter-{uuid.uuid4().hex[:12]}"
+    fake_model = f"test-model-{uuid.uuid4().hex[:12]}"
+
+    async def fake_request(model, payload, headers):
+        raise httpx.TimeoutException("simulated timeout")
+
+    monkeypatch.setattr(llm_client, "_make_paced_request", fake_request)
+
+    with pytest.raises(llm_client.LlmCallError):
+        await llm_client._call_real(
+            AgentName.Reviewer, wcag_rule, '<img src="x.jpg">', "sys", "user", ReviewerOutput, model=fake_model,
+        )
+
+    row = await _latest_log_row(test_engine)
+    assert row.error_type == "timeout"
+    assert row.retry_after_s is None
     await _assert_no_cache_row(test_engine, wcag_rule)
 
 

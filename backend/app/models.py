@@ -273,6 +273,13 @@ class LlmCallLog(Base):
     # `error` so failure-rate analysis is a clean categorical filter, not
     # string-parsing exception names out of free text.
     error_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # Groq's `retry-after` header on a rate-limited response, in seconds.
+    # Phase 5 Pass 1b Session 6 (design.md Section 14n): our own rolling-
+    # 24h token-sum guard undercounted Groq's real daily ledger by a wide
+    # margin, so eval_runner.py's get_cooldown_until() trusts this
+    # real-time value directly instead of reconstructing Groq's day
+    # boundary from our own logs a third time.
+    retry_after_s: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 class LlmResponseCache(Base):

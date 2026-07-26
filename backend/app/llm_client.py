@@ -356,13 +356,14 @@ async def _write_log(
     *, agent_name: AgentName, latency_ms: int, tokens_used: int, model_used: str,
     cache_hit: bool, is_mock: bool, confidence_score: float | None,
     error: str | None = None, error_type: str | None = None,
+    retry_after_s: float | None = None,
 ) -> None:
     async with async_session_factory() as db:
         db.add(LlmCallLog(
             agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
             model_used=model_used, cache_hit=cache_hit, is_mock=is_mock,
             confidence_score=confidence_score, error=error, error_type=error_type,
-            created_at=datetime.now(timezone.utc),
+            retry_after_s=retry_after_s, created_at=datetime.now(timezone.utc),
         ))
         await db.commit()
 
@@ -505,10 +506,24 @@ async def _call_real(
                 if k.lower().startswith("x-ratelimit") or k.lower() == "retry-after"
             }
             raw_content = f"status={e.response.status_code} rate_limit_headers={rate_limit_headers} body={e.response.text}"
+        retry_after_s = None
+        if isinstance(e, httpx.HTTPStatusError):
+            # Session 6 (design.md 14n): captured for logging since Session 4
+            # (14k) but never actually used anywhere — a TPD-scale 429 (retry
+            # measured in minutes, not seconds) looked identical to a normal
+            # TPM blip to every consumer of this row, so nothing backed off.
+            # eval_runner.py's get_cooldown_until() reads this column directly
+            # rather than re-deriving Groq's reset behavior from our own logs.
+            retry_after_header = e.response.headers.get("retry-after")
+            if retry_after_header is not None:
+                try:
+                    retry_after_s = float(retry_after_header)
+                except ValueError:
+                    pass
         await _write_log(
             agent_name=agent_name, latency_ms=latency_ms, tokens_used=tokens_used,
             model_used=resolved_model, cache_hit=False, is_mock=False, confidence_score=None,
-            error_type=error_type,
+            error_type=error_type, retry_after_s=retry_after_s,
             error=f"{type(e).__name__}: {e}\n--- raw response ---\n{raw_content}"[:ERROR_FIELD_MAX_CHARS],
         )
         raise LlmCallError(f"{agent_name.value} call failed: {e}", error_type=error_type) from e
