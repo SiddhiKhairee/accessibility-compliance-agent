@@ -1892,3 +1892,85 @@ checkpoints this session, in order:
    check, once enough of the rolling window has aged out for real
    headroom to return (Groq's own retry-after put that at ~30-40 minutes
    out from when the collapse was diagnosed).
+
+**14n. Pass 1b Session 6 (2026-07-26): the rolling-24h resume-verification
+run itself collapsed into a runaway 429 storm, and the real numbers ruled
+out the obvious follow-up theory — the actual fix trusts Groq's own
+retry-after instead of trying to reconstruct their ledger a third time.**
+
+1. Pre-flight was clean: `LLM_MOCK` unset, and 14m's own rolling-24h guard
+   reported 0 real calls / 0 tokens used for `qwen/qwen3.6-27b` in the
+   trailing 24 hours (the last real activity was Session 5's stop at
+   2026-07-25 00:31 UTC, well outside the window by 2026-07-26 16:16 UTC
+   when this resume started). The resume ran cleanly for ~50 calls — mostly
+   200 OK, the existing reactive per-minute pacing logging its usual
+   "pacing: ... sleeping Ns" lines — then, without warning, fell into a
+   sustained, unbroken 429 streak with *no* pacing log lines between
+   attempts at all. Killed the process (602 real calls made, 543
+   rate-limited, ~95K tokens spent for nothing) rather than let it keep
+   burning real budget.
+
+2. The real 429 body, read straight out of `llm_call_logs.error`, was
+   unambiguous: `Rate limit reached for model qwen/qwen3.6-27b ... on
+   tokens per day (TPD): Limit 200000, Used 199909, Requested 2142. Please
+   try again in 14m46.032s.` The daily pool was already exhausted before
+   this session made much of a dent.
+
+3. First theory: every failed call always logs `tokens_used=0` (confirmed
+   true — `_call_real`'s except block never touches `tokens_used` past its
+   `0` initialization, since `response.raise_for_status()` raises before
+   the success-path assignment). A prior burst that mostly failed would
+   therefore look artificially cheap to `sum_tokens_used_today`, even
+   though Groq's real ledger might still count something for a rejected
+   request. Plausible on its face, but the real numbers didn't support it
+   as the *primary* explanation: querying the exact rolling-24h window as
+   of the failing call's timestamp showed only 61 real calls / 95,117
+   tokens (8 of them failed) — nowhere near enough, even generously
+   recharged as full "Requested" cost per failed call, to account for a
+   ~104,792-token gap against Groq's reported 199,909 used. This is the
+   second time a theory about reconstructing Groq's own day-boundary/
+   ledger from our own logs has turned out wrong (first the fixed-midnight
+   assumption in 14h, then this rolling-24h window itself) — worth stating
+   plainly rather than chasing a third guess: we cannot reliably
+   reverse-engineer Groq's internal accounting from our own client-side
+   logs alone.
+
+4. The actually well-evidenced, fully reproducible bug: `retry-after` has
+   been captured into the diagnostic `error` text since 14k, but nothing
+   ever *used* it programmatically. `_update_rate_limit_state` only reads
+   `x-ratelimit-remaining-tokens`/`x-ratelimit-reset-tokens` (Groq's
+   per-minute TPM signal, correctly paced); `retry-after` was parsed only
+   for the human-readable diagnostic string. Once a 429 reports a
+   TPD-scale `retry-after` (minutes, not seconds), nothing distinguishes
+   it from a normal TPM blip, so `run_pass1`'s Pass 1b loop just kept
+   retrying at the flat `MIN_CALL_INTERVAL_S=0.5s` floor, once per pending
+   violation, for as many violations as it took to notice — 500+ in this
+   case.
+
+5. **Fix**: stop trying to predict Groq's internal ledger from our own
+   history. `llm_client.py`'s `_call_real` now parses the real
+   `retry-after` header off any `HTTPStatusError` and persists it as a new
+   `llm_call_logs.retry_after_s` column (migration
+   `a6aa4dda4adb`). `eval_runner.py` gained `get_cooldown_until()`, which
+   reads the single most recent row with a non-null `retry_after_s` for
+   the model and returns `created_at + retry_after_s` as a wall-clock
+   deadline if it's still in the future. This check runs *first* in the
+   Pass 1b loop's per-violation guard, ahead of the existing
+   `count_real_calls_today`/`sum_tokens_used_today` checks, with a new
+   `budget_stopped_reason` value `"groq_cooldown"` — so the very next
+   violation after a TPD-scale 429 refuses to call at all, instead of
+   plowing through the rest of the corpus. The existing count/token guards
+   are unchanged (not wrong, just insufficient alone as this session
+   showed) — this adds an authoritative backstop that doesn't depend on
+   our own accounting being correct. 6 new tests cover retry-after capture
+   (429 vs. non-429 vs. timeout), `get_cooldown_until`'s active/expired/
+   filtered cases, and a `run_pass1`-level integration test proving
+   `reviewer_node` is never called while a cooldown is active. Full backend
+   suite (132 tests) green. Not yet re-verified against a real resume —
+   real headroom won't return until well after the last observed
+   retry-after deadlines from this session (climbing past 16:47 UTC,
+   run continued to 16:52 UTC), so the next real check is a small
+   live-verification burst (matching 14j's precedent) once that window has
+   clearly passed, confirming the new guard actually fires against a live
+   Groq 429 rather than trusting unit tests alone for a bug class that's
+   already escaped them twice.

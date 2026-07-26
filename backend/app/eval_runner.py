@@ -126,6 +126,37 @@ async def sum_tokens_used_today(
     return result.scalar_one()
 
 
+async def get_cooldown_until(
+    db: AsyncSession, model: str = llm_client.MODEL_NAME, now: datetime | None = None,
+) -> datetime | None:
+    """Groq's own stated retry-after on the most recent real 429 for this
+    model, as a wall-clock deadline -- authoritative backstop for
+    count_real_calls_today/sum_tokens_used_today's own-log-based estimate.
+    Phase 5 Pass 1b Session 6 (design.md 14n) found the rolling-24h window
+    still saw only ~61 calls/95K tokens locally when Groq's real TPD
+    counter reported 199,909/200,000 used -- rather than reverse-
+    engineering Groq's ledger a third time (first a fixed-midnight
+    assumption, then rolling-24h), this trusts their real-time
+    retry-after value directly."""
+    now = now or datetime.now(timezone.utc)
+    result = await db.execute(
+        select(LlmCallLog.created_at, LlmCallLog.retry_after_s)
+        .where(
+            LlmCallLog.is_mock.is_(False),
+            LlmCallLog.model_used == model,
+            LlmCallLog.retry_after_s.isnot(None),
+        )
+        .order_by(LlmCallLog.created_at.desc())
+        .limit(1)
+    )
+    row = result.first()
+    if row is None:
+        return None
+    created_at, retry_after_s = row
+    blocked_until = created_at + timedelta(seconds=retry_after_s)
+    return blocked_until if blocked_until > now else None
+
+
 def should_stop_for_budget(current_count: int, daily_cap: int, safety_margin_pct: float) -> bool:
     """Pure function: stop once current_count reaches the safety-margined
     threshold, not the literal cap — leaves headroom for other concurrent
@@ -367,6 +398,24 @@ async def run_pass1(
             for v_entry in page_entry["violations"]:
                 if v_entry["reviewer_status"] == "done":
                     continue
+
+                cooldown_until = await get_cooldown_until(db)
+                if cooldown_until is not None:
+                    logger.warning(
+                        "eval_runner Pass 1: stopped — Groq reported a real cooldown "
+                        "active until %s (retry-after from the most recent 429), resume "
+                        "by re-running eval_runner.py after that time",
+                        cooldown_until.isoformat(),
+                    )
+                    manifest["budget_stopped"] = True
+                    manifest["budget_stopped_reason"] = "groq_cooldown"
+                    save_manifest(manifest_path, manifest)
+                    return {
+                        "sites_crawled": sites_crawled,
+                        "violations_reviewed": violations_reviewed,
+                        "budget_stopped": True,
+                        "budget_stopped_reason": "groq_cooldown",
+                    }
 
                 count = await count_real_calls_today(db)
                 tokens = await sum_tokens_used_today(db)

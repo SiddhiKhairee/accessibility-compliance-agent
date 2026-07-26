@@ -429,6 +429,31 @@ Three sequential stages against the 30-site corpus
             account: design.md Section 14m. Not yet re-verified at a real
             resume — needs the rolling window to age out enough for real
             headroom to return first.
+      - [x] Pass 1b — Session 6 (2026-07-26): the resume verifying Session
+            5's rolling-24h fix itself collapsed into a runaway 429 storm
+            (602 real calls, 543 rate-limited, ~95K tokens, killed rather
+            than left running). The real 429 body showed Groq's daily pool
+            already at 199,909/200,000 used, even though our own rolling-24h
+            guard had reported 0 calls/tokens used moments earlier. First
+            theory — failed calls always log `tokens_used=0`, undercounting
+            a prior failure burst — was real but too small to be the
+            primary cause (only 61 calls/95,117 tokens fell in the actual
+            rolling window, nowhere near the ~104,792-token gap). The
+            well-evidenced bug: `retry-after` was captured into diagnostic
+            logs since Session 5 but never used programmatically, so a
+            TPD-scale 429 (minutes-long retry) looked identical to a normal
+            per-minute blip and the loop just kept retrying at the flat
+            0.5s floor. Fixed: `llm_call_logs` gained a `retry_after_s`
+            column (migration `a6aa4dda4adb`); `_call_real` now parses and
+            persists it; `eval_runner.py`'s new `get_cooldown_until()`
+            trusts Groq's own stated retry-after as an authoritative
+            wall-clock deadline, checked first in the Pass 1b loop ahead of
+            the existing count/token guards, with a new
+            `budget_stopped_reason` of `"groq_cooldown"`. Full backend
+            suite (132 tests) green. Full account: design.md Section 14n.
+            Not yet re-verified at a real resume — needs real headroom to
+            return first, then a small live-verification burst before a
+            full resume.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate

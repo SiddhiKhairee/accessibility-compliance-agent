@@ -40,12 +40,13 @@ def test_assert_llm_not_mocked_passes_when_unmocked(monkeypatch):
 
 async def _insert_call_log(
     *, model_used: str, is_mock: bool, cache_hit: bool, created_at: datetime, tokens_used: int = 50,
+    retry_after_s: float | None = None,
 ) -> None:
     async with async_session_factory() as db:
         db.add(LlmCallLog(
             agent_name=AgentName.Reviewer, latency_ms=100, tokens_used=tokens_used,
             model_used=model_used, cache_hit=cache_hit, is_mock=is_mock,
-            confidence_score=0.9, created_at=created_at,
+            confidence_score=0.9, created_at=created_at, retry_after_s=retry_after_s,
         ))
         await db.commit()
 
@@ -155,3 +156,70 @@ async def test_sum_tokens_used_today_defaults_to_reviewer_model_and_real_now():
         tokens = await eval_runner.sum_tokens_used_today(db)
     assert isinstance(tokens, int)
     assert tokens >= 0
+
+
+async def test_get_cooldown_until_returns_none_with_no_matching_rows():
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
+
+    async with async_session_factory() as db:
+        cooldown = await eval_runner.get_cooldown_until(db, model=model, now=now)
+    assert cooldown is None
+
+
+async def test_get_cooldown_until_returns_deadline_while_still_active():
+    # Session 6 (design.md 14n): a real 429's retry-after, not our own
+    # rolling-24h token sum, is the authoritative signal this checks.
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
+    five_min_ago = now - timedelta(minutes=5)
+
+    await _insert_call_log(
+        model_used=model, is_mock=False, cache_hit=False,
+        created_at=five_min_ago, tokens_used=0, retry_after_s=900,
+    )
+
+    async with async_session_factory() as db:
+        cooldown = await eval_runner.get_cooldown_until(db, model=model, now=now)
+    assert cooldown == five_min_ago + timedelta(seconds=900)
+
+
+async def test_get_cooldown_until_returns_none_once_deadline_has_passed():
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
+    long_ago = now - timedelta(hours=1)
+
+    await _insert_call_log(
+        model_used=model, is_mock=False, cache_hit=False,
+        created_at=long_ago, tokens_used=0, retry_after_s=60,
+    )
+
+    async with async_session_factory() as db:
+        cooldown = await eval_runner.get_cooldown_until(db, model=model, now=now)
+    assert cooldown is None
+
+
+async def test_get_cooldown_until_ignores_other_model_and_mock_rows():
+    model = f"test-model-{uuid.uuid4().hex[:12]}"
+    now = datetime(2026, 6, 15, 12, 0, tzinfo=timezone.utc)
+    five_min_ago = now - timedelta(minutes=5)
+
+    # Should NOT count:
+    await _insert_call_log(
+        model_used=f"{model}-other", is_mock=False, cache_hit=False,
+        created_at=five_min_ago, tokens_used=0, retry_after_s=900,
+    )
+    await _insert_call_log(
+        model_used=model, is_mock=True, cache_hit=False,
+        created_at=five_min_ago, tokens_used=0, retry_after_s=900,
+    )
+
+    async with async_session_factory() as db:
+        cooldown = await eval_runner.get_cooldown_until(db, model=model, now=now)
+    assert cooldown is None
+
+
+async def test_get_cooldown_until_defaults_to_reviewer_model_and_real_now():
+    async with async_session_factory() as db:
+        cooldown = await eval_runner.get_cooldown_until(db)
+    assert cooldown is None or isinstance(cooldown, datetime)

@@ -7,6 +7,7 @@ name eval_runner imported directly) are monkeypatched, matching the
 _make_paced_request.
 """
 import json
+from datetime import datetime, timedelta, timezone
 
 import crawler
 import eval_runner
@@ -127,6 +128,10 @@ async def test_run_pass1_stops_cleanly_at_budget_threshold(tmp_path, monkeypatch
         return 0
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_token_budget)
 
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
+
     def _fail_if_called(*args, **kwargs):
         raise AssertionError("reviewer_node should not be called once the budget guard trips")
     monkeypatch.setattr(eval_runner, "reviewer_node", _fail_if_called)
@@ -145,6 +150,61 @@ async def test_run_pass1_stops_cleanly_at_budget_threshold(tmp_path, monkeypatch
         manifest = json.load(f)
     assert manifest["budget_stopped"] is True
     assert manifest["budget_stopped_reason"] == "call_count"
+    saved_violation = manifest["sites"]["1"]["pages"][0]["violations"][0]
+    assert saved_violation["reviewer_status"] == "pending"
+
+
+async def test_run_pass1_stops_cleanly_when_groq_cooldown_active(tmp_path, monkeypatch):
+    """The new authoritative backstop (design.md 14n): Groq's own retry-after
+    on a recent real 429 must stop the run before even checking the
+    count/token guards, since Session 6 showed those can't be trusted alone
+    to reflect Groq's real ledger."""
+    monkeypatch.setenv("LLM_MOCK", "false")
+    corpus_path = _write_corpus_csv(tmp_path / "corpus.csv", FAKE_CORPUS[:1])
+    manifest_path = tmp_path / "manifest.json"
+
+    violation = crawler.Violation(
+        wcag_rule="image-alt", element_selector="img.hero", severity="serious",
+        html_snippet="<img class='hero'>", message="missing alt text",
+    )
+    page = crawler.CrawledPage(
+        url="http://site-a.test/", depth=0, status="loaded",
+        title="Site A", snapshot_path="/tmp/fake.html", violations=[violation],
+    )
+
+    async def _fake_crawl_site(*args, **kwargs):
+        return [page]
+    monkeypatch.setattr(crawler, "crawl_site", _fake_crawl_site)
+
+    async def _fake_under_budget(db, model=None, now=None):
+        return 0
+    monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_under_budget)
+    monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_budget)
+
+    cooldown_deadline = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+    async def _fake_active_cooldown(db, model=None, now=None):
+        return cooldown_deadline
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_active_cooldown)
+
+    def _fail_if_called(*args, **kwargs):
+        raise AssertionError("reviewer_node should not be called while a Groq cooldown is active")
+    monkeypatch.setattr(eval_runner, "reviewer_node", _fail_if_called)
+
+    async with async_session_factory() as db:
+        result = await eval_runner.run_pass1(
+            db, corpus_path=corpus_path, manifest_path=manifest_path,
+            snapshot_dir=tmp_path / "snapshots",
+        )
+
+    assert result["budget_stopped"] is True
+    assert result["budget_stopped_reason"] == "groq_cooldown"
+    assert result["violations_reviewed"] == 0
+
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = json.load(f)
+    assert manifest["budget_stopped"] is True
+    assert manifest["budget_stopped_reason"] == "groq_cooldown"
     saved_violation = manifest["sites"]["1"]["pages"][0]["violations"][0]
     assert saved_violation["reviewer_status"] == "pending"
 
@@ -178,6 +238,10 @@ async def test_run_pass1_stops_cleanly_at_token_budget_threshold(tmp_path, monke
     async def _fake_over_token_budget(db, model=None, now=None):
         return 190_000
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_over_token_budget)
+
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
 
     def _fail_if_called(*args, **kwargs):
         raise AssertionError("reviewer_node should not be called once the token budget guard trips")
@@ -231,6 +295,10 @@ async def test_run_pass1_resumes_only_pending_violations(tmp_path, monkeypatch):
         return 0
     monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_under_budget)
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_budget)
+
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
 
     call_count = {"n": 0}
     reviewed_selectors = []
@@ -291,6 +359,10 @@ async def test_run_pass1_records_error_type_from_wrapped_llm_call_error(tmp_path
     monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_under_budget)
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_budget)
 
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
+
     async def _fake_reviewer_node(state):
         raise llm_client.LlmCallError("simulated 429", error_type="rate_limited")
     monkeypatch.setattr(eval_runner, "reviewer_node", _fake_reviewer_node)
@@ -348,6 +420,10 @@ async def test_run_pass1_crawls_all_sites_before_reviewing_any(tmp_path, monkeyp
     async def _fake_under_token_budget(db, model=None, now=None):
         return 0
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_token_budget)
+
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
 
     def _fail_if_called(*args, **kwargs):
         raise AssertionError("reviewer_node should not be called once the budget guard trips")
@@ -471,6 +547,10 @@ async def test_run_pass1_force_recrawl_resets_and_recrawls_all_sites(tmp_path, m
         return 0
     monkeypatch.setattr(eval_runner, "count_real_calls_today", _fake_under_budget)
     monkeypatch.setattr(eval_runner, "sum_tokens_used_today", _fake_under_budget)
+
+    async def _fake_no_cooldown(db, model=None, now=None):
+        return None
+    monkeypatch.setattr(eval_runner, "get_cooldown_until", _fake_no_cooldown)
 
     call_count = {"n": 0}
 
