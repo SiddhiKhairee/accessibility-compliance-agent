@@ -454,6 +454,21 @@ Three sequential stages against the 30-site corpus
             Not yet re-verified at a real resume — needs real headroom to
             return first, then a small live-verification burst before a
             full resume.
+      - [ ] Pass 1b — Session 7 (2026-07-30): first full-length resume since
+            Session 6's cooldown guard was merged, after 4 real days of
+            Groq TPD-pool recovery (vs. Session 6's same-day resumes, which
+            only had room for 2-3 real calls per cooldown window). This
+            session got a real 62-violation burst before the next genuine
+            429, a large improvement, then the `groq_cooldown` guard
+            stopped it cleanly again exactly as designed
+            (`budget_stopped_reason: "groq_cooldown"`, cooldown until
+            2026-07-30T22:26:40 UTC). Manifest: 1,558/3,122 reviewed (747
+            failed, 817 pending). Noted, not yet investigated: 11 of the
+            747 failed entries are a generic `http_error` (400 Bad Request)
+            rather than `rate_limited`, all on `color-contrast` violations
+            — small (11/3122) and will auto-retry on the next resume like
+            any other failed entry, but worth a real look if the count
+            grows. No code changes this session, manifest checkpoint only.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
