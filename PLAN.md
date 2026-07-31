@@ -469,6 +469,19 @@ Three sequential stages against the 30-site corpus
             — small (11/3122) and will auto-retry on the next resume like
             any other failed entry, but worth a real look if the count
             grows. No code changes this session, manifest checkpoint only.
+      - [ ] Pass 1b — Session 8 (2026-07-30): resumed right after Session
+            7's cooldown cleared. Window was much smaller this time — only
+            1 of 3 attempted calls succeeded before the next genuine 429 —
+            vs. Session 7's 62-violation burst, suggesting Session 7's own
+            spend hadn't fully cleared the rolling-24h TPD window yet. Guard
+            stopped cleanly again as designed (`budget_stopped_reason:
+            "groq_cooldown"`, cooldown until 2026-07-31T00:03:53 UTC).
+            Manifest: 1,559/3,122 reviewed (746 failed, 817 pending). No
+            code changes, manifest checkpoint only. Take-away so far across
+            Sessions 7-8: burst size after a cooldown isn't predictable from
+            wall-clock time alone — it depends on how much real spend is
+            still inside Groq's rolling 24h window, which this project
+            doesn't have visibility into ahead of a real call.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
