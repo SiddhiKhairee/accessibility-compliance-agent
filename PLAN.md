@@ -482,6 +482,33 @@ Three sequential stages against the 30-site corpus
             wall-clock time alone — it depends on how much real spend is
             still inside Groq's rolling 24h window, which this project
             doesn't have visibility into ahead of a real call.
+      - [ ] Pass 1b — Session 9 (2026-08-03): resumed after several idle
+            days, so the rolling-24h window and the last real cooldown had
+            both long since cleared going in. Two resume bursts today: the
+            first got 39 attempted calls (29 succeeded) before a genuine
+            429 (cooldown until 2026-08-03T22:35:15 UTC); after that
+            cleared, a second attempt got only 2 calls in before another
+            429, this time with a much longer cooldown
+            (2026-08-03T23:25:08 UTC) — consistent with Sessions 7-8's
+            take-away that burst size depends on real spend still inside
+            Groq's rolling window, not wall-clock time since the last
+            attempt. Guard stopped cleanly both times as designed.
+            Manifest: 1,589/3,122 reviewed (716 failed, 817 pending).
+
+            Investigated Session 7's open `http_error` question (11 of
+            747 failed entries, noted but not looked into): all on
+            `color-contrast` violations with very short HTML snippets,
+            Groq's real response body is `"code":"json_validate_failed"`
+            with an **empty** `failed_generation` — the model spent its
+            full `REASONING_MODEL_MAX_TOKENS=6000` budget on reasoning
+            without emitting any content, the same class of failure
+            already documented for qwen3.6-27b (design.md 14l's "9709
+            reasoning tokens on one trivial Reviewer judgment"), not a new
+            bug. Confirmed non-deterministic, not a permanent per-item
+            failure: retrying 2 of these entries this session, 1 got a
+            normal 200. No code changes — existing retry-on-resume
+            behavior already handles it; revisit only if the count keeps
+            growing relative to `rate_limited`.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
