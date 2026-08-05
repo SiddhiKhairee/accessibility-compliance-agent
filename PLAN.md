@@ -509,6 +509,31 @@ Three sequential stages against the 30-site corpus
             normal 200. No code changes — existing retry-on-resume
             behavior already handles it; revisit only if the count keeps
             growing relative to `rate_limited`.
+      - [ ] Pass 1b — Session 10 (2026-08-04→05): resumed after Session 9.
+            Before resuming, confirmed no active `groq_cooldown`
+            (Session 9's last cooldown, 2026-08-03T23:25:08 UTC, had long
+            since cleared) and today's rolling-24h budget was nearly
+            untouched (4 real calls / 4,492 tokens, both well under the
+            90%-safety-margin thresholds) — a clean resume, not one racing
+            an active guard. Got a 22-call burst before the next genuine
+            429 (cooldown until 2026-08-05T00:06:20 UTC — a short window
+            this time, already past by session's end). Guard stopped
+            cleanly as designed. Manifest: 1,609/3,122 reviewed (696
+            failed — 694 `rate_limited`, 2 `http_error` already root-caused
+            in Session 9 — 817 pending). No code changes, manifest
+            checkpoint only. 1,513 violations remain across 7 of 30 sites;
+            next resume is a plain `python eval_runner.py` (all 30 sites
+            already `crawl_detect_status: done`).
+
+            Separately found and fixed, unrelated to Pass 1b itself:
+            `accessibility_agent_backend`'s Docker container was
+            crash-looping (alembic couldn't locate revision
+            `a6aa4dda4adb`, added by Session 6's migration but 16 days
+            newer than the image's last build). Rebuilt the image; backend
+            now starts clean. See design.md 14o for the full root cause —
+            `eval_runner.py` runs from the host venv straight against
+            Postgres and was never blocked by this, but the real FastAPI
+            app/frontend were down until the rebuild.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
