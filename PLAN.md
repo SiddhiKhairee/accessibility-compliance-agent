@@ -482,6 +482,58 @@ Three sequential stages against the 30-site corpus
             wall-clock time alone — it depends on how much real spend is
             still inside Groq's rolling 24h window, which this project
             doesn't have visibility into ahead of a real call.
+      - [ ] Pass 1b — Session 9 (2026-08-03): resumed after several idle
+            days, so the rolling-24h window and the last real cooldown had
+            both long since cleared going in. Two resume bursts today: the
+            first got 39 attempted calls (29 succeeded) before a genuine
+            429 (cooldown until 2026-08-03T22:35:15 UTC); after that
+            cleared, a second attempt got only 2 calls in before another
+            429, this time with a much longer cooldown
+            (2026-08-03T23:25:08 UTC) — consistent with Sessions 7-8's
+            take-away that burst size depends on real spend still inside
+            Groq's rolling window, not wall-clock time since the last
+            attempt. Guard stopped cleanly both times as designed.
+            Manifest: 1,589/3,122 reviewed (716 failed, 817 pending).
+
+            Investigated Session 7's open `http_error` question (11 of
+            747 failed entries, noted but not looked into): all on
+            `color-contrast` violations with very short HTML snippets,
+            Groq's real response body is `"code":"json_validate_failed"`
+            with an **empty** `failed_generation` — the model spent its
+            full `REASONING_MODEL_MAX_TOKENS=6000` budget on reasoning
+            without emitting any content, the same class of failure
+            already documented for qwen3.6-27b (design.md 14l's "9709
+            reasoning tokens on one trivial Reviewer judgment"), not a new
+            bug. Confirmed non-deterministic, not a permanent per-item
+            failure: retrying 2 of these entries this session, 1 got a
+            normal 200. No code changes — existing retry-on-resume
+            behavior already handles it; revisit only if the count keeps
+            growing relative to `rate_limited`.
+      - [ ] Pass 1b — Session 10 (2026-08-04→05): resumed after Session 9.
+            Before resuming, confirmed no active `groq_cooldown`
+            (Session 9's last cooldown, 2026-08-03T23:25:08 UTC, had long
+            since cleared) and today's rolling-24h budget was nearly
+            untouched (4 real calls / 4,492 tokens, both well under the
+            90%-safety-margin thresholds) — a clean resume, not one racing
+            an active guard. Got a 22-call burst before the next genuine
+            429 (cooldown until 2026-08-05T00:06:20 UTC — a short window
+            this time, already past by session's end). Guard stopped
+            cleanly as designed. Manifest: 1,609/3,122 reviewed (696
+            failed — 694 `rate_limited`, 2 `http_error` already root-caused
+            in Session 9 — 817 pending). No code changes, manifest
+            checkpoint only. 1,513 violations remain across 7 of 30 sites;
+            next resume is a plain `python eval_runner.py` (all 30 sites
+            already `crawl_detect_status: done`).
+
+            Separately found and fixed, unrelated to Pass 1b itself:
+            `accessibility_agent_backend`'s Docker container was
+            crash-looping (alembic couldn't locate revision
+            `a6aa4dda4adb`, added by Session 6's migration but 16 days
+            newer than the image's last build). Rebuilt the image; backend
+            now starts clean. See design.md 14o for the full root cause —
+            `eval_runner.py` runs from the host venv straight against
+            Postgres and was never blocked by this, but the real FastAPI
+            app/frontend were down until the rebuild.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate

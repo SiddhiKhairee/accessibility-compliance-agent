@@ -1974,3 +1974,60 @@ retry-after instead of trying to reconstruct their ledger a third time.**
    clearly passed, confirming the new guard actually fires against a live
    Groq 429 rather than trusting unit tests alone for a bug class that's
    already escaped them twice.
+
+**14o. Pass 1b Session 10 (2026-08-04→05): a clean resume, plus an
+unrelated stale-Docker-image bug found and fixed along the way.**
+
+1. **Pre-resume verification, not a blind restart.** Sessions 7-9's
+   take-away was that burst size after a cooldown depends on real spend
+   still inside Groq's rolling window, not wall-clock time — so before
+   launching, this session checked both guards directly against the DB
+   rather than assuming Session 9's stop state still applied:
+   `get_cooldown_until()` returned `None` (Session 9's last cooldown,
+   `2026-08-03T23:25:08 UTC`, had long since passed), and
+   `count_real_calls_today`/`sum_tokens_used_today` showed only 4 real
+   calls / 4,492 tokens in the trailing 24h — nowhere near the 900-call/
+   180,000-token safety-margin thresholds. Confirmed a genuinely clean
+   resume before spending anything.
+
+2. **Unrelated bug found while checking the environment:
+   `accessibility_agent_backend` was crash-looping.** `docker compose ps`
+   showed `Restarting (255)`; `docker logs` showed alembic repeatedly
+   failing `Can't locate revision identified by 'a6aa4dda4adb'` on every
+   restart attempt. That revision is real — it's the
+   `llm_call_logs.retry_after_s` migration from 14n/Session 6 — and exists
+   in this branch's `backend/migrations/versions/`, so the failure wasn't
+   a missing-file problem. Root cause: the backend image (`docker inspect
+   --format '{{.Created}}'`) was last built `2026-07-10T05:11:14Z`, and
+   migration `a6aa4dda4adb` was added `2026-07-26` (`caae186`) — 16 days
+   later. The dev Postgres volume (`./pgdata`) had already been migrated
+   to that revision via the host venv (the same one `eval_runner.py`
+   uses), but the backend container's baked-in copy of
+   `backend/migrations/versions/` simply predated that file, so its own
+   `alembic upgrade head` on every container restart couldn't resolve the
+   revision the DB was already stamped to. Fixed with `docker compose
+   build backend && docker compose up -d backend`; migrations now apply
+   cleanly on startup and `GET /docs` returns `200`. Postgres itself was
+   never recreated (only reconnected to), and `eval_runner.py` doesn't run
+   through this container at all — it's a standalone host-venv script
+   connecting to `localhost:5433` directly — so this bug was never
+   actually blocking Pass 1b, but the real FastAPI app/frontend were down
+   until the rebuild. Worth remembering going forward: this image needs a
+   rebuild after *any* new migration, not just a restart, since
+   `restart: unless-stopped` alone doesn't pick up new files baked in at
+   build time.
+
+3. **Resume results.** 22 real calls attempted (`eval_runner`'s own
+   summary: `"violations_reviewed": 22`) before the next genuine 429;
+   guard stopped cleanly as designed (`budget_stopped_reason:
+   "groq_cooldown"`, cooldown until `2026-08-05T00:06:20 UTC` — a short
+   window this time, already past by the time this was written up).
+   Manifest moved from 1,590/3,122 reviewed (715 failed, 817 pending) to
+   **1,609/3,122 reviewed (696 failed — 694 `rate_limited`, 2
+   `http_error` already root-caused in 14n's Session 9 entry as the
+   known empty-`failed_generation` reasoning-budget-exhaustion class,
+   not a new bug — 817 pending)**. No code changes this session, manifest
+   checkpoint only. 1,513 violations remain across 7 of 30 sites for the
+   next resume; a plain `python eval_runner.py` picks it back up (all 30
+   sites already show `crawl_detect_status: done`, so it goes straight to
+   Pass 1b).
