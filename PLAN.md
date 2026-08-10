@@ -534,6 +534,37 @@ Three sequential stages against the 30-site corpus
             `eval_runner.py` runs from the host venv straight against
             Postgres and was never blocked by this, but the real FastAPI
             app/frontend were down until the rebuild.
+      - [ ] Pass 1b — Session 11 (2026-08-09→10): resumed after Session 10.
+            Before touching Groq, found `accessibility_agent_backend`
+            crash-looping on startup — but this time the root cause was
+            Postgres itself, not a stale image: the container had been
+            interrupted by an unclean shutdown (last checkpoint
+            2026-08-05T00:10:50 UTC, then a `FATAL: could not open file
+            "global/pg_filenode.map": Bad address` entry, then nothing until
+            this session restarted it), so it was mid-WAL-crash-recovery on
+            startup and `depends_on: service_healthy` was correctly holding
+            backend in a restart loop until that finished. Waited it out
+            rather than intervening; Postgres came up healthy on its own
+            with no data loss. Pre-resume verification (as established
+            since Session 9): `get_cooldown_until()` was `None` and
+            today's rolling-24h usage was 0 calls/0 tokens — genuinely
+            clean going in.
+
+            Two resume bursts, continuing Sessions 7-9's "burst size isn't
+            predictable from wall-clock time" pattern: first got 49
+            violations reviewed before a genuine 429 (cooldown until
+            2026-08-10T03:16:39 UTC; manifest at 1,651/3,122 reviewed — 654
+            failed, 648 `rate_limited` + 6 `http_error`, 817 pending).
+            After that cleared, a second attempt got only 2 calls in before
+            another 429 with a longer cooldown (2026-08-10T04:03:18 UTC;
+            manifest at 1,652/3,122 reviewed — 653 failed, 649
+            `rate_limited` + 4 `http_error`, 817 pending). Guard stopped
+            cleanly both times as designed. Given the sharp drop in burst
+            size (49 → 2), stopped for the session rather than waiting out
+            the longer cooldown for a likely small return. No code changes,
+            manifest checkpoint only. 1,470 violations remain across the
+            same 7 of 30 sites; next resume is a plain
+            `python eval_runner.py`.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
