@@ -1,6 +1,6 @@
 {
   "run_started_at": "2026-07-14T20:38:18.661306+00:00",
-  "last_updated_at": "2026-08-10T03:19:08.443805+00:00",
+  "last_updated_at": "2026-08-10T04:15:02.309245+00:00",
   "budget_stopped": true,
   "sites": {
     "1": {
@@ -19495,11 +19495,11 @@
               "element_selector": ".b-list-with-image.c-block--remove-padding:nth-child(10) > .b-list-with-image__container.l-container > .b-list-with-image__loop > .b-list-with-image__item:nth-child(3) > .b-list-with-image__item__title > h3 > a",
               "html_snippet": "<a href=\"https://www.harvard.edu/in-focus/heart-health/\">Heart Health</a>",
               "message": "Element's background color could not be determined due to a background gradient",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
-              "error_type": "rate_limited"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -19509,8 +19509,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",

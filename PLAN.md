@@ -562,9 +562,17 @@ Three sequential stages against the 30-site corpus
             cleanly both times as designed. Given the sharp drop in burst
             size (49 → 2), stopped for the session rather than waiting out
             the longer cooldown for a likely small return. No code changes,
-            manifest checkpoint only. 1,470 violations remain across the
-            same 7 of 30 sites; next resume is a plain
-            `python eval_runner.py`.
+            manifest checkpoint only.
+
+            One further check-in later the same session: budget/cooldown
+            re-verified clean (0 active cooldown, 50/900 calls and
+            84,459/180,000 tokens used in the rolling 24h window), so
+            attempted one more resume. Got only 2 calls in before another
+            429 (cooldown until 2026-08-10T04:27:14 UTC) — same small-burst
+            pattern. Manifest: 1,653/3,122 reviewed (652 failed, 817
+            pending). Stopped for the day here; next resume is a plain
+            `python eval_runner.py`. 1,469 violations remain across the
+            same 7 of 30 sites.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
