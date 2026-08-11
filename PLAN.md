@@ -573,6 +573,30 @@ Three sequential stages against the 30-site corpus
             pending). Stopped for the day here; next resume is a plain
             `python eval_runner.py`. 1,469 violations remain across the
             same 7 of 30 sites.
+      - [ ] Pass 1b — Session 12 (2026-08-11): resumed after Session 11.
+            Found `accessibility_agent_backend` briefly failing to connect
+            (`ConnectionRefusedError`/`CannotConnectNowError`) on an
+            otherwise ordinary startup — Postgres logged "database system
+            was interrupted; last known up at 2026-08-10 04:18:04 UTC" and
+            ran normal (non-WAL-crash) recovery from an unclean shutdown
+            between sessions. Waited for `docker inspect`'s health status
+            to report `healthy`; backend then connected cleanly with no
+            further intervention needed (not Session 10's stale-image bug
+            or Session 11's WAL crash recovery — a third, more ordinary
+            variant of the same "container state after a gap" theme).
+            Pre-resume verification clean: no active `groq_cooldown`, 0
+            calls/0 tokens in the rolling 24h window.
+
+            One resume burst: 62 violations reviewed before a genuine 429
+            (cooldown until 2026-08-11T23:40:23 UTC) — 55 succeeded, 7
+            failed (`http_error`, empty `failed_generation` — same
+            reasoning-budget-exhaustion class already root-caused in
+            Session 9/design.md 14n, confirmed again via `llm_call_logs`,
+            not a new bug). Manifest: 1,707/3,122 reviewed (598 failed —
+            591 `rate_limited` + 7 `http_error` — 817 pending). Guard
+            stopped cleanly as designed. No code changes, manifest
+            checkpoint only. 1,415 violations remain across the same 7 of
+            30 sites; next resume is a plain `python eval_runner.py`.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
