@@ -534,6 +534,79 @@ Three sequential stages against the 30-site corpus
             `eval_runner.py` runs from the host venv straight against
             Postgres and was never blocked by this, but the real FastAPI
             app/frontend were down until the rebuild.
+      - [ ] Pass 1b — Session 11 (2026-08-09→10): resumed after Session 10.
+            Before touching Groq, found `accessibility_agent_backend`
+            crash-looping on startup — but this time the root cause was
+            Postgres itself, not a stale image: the container had been
+            interrupted by an unclean shutdown (last checkpoint
+            2026-08-05T00:10:50 UTC, then a `FATAL: could not open file
+            "global/pg_filenode.map": Bad address` entry, then nothing until
+            this session restarted it), so it was mid-WAL-crash-recovery on
+            startup and `depends_on: service_healthy` was correctly holding
+            backend in a restart loop until that finished. Waited it out
+            rather than intervening; Postgres came up healthy on its own
+            with no data loss. Pre-resume verification (as established
+            since Session 9): `get_cooldown_until()` was `None` and
+            today's rolling-24h usage was 0 calls/0 tokens — genuinely
+            clean going in.
+
+            Two resume bursts, continuing Sessions 7-9's "burst size isn't
+            predictable from wall-clock time" pattern: first got 49
+            violations reviewed before a genuine 429 (cooldown until
+            2026-08-10T03:16:39 UTC; manifest at 1,651/3,122 reviewed — 654
+            failed, 648 `rate_limited` + 6 `http_error`, 817 pending).
+            After that cleared, a second attempt got only 2 calls in before
+            another 429 with a longer cooldown (2026-08-10T04:03:18 UTC;
+            manifest at 1,652/3,122 reviewed — 653 failed, 649
+            `rate_limited` + 4 `http_error`, 817 pending). Guard stopped
+            cleanly both times as designed. Given the sharp drop in burst
+            size (49 → 2), stopped for the session rather than waiting out
+            the longer cooldown for a likely small return. No code changes,
+            manifest checkpoint only.
+
+            One further check-in later the same session: budget/cooldown
+            re-verified clean (0 active cooldown, 50/900 calls and
+            84,459/180,000 tokens used in the rolling 24h window), so
+            attempted one more resume. Got only 2 calls in before another
+            429 (cooldown until 2026-08-10T04:27:14 UTC) — same small-burst
+            pattern. Manifest: 1,653/3,122 reviewed (652 failed, 817
+            pending). Stopped for the day here; next resume is a plain
+            `python eval_runner.py`. 1,469 violations remain across the
+            same 7 of 30 sites.
+      - [ ] Pass 1b — Session 12 (2026-08-11→12): resumed after Session 11.
+            Found `accessibility_agent_backend` briefly failing to connect
+            (`ConnectionRefusedError`/`CannotConnectNowError`) on an
+            otherwise ordinary startup — Postgres logged "database system
+            was interrupted; last known up at 2026-08-10 04:18:04 UTC" and
+            ran normal (non-WAL-crash) recovery from an unclean shutdown
+            between sessions. Waited for `docker inspect`'s health status
+            to report `healthy`; backend then connected cleanly with no
+            further intervention needed (not Session 10's stale-image bug
+            or Session 11's WAL crash recovery — a third, more ordinary
+            variant of the same "container state after a gap" theme).
+            Pre-resume verification clean: no active `groq_cooldown`, 0
+            calls/0 tokens in the rolling 24h window.
+
+            One resume burst: 62 violations reviewed before a genuine 429
+            (cooldown until 2026-08-11T23:40:23 UTC) — 55 succeeded, 7
+            failed (`http_error`, empty `failed_generation` — same
+            reasoning-budget-exhaustion class already root-caused in
+            Session 9/design.md 14n, confirmed again via `llm_call_logs`,
+            not a new bug). Manifest: 1,707/3,122 reviewed (598 failed —
+            591 `rate_limited` + 7 `http_error` — 817 pending). Guard
+            stopped cleanly as designed. No code changes, manifest
+            checkpoint only. 1,415 violations remain across the same 7 of
+            30 sites; next resume is a plain `python eval_runner.py`.
+
+            One further check-in later the same session: budget/cooldown
+            re-verified clean (0 active cooldown, 62/1,000 calls and
+            101,960/200,000 tokens used in the rolling 24h window), so
+            attempted one more resume. Got only 2 calls in before another
+            429 (cooldown until 2026-08-12T01:08:50 UTC) — continuing the
+            diminishing-burst pattern from Sessions 7-11. Manifest:
+            1,708/3,122 reviewed (597 failed — 592 `rate_limited` + 5
+            `http_error` — 817 pending). Stopped here given the short
+            return rather than waiting out the cooldown. No code changes.
       - [ ] Pass 2 — not started; `eval_sampling.py`'s sampler exists, the
             orchestrator to actually run it doesn't (design.md 14e).
 - [ ] Manually label 15-20 pages → real precision/recall/false-positive rate
