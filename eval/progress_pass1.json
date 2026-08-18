@@ -1,6 +1,6 @@
 {
   "run_started_at": "2026-07-14T20:38:18.661306+00:00",
-  "last_updated_at": "2026-08-18T18:25:21.359663+00:00",
+  "last_updated_at": "2026-08-18T20:50:33.267072+00:00",
   "budget_stopped": true,
   "sites": {
     "1": {
@@ -21153,11 +21153,11 @@
               "element_selector": "#p-6a5717de2fc0d-title > span",
               "html_snippet": "<span>Bridging electricity and chemistry</span>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -21329,11 +21329,11 @@
               "element_selector": ".b-card-grid.full_width.query_type_manual:nth-child(9) > .b-card-grid__container.l-container > .b-card-grid__loop.g-3-up > .c-card-link-wrapper.an-will-animate:nth-child(3) > .c-card.has-target-link > .c-card__content > .c-card__description.t-sink.s-sink > p",
               "html_snippet": "<p>In Louisiana, Umar Azad helped research climate-resilient and sustainable infrastructure, including improved water distribution systems, and solar microgrid installations.</p>",
               "message": "Element's background color could not be determined because it is overlapped by another element",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "reviewer_status": "done",
+              "confidence_score": 0.85,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             },
             {
               "wcag_rule": "color-contrast",
@@ -21549,8 +21549,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
