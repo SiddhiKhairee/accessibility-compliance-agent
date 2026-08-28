@@ -1,6 +1,6 @@
 {
   "run_started_at": "2026-07-14T20:38:18.661306+00:00",
-  "last_updated_at": "2026-08-27T23:18:21.075567+00:00",
+  "last_updated_at": "2026-08-28T01:05:51.655611+00:00",
   "budget_stopped": true,
   "sites": {
     "1": {
@@ -23102,11 +23102,11 @@
               "element_selector": ".c-secondary-subheader__subtitle > p",
               "html_snippet": "<p>The title of University Professor was created in 1935 to honor individuals whose groundbreaking work crosses the boundaries of multiple disciplines, allowing them to pursue research at any of Harvard\u2019s Schools.</p>",
               "message": "Element's background color could not be determined due to a pseudo element",
-              "reviewer_status": "failed",
-              "confidence_score": null,
-              "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "reviewer_status": "done",
+              "confidence_score": 0.9,
+              "confirmed": false,
+              "failure_reason": null,
+              "error_type": null
             }
           ]
         },
@@ -23146,8 +23146,8 @@
               "reviewer_status": "failed",
               "confidence_score": null,
               "confirmed": null,
-              "failure_reason": "Reviewer call failed: Client error '400 Bad Request' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-              "error_type": "http_error"
+              "failure_reason": "Reviewer call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+              "error_type": "rate_limited"
             },
             {
               "wcag_rule": "color-contrast",
